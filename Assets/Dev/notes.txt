@@ -1,4 +1,4 @@
-# Code comments
+﻿# Code comments
 // Note
 // Optimizable
 
@@ -13,6 +13,7 @@
    |-effect
  -1|  note hold indicator
  -1|  note sprite
+ -1|  speed warning sprite
    -10 
    |-grid
 -11|  link line

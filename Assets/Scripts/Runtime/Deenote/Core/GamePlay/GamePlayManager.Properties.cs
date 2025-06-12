@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 
 using Deenote.Core.GameStage;
 using Deenote.Entities.Models;
@@ -30,7 +30,6 @@ namespace Deenote.Core.GamePlay
                 configs.Set("stage/effect", IsStageEffectOn);
                 configs.Set("stage/sudden_plus", SuddenPlus);
                 configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
-                configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
                 configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
 
                 configs.Set("stage/music_speed", MusicSpeed);
@@ -50,7 +49,6 @@ namespace Deenote.Core.GamePlay
                 IsStageEffectOn = configs.GetBoolean("stage/effect", true);
                 SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
                 EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
-                IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
                 PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
 
                 MusicSpeed = configs.GetInt32("stage/music_speed", 10);
@@ -147,6 +145,7 @@ namespace Deenote.Core.GamePlay
                 if (Utils.SetField(ref _noteSpeed_bf, value)) {
                     if (IsStageLoaded() && IsChartLoaded()) {
                         NotesManager.RefreshStageActiveNotes();
+                        NotesManager.SpeedChangeWarnings.RefreshActiveModels();
                     }
                     NotifyFlag(NotificationFlag.NoteSpeed);
                 }
@@ -213,6 +212,7 @@ namespace Deenote.Core.GamePlay
                         foreach (var note in NotesManager.OnStageNotes) {
                             note.RefreshColorAlpha();
                         }
+                        NotesManager.SpeedChangeWarnings.RefreshActiveModels();
                     }
                     NotifyFlag(NotificationFlag.SuddenPlus);
                 }
@@ -263,18 +263,6 @@ namespace Deenote.Core.GamePlay
                         }
                     }
                     NotifyFlag(NotificationFlag.EarlyDisplaySlowNotes);
-                }
-            }
-        }
-
-        public bool IgnoreNoteSpeed
-        {
-            get => _ignoreNoteSpeed_bf;
-            set {
-                if (Utils.SetField(ref _ignoreNoteSpeed_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                    }
                 }
             }
         }

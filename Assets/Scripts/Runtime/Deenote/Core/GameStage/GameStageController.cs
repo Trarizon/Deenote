@@ -15,6 +15,7 @@ namespace Deenote.Core.GameStage
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
         [SerializeField] Transform _notePanelTransform = default!;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
+        [SerializeField] Transform _speedWarningPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
         [SerializeField] Material _holdBodyCullMaterial = default!;
 
@@ -28,6 +29,11 @@ namespace Deenote.Core.GameStage
         public Transform NotePanelTransform => _notePanelTransform;
 
         public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
+
+        /// <summary>
+        /// The parent transform of instantiated <see cref="GameStageSpeedChangeWarningNoteController"/>
+        /// </summary>
+        public Transform SpeedWarningPanelTransform => _speedWarningPanelTransform;
 
         [field: SerializeField]
         public GameStageArgs Args { get; private set; } = default!;

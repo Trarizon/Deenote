@@ -83,11 +83,15 @@ namespace Deenote.Core.GamePlay
                     UnityUtils.CreateObjectPool(
                         Stage.Args.GamePlayNotePrefab,
                         Stage.NotePanelTransform,
+                        item => item.OnInstantiate(this)),
+                    UnityUtils.CreateObjectPool(
+                        Stage.Args.GamePlaySpeedWarningPrefab,
+                        Stage.SpeedWarningPanelTransform,
                         item => item.OnInstantiate(this)));
                 OnStageLoaded_Properties(loader);
 
                 if (IsChartLoaded()) {
-                    UpdateNotes(true, true);
+                    ReloadStageActiveNotes();
                 }
 
                 StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
@@ -100,7 +104,9 @@ namespace Deenote.Core.GamePlay
 
                 var forward = args.NewTime > args.OldTime;
                 NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
+                NotesManager.SpeedChangeWarnings.ShiftActiveModels();
                 NotifyFlag(NotificationFlag.ActiveNoteUpdated);
+                NotifyFlag(NotificationFlag.ActiveSpeedChangeWarningUpdated);
                 // In previous version, note time was controlled by StageNoteController.Update,
                 // so we have to manually call update when manually change music time.
                 // In current version, note time is controlled by GamePlayManager.UpdateActiveNotes,
@@ -180,6 +186,18 @@ namespace Deenote.Core.GamePlay
             NotifyFlag(NotificationFlag.ActiveNoteUpdated);
         }
 
+        public void UpdateSpeedChangeWarnings()
+        {
+            NotesManager.SpeedChangeWarnings.RefreshActiveModels();
+            NotifyFlag(NotificationFlag.ActiveSpeedChangeWarningUpdated);
+        }
+
+        private void ReloadStageActiveNotes()
+        {
+            UpdateNotes(true, true);
+            UpdateSpeedChangeWarnings();
+        }
+
         public void LoadChartInCurrentProject(ChartModel chart)
         {
             Debug.Assert(MainSystem.ProjectManager.CurrentProject?.Charts.Contains(chart) is true);
@@ -190,7 +208,7 @@ namespace Deenote.Core.GamePlay
 
             CheckCollision();
             if (IsStageLoaded()) {
-                UpdateNotes(true, true);
+                ReloadStageActiveNotes();
             }
             NotifyFlag(NotificationFlag.CurrentChart);
 
@@ -255,6 +273,13 @@ namespace Deenote.Core.GamePlay
         [MemberNotNullWhen(true, nameof(CurrentChart))]
         public bool IsChartLoaded() => CurrentChart is not null;
 
+        [MemberNotNullWhen(true, nameof(CurrentChart))]
+        public bool IsChartLoaded([MaybeNullWhen(false)] out ChartModel chart)
+        {
+            chart = CurrentChart;
+            return CurrentChart is not null;
+        }
+
         #endregion
 
         public enum NotificationFlag
@@ -276,6 +301,7 @@ namespace Deenote.Core.GamePlay
             PauseWhenLoseFocus,
 
             ActiveNoteUpdated,
+            ActiveSpeedChangeWarningUpdated,
 
             CurrentChart,
             ChartName,

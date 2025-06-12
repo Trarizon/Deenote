@@ -58,6 +58,7 @@ namespace Deenote.Core.GameStage
         internal NotesManager(GamePlayManager game)
         {
             _game = game;
+            SpeedChangeWarnings = new(_game);
             _trackingNotesInTimeOrder = new(Comparer<GameStageNoteController>.Create(
                 (l, r) => NodeTimeUniqueComparer.Instance.Compare(l.NoteModel, r.NoteModel)));
             _trackingNotesAppearTimeOrder = new(Comparer<GameStageNoteController>.Create(
@@ -74,7 +75,9 @@ namespace Deenote.Core.GameStage
                 }));
         }
 
-        internal void Initialize(ObjectPool<GameStageNoteController> gameStageNotePool)
+        internal void Initialize(
+            ObjectPool<GameStageNoteController> gameStageNotePool,
+            ObjectPool<GameStageSpeedChangeWarningNoteController> speedWarningNotePool)
         {
             if (_pool is not null) {
                 ClearTrackNotes();
@@ -86,6 +89,8 @@ namespace Deenote.Core.GameStage
             _nextHitNoteIndex = 0;
             CurrentCombo = 0;
             _nextActiveNoteIndex = 0;
+
+            SpeedChangeWarnings.Initialzie(speedWarningNotePool);
         }
 
         private void UpdateNotesAppearOrder()

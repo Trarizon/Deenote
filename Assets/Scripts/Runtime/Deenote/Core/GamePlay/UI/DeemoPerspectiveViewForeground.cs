@@ -3,9 +3,11 @@
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
 using Deenote.Entities;
+using Deenote.Entities.Models;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,6 +32,8 @@ namespace Deenote.GamePlay.UI
         [SerializeField] RectTransform _shockWaveEnterPosTransform = default!;
         [SerializeField] RectTransform _shockWaveExitPosTransform = default!;
         [SerializeField] Image _charmingImage = default!;
+        [Header("Speed Change Warning UI")]
+        [SerializeField] RectTransform _speedChangeWarningTransform = default!;
 
         [Header("Resources")]
         [SerializeField] DeemoGameStageUIArgs _args = default!;
@@ -127,33 +131,28 @@ namespace Deenote.GamePlay.UI
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 manager =>
                 {
-                    if (manager.CurrentChart is not { } chart)
+                    if (!manager.IsChartLoaded(out var chart))
                         return;
 
                     UpdateComboRegistrant(manager);
-
-                    var currentCombo = manager.NotesManager.CurrentCombo;
-                    if (currentCombo <= 0) {
-                        _scoreText.text = "0.00 %";
-                        return;
-                    }
-
-                    int noteCount = chart.NoteCount;
-                    float accScore = (float)currentCombo / noteCount;
-                    // comboActual = Sum(1..judgeNoteCount);
-                    // comboTotal = Sum(1..noteCount)
-                    // comboScore = comboActual / comboTotal
-                    //            = ((1 + judged) * judged) / ((1 + count) * count)
-                    float comboScore = (float)((1 + currentCombo) * currentCombo) / ((1 + noteCount) * noteCount);
-
-                    float score = accScore * 80_00f + comboScore * 20_00f;
-                    _scoreText.text = $"{Mathf.Floor(score) / 100f:F2} %";
+                    UpdateComboText(chart, manager.NotesManager.CurrentCombo);
                 });
+
+            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
+                GamePlayManager.NotificationFlag.ActiveSpeedChangeWarningUpdated,
+                manager =>
+                {
+                    if (!manager.IsChartLoaded())
+                        return;
+                    UpdateSpeedChangeWarning(manager);
+                });
+
+            // TODO: Unregistration
         }
 
-        private void UpdateComboRegistrant(GamePlayManager stage)
+        private void UpdateComboRegistrant(GamePlayManager manager)
         {
-            int combo = stage.NotesManager.CurrentCombo;
+            int combo = manager.NotesManager.CurrentCombo;
             if (combo < _args.MinDisplayCombo) {
                 _comboGameObject.SetActive(false);
                 return;
@@ -161,11 +160,11 @@ namespace Deenote.GamePlay.UI
 
             // prevHitNoteIndex wont smaller than combo, so here
             // it is asserted a valid index
-            var prevHitNote = stage.NotesManager.GetPreviousHitComboNode();
+            var prevHitNote = manager.NotesManager.GetPreviousHitComboNode();
             Debug.Assert(prevHitNote?.IsComboNode ?? false);
 
             _comboGameObject.SetActive(true);
-            var deltaTime = stage.MusicPlayer.Time - prevHitNote!.Time;
+            var deltaTime = manager.MusicPlayer.Time - prevHitNote!.Time;
             Debug.Assert(deltaTime >= 0, $"actual delta time:{deltaTime}");
             _numberText.text = _shadowText.text = combo.ToString();
 
@@ -298,9 +297,59 @@ namespace Deenote.GamePlay.UI
             }
         }
 
+        private void UpdateComboText(ChartModel chart, int combo)
+        {
+            if (combo <= 0) {
+                _scoreText.text = "0.00 %";
+                return;
+            }
+
+            int noteCount = chart.NoteCount;
+            float accScore = (float)combo / noteCount;
+            // comboActual = Sum(1..judgeNoteCount);
+            // comboTotal = Sum(1..noteCount)
+            // comboScore = comboActual / comboTotal
+            //            = ((1 + judged) * judged) / ((1 + count) * count)
+            float comboScore = (float)((1 + combo) * combo) / ((1 + noteCount) * noteCount);
+
+            float score = accScore * 80_00f + comboScore * 20_00f;
+            _scoreText.text = $"{Mathf.Floor(score) / 100f:F2} %";
+        }
+
         private void UpdateLevelText()
         {
             _levelText.text = $"{Difficulty.ToDisplayString()} Lv {Level}";
+        }
+
+        private void UpdateSpeedChangeWarning(GamePlayManager manager)
+        {
+            var model = manager.NotesManager.SpeedChangeWarnings.CurrentWarningModel;
+            if (model is null) {
+                _speedChangeWarningTransform.gameObject.SetActive(false);
+                return;
+            }
+
+            _speedChangeWarningTransform.gameObject.SetActive(true);
+
+            var deltaTime = manager.MusicPlayer.Time - model.Time;
+            Debug.Assert(deltaTime > 0);
+
+            const float EaseLoop = 1f;
+
+            var x = (deltaTime % EaseLoop) / EaseLoop;
+            var y = Ease(x);
+            var scale = Mathf.Lerp(1, 1.01f, y);
+            _speedChangeWarningTransform.localScale = new(scale, scale, scale);
+
+            static float Ease(float x)
+            {
+                const float C = 2 * Mathf.PI / 3;
+                return x switch {
+                    0 => 0f,
+                    1 => 1f,
+                    _ => Mathf.Pow(2, -10 * x) * Mathf.Sin((x * 10 - 0.75f) * C) + 1,
+                };
+            }
         }
     }
 }

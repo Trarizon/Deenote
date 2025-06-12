@@ -18,6 +18,7 @@ namespace Deenote.Core.GameStage
 
         internal ReadOnlySpan<GameStageNoteController> OnStageNotes => _trackingNotesInTimeOrder.AsSpan();
 
+        public SpeedChangeWarningsManager SpeedChangeWarnings { get; }
 
         #region Collection Modification
 
