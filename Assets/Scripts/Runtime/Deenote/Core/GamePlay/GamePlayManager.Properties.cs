@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using Deenote.Core.GameStage;
 using Deenote.Entities.Models;
@@ -82,9 +82,19 @@ namespace Deenote.Core.GamePlay
                             note.RefreshColorAlpha();
                         }
                     }
+                    NotesManager.SpeedChangeWarnings.RefreshActiveModels();
                     NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
                 }
             }
+        }
+        
+        /// <summary>
+        /// The speed that grids, speed change warning note applies, 
+        /// also as the speed that placing note
+        /// </summary>
+        public float EditingNoteSpeed
+        {
+            get => HighlightedNoteSpeed;
         }
 
         public bool IsApplySpeedDifference

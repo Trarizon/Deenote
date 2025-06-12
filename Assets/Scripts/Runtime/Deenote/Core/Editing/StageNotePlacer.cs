@@ -1,9 +1,9 @@
 #nullable enable
 
+using Deenote.Core.Editing.Indicators;
 using Deenote.Core.GamePlay;
 using Deenote.Entities;
 using Deenote.Entities.Models;
-using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -15,6 +15,8 @@ namespace Deenote.Core.Editing
     public sealed partial class StageNotePlacer : FlagNotifiable<StageNotePlacer, StageNotePlacer.NotificationFlag>
     {
         private const float PlacementAreaMaxPosition = 6f;
+        private const float SpeedChangeWarningAreaLeftSidePosition = -4f;
+        private const float SpeedChangeWarningAreaRightSidePosition = -3f;
 
         /// <summary>
         /// Press and drag mouse horizontal, the note will change to a swipe
@@ -45,8 +47,10 @@ namespace Deenote.Core.Editing
         internal StageChartEditor _editor;
 
         private NoteModel _metaPrototype;
-        private PooledObjectListView<PlacementNoteIndicatorController> _indicators;
         private PooledObjectListView<NoteModel> _prototypes;
+
+        public GamePlayManager GamePlayManager => _editor._game;
+
 
         public StageNotePlacer(StageChartEditor editor)
         {
@@ -56,7 +60,6 @@ namespace Deenote.Core.Editing
                 new ObjectPool<NoteModel>(() => new NoteModel(),
                     note => _metaPrototype.CloneDataTo(note, true), defaultCapacity: 1));
             _prototypes.Add(out _);
-            _indicators = null!;
 
             _editor._game.RegisterNotification(
                 GamePlayManager.NotificationFlag.CurrentChart,
@@ -64,21 +67,7 @@ namespace Deenote.Core.Editing
             _editor._game.RegisterNotificationAndInvoke(
                 GamePlayManager.NotificationFlag.HighlightedNoteSpeed,
                 _ => SetPlacingNoteSpeed(null, forceUpdateAndNotify: true));
-            _editor._game.StageLoaded += args =>
-            {
-                _indicatorPanelTransform = args.Stage.NoteIndicatorPanelTransform;
-                _indicators?.Clear();
-                var indicators = new PooledObjectListView<PlacementNoteIndicatorController>(
-                    UnityUtils.CreateObjectPool(args.Stage.Args.PlacementNoteIndicatorPrefab,
-                        _indicatorPanelTransform,
-                        item => item.OnInstantiate(this)));
-
-                foreach (var note in _prototypes) {
-                    indicators.Add(out var indicator);
-                    indicator.Initialize(note);
-                }
-                _indicators = indicators;
-            };
+            _editor._game.StageLoaded += ReinitializeIndicators;
             _editor._game.MusicPlayer.TimeChanged += args =>
             {
                 var delta = args.NewTime - args.OldTime;
@@ -91,10 +80,20 @@ namespace Deenote.Core.Editing
 
         #region MoveIndicator
 
-        private partial void UpdateMoveIndicator(NoteCoord coord, Vector2 mousePosition)
+        private partial StateFlag UpdateIdleMousePosition(NoteCoord coord, Vector2 mousePosition)
         {
-            var moveCoord = _editor._game.Grids.Quantize(NoteCoord.ClampPosition(coord), SnapToPositionGrid, SnapToTimeGrid);
-            MoveIndicatorsTo(moveCoord);
+            var area = GetPlacementArea(coord);
+            SetIndicatorsVisibility(area);
+            switch (area) {
+                case PlacementArea.NotePlacement:
+                    var moveCoord = _editor._game.Grids.Quantize(NoteCoord.ClampPosition(coord), SnapToPositionGrid, SnapToTimeGrid);
+                    MoveNoteIndicatorsTo(moveCoord);
+                    return GetIdlePlacingNoteFlag();
+                case PlacementArea.SpeedChangeWarning:
+                    MoveSpeedChangeWarningIndicatorTo(coord.Time);
+                    return StateFlag.IdlePlacingSpeedChangeWarningNote;
+            }
+            return StateFlag.Idle;
         }
 
         #endregion
@@ -193,10 +192,7 @@ namespace Deenote.Core.Editing
             _editor.AddNote(note, placeCoord);
 
             ResetNotePrototypesToIdle();
-            if (PlaceSlideModifier)
-                return StateFlag.IdlePlacingSlides;
-            else
-                return StateFlag.Idle;
+            return GetIdlePlacingFlag();
         }
 
         #endregion
@@ -361,10 +357,7 @@ namespace Deenote.Core.Editing
             _editor.AddMultipleNotes(_prototypes.AsSpan(), placeCoord);
 
             ResetNotePrototypesToIdle();
-            if (PlaceSlideModifier)
-                return StateFlag.IdlePlacingSlides;
-            else
-                return StateFlag.Idle;
+            return GetIdlePlacingFlag();
         }
 
         #endregion
@@ -388,7 +381,7 @@ namespace Deenote.Core.Editing
                 coord = _editor._game.Grids.Quantize(NoteCoord.ClampPosition(coord), SnapToPositionGrid, SnapToTimeGrid);
             }
 
-            MoveIndicatorsTo(coord);
+            MoveNoteIndicatorsTo(coord);
         }
 
         private partial StateFlag EndPasteNotes(NoteCoord coord, Vector2 mousePosition)
@@ -406,30 +399,31 @@ namespace Deenote.Core.Editing
             _editor.AddMultipleNotes(_editor.ClipBoard.Notes, placeCoord);
 
             //ResetNotePrototypesToIdle(); Do this in StateMachine, as in current state indicator property edit are not allowed
-            if (PlaceSlideModifier)
-                return StateFlag.IdlePlacingSlides;
-            else
-                return StateFlag.Idle;
+            return GetIdlePlacingFlag();
         }
 
         #endregion
 
-        private void MoveIndicatorsTo(NoteCoord coord)
+        #region Speed Change Warning
+
+        private partial StateFlag BeginPlaceSpeedChangeWarning(NoteCoord coord, Vector2 mousePosition)
         {
-            Debug.Assert(_indicators.Count >= 1);
-
-            if (_indicators.Count == 1) {
-                _indicators[0].MoveTo(coord);
-                return;
-            }
-
-            var baseCoord = coord - _indicators[0].NotePrototype.PositionCoord;
-            foreach (var indicator in _indicators) {
-                var c = baseCoord + indicator.NotePrototype.PositionCoord;
-                c = NoteCoord.Clamp(c, _editor._game.MusicPlayer.ClipLength);
-                indicator.MoveTo(c);
-            }
+            return StateFlag.PlacingSpeedChangeWaringNote;
         }
+
+        private partial void UpdatePlaceSpeedChangeWarning(NoteCoord coord, Vector2 mousePosition)
+        {
+            MoveSpeedChangeWarningIndicatorTo(coord.Time);
+        }
+
+        private partial StateFlag EndPlaceSpeedChangeWarning(NoteCoord coord, Vector2 mousePosition)
+        {
+            var model = _speedChangeWarningIndicator.CreateModel();
+            _editor.AddSpeedChangeWarning(model);
+            return GetIdlePlacingFlag();
+        }
+
+        #endregion
 
         private void RefreshIndicators()
         {
@@ -444,17 +438,21 @@ namespace Deenote.Core.Editing
             }
         }
 
-        private bool IsInPlacementArea(NoteCoord coord)
+        private PlacementArea GetPlacementArea(NoteCoord coord)
         {
             var game = _editor._game;
-            game.AssertStageLoaded();
 
-            if (coord.Position is > PlacementAreaMaxPosition or < -PlacementAreaMaxPosition)
-                return false;
             if (!IsInPlacementTime(coord))
-                return false;
+                return PlacementArea.Invalid;
 
-            return true;
+            switch (coord.Position) {
+                case >= SpeedChangeWarningAreaLeftSidePosition and <= SpeedChangeWarningAreaRightSidePosition:
+                    return PlacementArea.SpeedChangeWarning;
+                case >= -PlacementAreaMaxPosition and <= PlacementAreaMaxPosition:
+                    return PlacementArea.NotePlacement;
+                default:
+                    return PlacementArea.Invalid;
+            }
         }
 
         private bool IsInPlacementTime(NoteCoord coord)
@@ -472,6 +470,13 @@ namespace Deenote.Core.Editing
             SnapToTimeGrid,
 
             PlacingNoteSpeed,
+        }
+
+        internal enum PlacementArea
+        {
+            Invalid,
+            NotePlacement,
+            SpeedChangeWarning,
         }
     }
 }

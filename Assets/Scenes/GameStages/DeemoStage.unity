@@ -347,6 +347,7 @@ Transform:
   - {fileID: 1535761542}
   - {fileID: 1583514218}
   - {fileID: 292713262}
+  - {fileID: 1326810010}
   - {fileID: 765809295}
   - {fileID: 900070394}
   m_Father: {fileID: 0}
@@ -368,6 +369,7 @@ MonoBehaviour:
   _notePanelTransform: {fileID: 1535761542}
   _noteIndicatorPanelTransform: {fileID: 1583514218}
   _speedWarningPanelTransform: {fileID: 292713262}
+  _speedWarningPanelIndicatorTransform: {fileID: 1326810010}
   _noteDragSelectionPanelTransform: {fileID: 43574881}
   _holdBodyCullMaterial: {fileID: 2100000, guid: 919dd3b629e4fb64c9774a646b1a058e,
     type: 2}
@@ -1479,6 +1481,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1326810009
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1326810010}
+  m_Layer: 0
+  m_Name: SpeedWarningIndicatorPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1326810010
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326810009}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 384983966}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1372557756
 GameObject:
   m_ObjectHideFlags: 0

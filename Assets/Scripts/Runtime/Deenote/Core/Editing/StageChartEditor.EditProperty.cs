@@ -327,5 +327,14 @@ namespace Deenote.Core.Editing
             _operations.Do(_project.CurrentProject.InsertTempo(range)
                 .OnDone(() => NotifyFlag(NotificationFlag.ProjectTempo)));
         }
+
+        public void AddSpeedChangeWarning(SpeedChangeWarningModel model)
+        {
+            //_game.CurrentChart!.SpeedChangeWarnings.Add(model);
+            //_game.UpdateSpeedChangeWarnings();
+
+            // TODO: Impl
+            throw new NotImplementedException();
+        }
     }
 }

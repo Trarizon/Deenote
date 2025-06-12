@@ -379,7 +379,7 @@ Dialog_AboutTurorials_Page_Shortcuts_Content="""
     <Ctrl+X> Cut selected notes
     <Ctrl+C> Copy selected notes
     <Ctrl+V> Paste notes from the clipboard
-    <Ctrl+Z> Undo (Max undo steps: 100)
+    <Ctrl+Z> Undo (Max undo steps: 200)
     <Ctrl+Shift+Z> Redo
     <Delete> Delete select notes
     <Ctrl+A> Select all notes
@@ -420,6 +420,10 @@ Dialog_AboutTurorials_Page_UpgradeGuide_Content="""
 
 AboutDialog_Versions_Dnt_1_0=Deenote 1.0
 AboutDialog_Versions_Dnt_1_0_Content="""
+    <b>Deenote 1.1</b>
+
+    - Fix some text errors
+
     <b>Deenote 1.0.3</b>
 
     - Fix the totally wrong behaviour of opening project from cli arg, I forgot to test it
@@ -469,7 +473,7 @@ AboutDialog_Versions_Dnt_0_7_Content="""
     
     Fixed a bug in the new feature in version 0.7.
 
-    <b>Deenote 0.7.1</b>
+    <b>Deenote 0.7</b>
     
     Added chart concatenating function for medley making.
     """

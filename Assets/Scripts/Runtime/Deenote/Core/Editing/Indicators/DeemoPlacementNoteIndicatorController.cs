@@ -4,9 +4,9 @@ using Deenote.Entities.Models;
 using Deenote.Library;
 using UnityEngine;
 
-namespace Deenote.Core.Editing
+namespace Deenote.Core.Editing.Indicators
 {
-    public sealed class DeemoPlacementNoteIndicatorController : PlacementNoteIndicatorController
+    internal sealed class DeemoPlacementNoteIndicatorController : PlacementNoteIndicatorController
     {
         [SerializeField] SpriteRenderer _noteSpriteRenderer = default!;
         [SerializeField] SpriteRenderer _holdBodySpriteRender = default!;

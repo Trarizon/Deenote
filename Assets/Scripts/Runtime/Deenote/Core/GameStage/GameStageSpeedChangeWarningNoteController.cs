@@ -10,6 +10,19 @@ namespace Deenote.Core.GameStage
 {
     internal sealed class GameStageSpeedChangeWarningNoteController : MonoBehaviour
     {
+        /// <summary>
+        /// The coord position where <see cref="GameStage.GameStageSpeedChangeWarningNoteController"/>s appear
+        /// </summary>
+        internal const float SpritePosition = -3.25f;
+        /// <summary>
+        /// The left coord position of grid line
+        /// </summary>
+        internal const float LineStartPosition = -3f;
+        /// <summary>
+        /// The right coord position of grid line
+        /// </summary>
+        internal const float LineEndPosition = 2f;
+
         private GamePlayManager _game = default!;
 
         public SpeedChangeWarningModel Model { get; private set; } = default!;
@@ -21,6 +34,7 @@ namespace Deenote.Core.GameStage
             _game = game;
             _game.AssertStageLoaded();
             _game.Stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
+            transform.WithLocalPositionX(_game.ConvertNoteCoordPositionToWorldX(SpritePosition));
         }
 
         internal void Initialize(SpeedChangeWarningModel model)
@@ -44,9 +58,9 @@ namespace Deenote.Core.GameStage
             _game.AssertStageLoaded();
 
             if (_state is DisplayState.Active) {
-                var xl = _game.ConvertNoteCoordPositionToWorldX(-EntityArgs.StageMaxPosition);
-                var xr = _game.ConvertNoteCoordPositionToWorldX(EntityArgs.StageMaxPosition);
-                var z = _game.ConvertNoteCoordTimeToWorldZ(Model.Time, _game.HighlightedNoteSpeed);
+                var xl = _game.ConvertNoteCoordPositionToWorldX(LineStartPosition);
+                var xr = _game.ConvertNoteCoordPositionToWorldX(LineEndPosition);
+                var z = _game.ConvertNoteCoordTimeToWorldZ(Model.Time - _game.MusicPlayer.Time, _game.HighlightedNoteSpeed);
                 collector.AddLine(new(xl, z), new(xr, z),
                     _game.Stage.GridLineArgs.SpeedChangeLineColor,
                     _game.Stage.GridLineArgs.SpeedChangeLineWidth);

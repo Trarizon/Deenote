@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.Editing;
+using Deenote.Core.Editing.Indicators;
 using Deenote.Library.Mathematics;
 using System;
 using UnityEngine;
@@ -47,6 +48,8 @@ namespace Deenote.Core.GameStage.Args
         internal PlacementNoteIndicatorController PlacementNoteIndicatorPrefab = default!;
         [SerializeField]
         internal GameStageSpeedChangeWarningNoteController GamePlaySpeedWarningPrefab = default!;
+        [SerializeField]
+        internal SpeedChangeWarningIndicatorController EditorSpeedWarningIndicatorPrefab = default!;
 
         [Header("Note")]
         public AudioClip EffectSoundAudioClip = default!;

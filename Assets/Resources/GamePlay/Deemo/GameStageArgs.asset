@@ -41,6 +41,8 @@ MonoBehaviour:
     type: 3}
   GamePlaySpeedWarningPrefab: {fileID: 7972024683552916163, guid: eb196e5f97e76b642a2dc33a96386f65,
     type: 3}
+  EditorSpeedWarningIndicatorPrefab: {fileID: 424774696858215919, guid: fee2f76da06fe3647a655532dad1e2a5,
+    type: 3}
   EffectSoundAudioClip: {fileID: 8300000, guid: 13a0e647201f5094880b4da85ec719ee,
     type: 3}
   BlackNoteSpritePrefab:

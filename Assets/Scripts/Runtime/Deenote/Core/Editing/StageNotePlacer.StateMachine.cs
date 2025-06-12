@@ -15,8 +15,8 @@ namespace Deenote.Core.Editing
 
         public void BeginPlaceNote(NoteCoord coord, Vector2 mousePosition)
         {
-            if (!IsInPlacementArea(coord)) {
-                SetIndicatorVisibility(false);
+            if (GetPlacementArea(coord) is PlacementArea.Invalid) {
+                SetIndicatorsVisibility(PlacementArea.Invalid);
                 return;
             }
 
@@ -30,6 +30,11 @@ namespace Deenote.Core.Editing
                 case StateFlag.IdlePastingNotes:
                     _currentState = BeginPasteNotes(coord, mousePosition);
                     break;
+                case StateFlag.IdlePlacingSpeedChangeWarningNote:
+                    _currentState = BeginPlaceSpeedChangeWarning(coord, mousePosition);
+                    break;
+                default:
+                    return;
             }
             RefreshIndicatorVisibility();
         }
@@ -40,8 +45,8 @@ namespace Deenote.Core.Editing
             _updateMousePosition = mousePosition;
 
             switch (_currentState) {
-                case StateFlag.Idle or StateFlag.IdlePlacingSlides:
-                    UpdateMoveIndicator(coord, mousePosition);
+                case StateFlag.Idle or StateFlag.IdlePlacingSlides or StateFlag.IdlePlacingSpeedChangeWarningNote:
+                    _currentState = UpdateIdleMousePosition(coord, mousePosition);
                     break;
                 case StateFlag.IdlePastingNotes or StateFlag.PlacingPastedNotes:
                     UpdatePasteNotes(coord, mousePosition);
@@ -52,6 +57,11 @@ namespace Deenote.Core.Editing
                 case StateFlag.PlacingSlides:
                     UpdateDragPlaceSlides(coord, mousePosition);
                     break;
+                case StateFlag.PlacingSpeedChangeWaringNote:
+                    UpdatePlaceSpeedChangeWarning(coord, mousePosition);
+                    break;
+                default:
+                    return;
             }
             if (!remainIndicatorVisibility) {
                 RefreshIndicatorVisibility();
@@ -71,16 +81,18 @@ namespace Deenote.Core.Editing
                     _currentState = EndPasteNotes(coord, mousePosition);
                     ResetNotePrototypesToIdle();
                     break;
+                case StateFlag.PlacingSpeedChangeWaringNote:
+                    _currentState = EndPlaceSpeedChangeWarning(coord, mousePosition);
+                    break;
+                default:
+                    return;
             }
             RefreshIndicatorVisibility();
         }
 
         public void CancelPlaceNote()
         {
-            if (PlaceSlideModifier)
-                _currentState = StateFlag.IdlePlacingSlides;
-            else
-                _currentState = StateFlag.Idle;
+            _currentState = GetIdlePlacingFlag();
             ResetNotePrototypesToIdle();
         }
 
@@ -119,7 +131,7 @@ namespace Deenote.Core.Editing
 
         public void DisablePlaceNote()
         {
-            SetIndicatorVisibility(false);
+            SetIndicatorsVisibility(PlacementArea.Invalid);
         }
 
         internal void PreparePasteClipBoard()
@@ -141,7 +153,7 @@ namespace Deenote.Core.Editing
             }
         }
 
-        private partial void UpdateMoveIndicator(NoteCoord coord, Vector2 mousePosition);
+        private partial StateFlag UpdateIdleMousePosition(NoteCoord coord, Vector2 mousePosition);
 
         private partial StateFlag BeginPlaceSingleNote(NoteCoord coord, Vector2 mousePosition);
         private partial void UpdatePlaceSingleNote(NoteCoord coord, Vector2 mousePosition);
@@ -155,6 +167,14 @@ namespace Deenote.Core.Editing
         private partial void UpdatePasteNotes(NoteCoord coord, Vector2 mousePosition);
         private partial StateFlag EndPasteNotes(NoteCoord coord, Vector2 mousePosition);
 
+        private partial StateFlag BeginPlaceSpeedChangeWarning(NoteCoord coord, Vector2 mousePosition);
+        private partial void UpdatePlaceSpeedChangeWarning(NoteCoord coord, Vector2 mousePosition);
+        private partial StateFlag EndPlaceSpeedChangeWarning(NoteCoord coord, Vector2 mousePosition);
+
+        /// <summary>
+        /// Is in state that force show indicator
+        /// </summary>
+        /// <returns></returns>
         private bool IsForceShowIndicator()
         {
             return _currentState is not (StateFlag.Disabled or StateFlag.Idle);
@@ -165,18 +185,67 @@ namespace Deenote.Core.Editing
             return _currentState is StateFlag.IdlePastingNotes or StateFlag.PlacingPastedNotes;
         }
 
+        private StateFlag GetIdlePlacingFlag()
+        {
+            switch (GetPlacementArea(_updateNoteCoord)) {
+                case PlacementArea.NotePlacement:
+                    if (PlaceSlideModifier)
+                        return StateFlag.IdlePlacingSlides;
+                    else
+                        return StateFlag.Idle;
+                case PlacementArea.SpeedChangeWarning:
+                    return StateFlag.IdlePlacingSpeedChangeWarningNote;
+                default:
+                    return StateFlag.Idle;
+            }
+        }
+
+        /// <summary>
+        /// Get if idle, which state will this instance be
+        /// </summary>
+        /// <returns>
+        /// <see cref="StateFlag.Idle"/> or <see cref="StateFlag.IdlePlacingSlides"/>
+        /// </returns>
+        private StateFlag GetIdlePlacingNoteFlag()
+        {
+            if (PlaceSlideModifier)
+                return StateFlag.IdlePlacingSlides;
+            else
+                return StateFlag.Idle;
+        }
+
+        private PlacementArea GetPlacementArea(StateFlag flag)
+        {
+            switch (flag) {
+                case StateFlag.Idle:
+                case StateFlag.IdlePlacingSlides:
+                case StateFlag.IdlePastingNotes:
+                case StateFlag.PlacingSingleNote:
+                case StateFlag.PlacingSlides:
+                case StateFlag.PlacingPastedNotes:
+                    return PlacementArea.NotePlacement;
+                case StateFlag.IdlePlacingSpeedChangeWarningNote:
+                case StateFlag.PlacingSpeedChangeWaringNote:
+                    return PlacementArea.SpeedChangeWarning;
+                default:
+                    return PlacementArea.Invalid;
+            }
+        }
+
         public enum StateFlag
         {
             /// <summary>
-            /// When the indicator is forced to be hidden, and all placement will be disabled
+            /// When disabled, the indicator is forced to be hidden, and all placement will be disabled
             /// </summary>
             Disabled,
             Idle,
             IdlePlacingSlides,
             IdlePastingNotes,
+            IdlePlacingSpeedChangeWarningNote,
             PlacingSingleNote,
             PlacingSlides,
             PlacingPastedNotes,
+            PlacingSpeedChangeWaringNote,
         }
     }
 }

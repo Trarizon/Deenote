@@ -6,9 +6,9 @@ using Deenote.Entities.Models;
 using Deenote.Library;
 using UnityEngine;
 
-namespace Deenote.Core.Editing
+namespace Deenote.Core.Editing.Indicators
 {
-    public abstract class PlacementNoteIndicatorController : MonoBehaviour
+    internal abstract class PlacementNoteIndicatorController : MonoBehaviour
     {
         private const float NoteAlpha = 0.5f;
 

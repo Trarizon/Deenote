@@ -507,7 +507,7 @@ Dialog_AboutTurorials_Page_Shortcuts_Content="""
     <Ctrl+X> 剪切
     <Ctrl+C> 复制
     <Ctrl+V> 粘贴
-    <Ctrl+Z> 撤销 (最大撤销数: 100)
+    <Ctrl+Z> 撤销 (最大撤销数: 200)
     <Ctrl+Shift+Z> 重做
     <Delete> 删除选中音符
     <Ctrl+A> 选择所有音符
@@ -595,6 +595,10 @@ Dialog_AboutTurorials_Page_UpgradeGuide_Content="""
 
 AboutDialog_Versions_Dnt_1_0=Deenote 1.0
 AboutDialog_Versions_Dnt_1_0_Content="""
+    <b>Deenote 1.1</b>
+
+    - 修正部分文本错误
+
     <b>Deenote 1.0.3</b>
 
     - 修正了上个版本某人忘了测的命令行参数功能
@@ -644,7 +648,7 @@ AboutDialog_Versions_Dnt_0_7_Content="""
     
     修复了版本0.7新功能中的一个bug。
 
-    <b>Deenote 0.7.1</b>
+    <b>Deenote 0.7</b>
     
     为组曲制作添加了谱面连接功能。
     """

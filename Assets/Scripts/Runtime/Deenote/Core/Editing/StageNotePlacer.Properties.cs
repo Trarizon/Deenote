@@ -9,8 +9,6 @@ namespace Deenote.Core.Editing
 {
     partial class StageNotePlacer
     {
-        private Transform? _indicatorPanelTransform;
-
         private bool _placeSoundNoteByDefault_bf;
         private bool _isIndicatorOn_bf;
         private bool _snapToPositionGrid_bf;
@@ -117,26 +115,6 @@ namespace Deenote.Core.Editing
                 if (Utils.SetField(ref _pasteRememberPosition_bf, value)) {
 
                 }
-            }
-        }
-
-        private void RefreshIndicatorVisibility()
-        {
-            if (_indicatorPanelTransform == null)
-                return;
-
-            if (IsForceShowIndicator() || IsIndicatorOn) {
-                _indicatorPanelTransform.gameObject.SetActive(true);
-            }
-            else {
-                _indicatorPanelTransform.gameObject.SetActive(false);
-            }
-        }
-
-        private void SetIndicatorVisibility(bool visible)
-        {
-            if (_indicatorPanelTransform != null) {
-                _indicatorPanelTransform.gameObject.SetActive(visible);
             }
         }
     }
