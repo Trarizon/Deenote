@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.Core.GameStage.Notes;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using Deenote.Library.Collections;
@@ -57,6 +58,8 @@ namespace Deenote.Core.GameStage
                 return model;
             }
         }
+
+        internal ReadOnlySpan<GameStageSpeedChangeWarningNoteController> OnStageNotes => _trackingNotes.AsSpan();
 
         internal void Initialzie(ObjectPool<GameStageSpeedChangeWarningNoteController> speedWarningNotePool)
         {

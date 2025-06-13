@@ -66,15 +66,6 @@ namespace Deenote.Core.Editing
                 {
                     _operations.Reset();
                 });
-
-            /*
-            _game.RegisterNotification(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager =>
-                {
-                    _operations.Reset();
-                });
-            */
         }
 
         #region Add Remove
@@ -133,12 +124,12 @@ namespace Deenote.Core.Editing
             _operations.Do(_game.CurrentChart.AddMultipleNotes(ImmutableCollectionsMarshal.AsImmutableArray(notes))
                 .OnRedone(notes =>
                 {
-                    this.Selector.Reselect(notes);
+                    this.Selector.Reselect(notes.AsSpan());
                     OnNoteCollectionChanged();
                 })
                 .OnUndone(notes =>
                 {
-                    this.Selector.DeselectMultiple(notes);
+                    this.Selector.DeselectMultiple(notes.AsSpan());
                     OnNoteCollectionChanged();
                     NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
                 }));
@@ -168,7 +159,7 @@ namespace Deenote.Core.Editing
                 })
                 .OnUndone(notes =>
                 {
-                    this.Selector.AddSelectMultiple(notes);
+                    this.Selector.AddSelectMultiple(notes.AsSpan());
                     OnNoteCollectionChanged();
                 });
         }

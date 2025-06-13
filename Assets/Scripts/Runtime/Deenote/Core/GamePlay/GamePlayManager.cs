@@ -273,13 +273,6 @@ namespace Deenote.Core.GamePlay
         [MemberNotNullWhen(true, nameof(CurrentChart))]
         public bool IsChartLoaded() => CurrentChart is not null;
 
-        [MemberNotNullWhen(true, nameof(CurrentChart))]
-        public bool IsChartLoaded([MaybeNullWhen(false)] out ChartModel chart)
-        {
-            chart = CurrentChart;
-            return CurrentChart is not null;
-        }
-
         #endregion
 
         public enum NotificationFlag

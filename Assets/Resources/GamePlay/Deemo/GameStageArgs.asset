@@ -37,9 +37,9 @@ MonoBehaviour:
   NoteFadeInRangePercent: 0.6556875
   GamePlayNotePrefab: {fileID: 3873625400187784241, guid: 160a09d6b531cb34d876b0226dae8742,
     type: 3}
-  PlacementNoteIndicatorPrefab: {fileID: 3287208875695698390, guid: d258ceafb7b62de4ba218040a2b6f8eb,
+  PlacementNoteIndicatorPrefab: {fileID: 1900299374431452158, guid: d258ceafb7b62de4ba218040a2b6f8eb,
     type: 3}
-  GamePlaySpeedWarningPrefab: {fileID: 7972024683552916163, guid: eb196e5f97e76b642a2dc33a96386f65,
+  GamePlaySpeedWarningPrefab: {fileID: 3369377584906504278, guid: eb196e5f97e76b642a2dc33a96386f65,
     type: 3}
   EditorSpeedWarningIndicatorPrefab: {fileID: 424774696858215919, guid: fee2f76da06fe3647a655532dad1e2a5,
     type: 3}

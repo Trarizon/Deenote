@@ -15,8 +15,8 @@ namespace Deenote.Core.Editing
     public sealed partial class StageNotePlacer : FlagNotifiable<StageNotePlacer, StageNotePlacer.NotificationFlag>
     {
         private const float PlacementAreaMaxPosition = 6f;
-        private const float SpeedChangeWarningAreaLeftSidePosition = -4f;
-        private const float SpeedChangeWarningAreaRightSidePosition = -3f;
+        internal const float SpeedChangeWarningAreaLeftSidePosition = -4f;
+        internal const float SpeedChangeWarningAreaRightSidePosition = -3f;
 
         /// <summary>
         /// Press and drag mouse horizontal, the note will change to a swipe
@@ -442,7 +442,7 @@ namespace Deenote.Core.Editing
         {
             var game = _editor._game;
 
-            if (!IsInPlacementTime(coord))
+            if (!game.IsStageLoaded() || !IsInPlacementTime(coord))
                 return PlacementArea.Invalid;
 
             switch (coord.Position) {

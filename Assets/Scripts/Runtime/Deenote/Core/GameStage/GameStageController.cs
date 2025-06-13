@@ -2,6 +2,7 @@
 
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Args;
+using Deenote.Core.GameStage.Notes;
 using Deenote.Entities;
 using Deenote.Library;
 using System.Diagnostics.CodeAnalysis;

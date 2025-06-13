@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GameStage;
+using Deenote.Core.GameStage.Notes;
 using Deenote.Entities.Models;
 using Deenote.Library;
 using UnityEngine;

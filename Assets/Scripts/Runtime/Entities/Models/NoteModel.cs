@@ -8,28 +8,10 @@ using UnityEngine;
 namespace Deenote.Entities.Models
 {
     [Serializable]
-    public sealed partial class NoteModel : IStageNoteNode
+    public sealed partial class NoteModel : IStageNoteNode, IStageSelectableNode
     {
         private uint _uid;
-
-        [field: SerializeField]
-        private bool _isSelected;
-        /// <summary>
-        /// If editor is selecting notes now, this field indicates whether the note is in selection range 
-        /// </summary>
-        private bool _isInSelectionRange;
-
-        /// <summary>
-        /// Is selected in editor
-        /// </summary>
-        public bool IsSelected
-        {
-            get => _isSelected ^ _isInSelectionRange;
-            set {
-                _isSelected = value;
-                _isInSelectionRange = false;
-            }
-        }
+        private IStageSelectableNode.SelectionProvider _selectionProvider;
 
         private int _collisionCount_bf;
         public int CollisionCount
@@ -90,15 +72,12 @@ namespace Deenote.Entities.Models
             }
         }
 
-        public void SetIsInSelectionRange(bool value)
+        public bool IsSelected
         {
-            _isInSelectionRange = value;
+            get => _selectionProvider.IsSelected;
+            set => _selectionProvider.IsSelected = value;
         }
-
-        public void ApplySelection()
-        {
-            _isSelected = IsSelected;
-            _isInSelectionRange = false;
-        }
+        public void SetIsInSelectionRange(bool value) => _selectionProvider.SetIsInSelectionRange(value);
+        public void ApplySelection() => _selectionProvider.ApplySelection();
     }
 }

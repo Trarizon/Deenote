@@ -1,17 +1,16 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Library;
 using UnityEngine;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.Core.GameStage.Notes
 {
-    internal sealed class GameStageSpeedChangeWarningNoteController : MonoBehaviour
+    internal abstract class GameStageSpeedChangeWarningNoteController : MonoBehaviour, IGameStageNoteController
     {
         /// <summary>
-        /// The coord position where <see cref="GameStage.GameStageSpeedChangeWarningNoteController"/>s appear
+        /// The coord position where <see cref="GameStageSpeedChangeWarningNoteController"/>s appear
         /// </summary>
         internal const float SpritePosition = -3.25f;
         /// <summary>
@@ -23,9 +22,11 @@ namespace Deenote.Core.GameStage
         /// </summary>
         internal const float LineEndPosition = 2f;
 
-        private GamePlayManager _game = default!;
+        protected GamePlayManager _game = default!;
 
         public SpeedChangeWarningModel Model { get; private set; } = default!;
+
+        IStageSelectableNode IGameStageNoteController.Model => Model;
 
         private DisplayState _state;
 
@@ -40,6 +41,7 @@ namespace Deenote.Core.GameStage
         internal void Initialize(SpeedChangeWarningModel model)
         {
             Model = model;
+            RefreshVisual();
         }
 
         private void OnDestroy()
@@ -83,6 +85,18 @@ namespace Deenote.Core.GameStage
             }
         }
 
+        public void RefreshVisual()
+        {
+            RefreshColoring();
+        }
+
+        public void RefreshColoring()
+        {
+            if (_state is DisplayState.Active) {
+                SetNoteSpriteColor();
+            }
+        }
+
         #endregion
 
         #region Setters
@@ -94,11 +108,28 @@ namespace Deenote.Core.GameStage
             transform.WithLocalPositionZ(z);
         }
 
+        private void SetNoteSpriteColor()
+        {
+            _game.AssertStageLoaded();
+            var stage = _game.Stage;
+
+            Color color;
+            if (Model.IsSelected)
+                color = stage.Args.NoteSelectedColor;
+            else
+                color = Color.white;
+            SetNoteSpriteColorRGB(color);
+        }
+
+        protected abstract void SetNoteSpriteColorRGB(Color color);
+
         private void SetState(float stageDeltaTime)
         {
             DisplayState state;
-            if (stageDeltaTime >= 0)
+            if (stageDeltaTime >= 0) {
                 state = DisplayState.Active;
+                RefreshColoring();
+            }
             else
                 state = DisplayState.Inactive;
 

@@ -4,7 +4,7 @@ using Deenote.Entities.Models;
 using Deenote.Library;
 using UnityEngine;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.Core.GameStage.Notes
 {
     internal sealed class DeemoGameStageNoteController : GameStageNoteController
     {

@@ -1,7 +1,6 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
@@ -73,26 +72,14 @@ namespace Deenote.Core.Editing
             note.IsSelected = true;
         }
 
-        public void AddSelectMultiple(IEnumerable<NoteModel> notes)
+        public void AddSelectMultiple(ReadOnlySpan<NoteModel> notes)
         {
             _game.AssertChartLoaded();
-            Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
+            Debug.Assert(notes.ToArray().All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             OnSelectedNotesChanging();
             AddSelectMultipleNonNotify(notes);
             OnSelectedNotesChanged();
-        }
-
-        private void AddSelectMultipleNonNotify(IEnumerable<NoteModel> notes)
-        {
-            _game.AssertChartLoaded();
-            Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
-
-            var prevCount = _selectedNotes.Count;
-            _selectedNotes.AddRange(notes);
-            foreach (var note in _selectedNotes.AsSpan()[prevCount..]) {
-                note.IsSelected = true;
-            }
         }
 
         private void AddSelectMultipleNonNotify(ReadOnlySpan<NoteModel> notes)
@@ -105,16 +92,6 @@ namespace Deenote.Core.Editing
             foreach (var note in _selectedNotes.AsSpan()[prevCount..]) {
                 note.IsSelected = true;
             }
-        }
-
-        public void Reselect(IEnumerable<NoteModel> notes)
-        {
-            OnSelectedNotesChanging();
-
-            ClearNonNotify();
-            AddSelectMultipleNonNotify(notes);
-
-            OnSelectedNotesChanged();
         }
 
         public void Reselect(ReadOnlySpan<NoteModel> notes)
@@ -154,7 +131,7 @@ namespace Deenote.Core.Editing
         /// <summary>
         /// Deselect notes in selection, if note is not selected, do nothing
         /// </summary>
-        public void DeselectMultiple(IEnumerable<NoteModel> notes)
+        public void DeselectMultiple(ReadOnlySpan<NoteModel> notes)
         {
             OnSelectedNotesChanging();
 

@@ -4,11 +4,18 @@ using UnityEngine;
 
 namespace Deenote.Entities.Models
 {
-    public sealed class SpeedChangeWarningModel : IStageTimeNode
+    public sealed class SpeedChangeWarningModel : IStageTimeNode, IStageSelectableNode
     {
         private readonly NoteModel _noteModel;
+        private IStageSelectableNode.SelectionProvider _selectionProvider;
 
         public float Time => _noteModel.Time;
+
+        public bool IsSelected
+        {
+            get => _selectionProvider.IsSelected;
+            set => _selectionProvider.IsSelected = value;
+        }
 
         internal SpeedChangeWarningModel(NoteModel note)
         {
@@ -24,5 +31,8 @@ namespace Deenote.Entities.Models
 
         public SpeedChangeWarningModel Clone()
             => new(_noteModel.Clone(cloneSounds: false));
+
+        void IStageSelectableNode.SetIsInSelectionRange(bool value) => _selectionProvider.SetIsInSelectionRange(value);
+        void IStageSelectableNode.ApplySelection() => _selectionProvider.ApplySelection();
     }
 }

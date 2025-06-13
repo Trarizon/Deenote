@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Core.GameStage.Notes;
 using Deenote.Entities.Models;
 using Deenote.Library.Collections.Generic;
 using System;

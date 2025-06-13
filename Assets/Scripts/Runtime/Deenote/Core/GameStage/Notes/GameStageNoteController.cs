@@ -8,9 +8,9 @@ using Deenote.Library;
 using Deenote.Library.Mathematics;
 using UnityEngine;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.Core.GameStage.Notes
 {
-    internal abstract class GameStageNoteController : MonoBehaviour
+    internal abstract class GameStageNoteController : MonoBehaviour, IGameStageNoteController
     {
         protected GamePlayManager _game = default!;
 
@@ -44,6 +44,8 @@ namespace Deenote.Core.GameStage
                 return aheadTime;
             }
         }
+
+        IStageSelectableNode IGameStageNoteController.Model => NoteModel;
 
         internal void OnInstantiate(GamePlayManager gamePlayManager)
         {

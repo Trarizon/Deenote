@@ -2,6 +2,7 @@
 
 using Deenote.Core.Editing;
 using Deenote.Core.Editing.Indicators;
+using Deenote.Core.GameStage.Notes;
 using Deenote.Library.Mathematics;
 using System;
 using UnityEngine;

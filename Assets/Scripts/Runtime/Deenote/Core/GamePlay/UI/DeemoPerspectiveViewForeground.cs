@@ -131,8 +131,10 @@ namespace Deenote.GamePlay.UI
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 manager =>
                 {
-                    if (!manager.IsChartLoaded(out var chart))
+                    if (!manager.IsChartLoaded())
                         return;
+
+                    var chart = manager.CurrentChart;
 
                     UpdateComboRegistrant(manager);
                     UpdateComboText(chart, manager.NotesManager.CurrentCombo);

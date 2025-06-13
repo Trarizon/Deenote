@@ -81,13 +81,13 @@ namespace Deenote.Core.GamePlay
                         foreach (var note in NotesManager.OnStageNotes) {
                             note.RefreshColorAlpha();
                         }
+                        NotesManager.SpeedChangeWarnings.RefreshActiveModels();
                     }
-                    NotesManager.SpeedChangeWarnings.RefreshActiveModels();
                     NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
                 }
             }
         }
-        
+
         /// <summary>
         /// The speed that grids, speed change warning note applies, 
         /// also as the speed that placing note
