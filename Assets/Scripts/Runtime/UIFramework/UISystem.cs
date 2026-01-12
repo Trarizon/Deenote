@@ -1,11 +1,9 @@
 #nullable enable
 
-using CommunityToolkit.Diagnostics;
-using Deenote.Library;
 using Deenote.UIFramework.Font;
+using Deenote.UIFramework.Theme;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using TMPro;
 using UnityEngine;
 
@@ -19,51 +17,11 @@ namespace Deenote.UIFramework
 
         #region Theme
 
-        private static UIThemeResources? _darkThemeResources;
-        internal static UIThemeResources ThemeResources
-        {
-            get => _darkThemeResources ??= Resources.Load<UIThemeResources>($"UI/ThemeResources");
-        }
+        private static UIThemeManager? _theme;
+        public static UIThemeManager ThemeManager => _theme ??= new UIThemeManager();
 
-
-        private static UIThemeArgs[] _themeArgs = Resources.LoadAll<UIThemeArgs>("UI/Themes");
-        private static int _currentThemeIndex;
-
-        public static UIThemeArgs CurrentTheme
-        {
-            get => _themeArgs[_currentThemeIndex];
-            set {
-                var index = Array.IndexOf(_themeArgs, value);
-                SetTheme(index);
-            }
-        }
-
-        public static ReadOnlySpan<UIThemeArgs> Themes => _themeArgs;
-
-        public static event Action<UIThemeArgs>? ThemeChanged;
-
-        public static bool SetTheme([AllowNull]string name)
-        {
-            if (name is null)
-                return false;
-            for (int i = 0; i < _themeArgs.Length; i++) {
-                UIThemeArgs? theme = _themeArgs[i];
-                if (theme.ThemeName == name) {
-                    SetTheme(i);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public static void SetTheme(int index)
-        {
-            Guard.IsInRangeFor(index, _themeArgs);
-
-            if (Utils.SetField(ref _currentThemeIndex, index)) {
-                ThemeChanged?.Invoke(_themeArgs[index]);
-            }
-        }
+        private static UIResources? _resources;
+        internal static UIResources UIResources => _resources ??= Resources.Load<UIResources>($"UI/UIResources");
 
         #endregion
 
@@ -74,16 +32,16 @@ namespace Deenote.UIFramework
         {
             get {
                 if (_fontAsset is null) {
-                    var fontAsset = UIFontManager.LoadSystemFontAssets(ThemeResources.PreferedFontName);
+                    var fontAsset = UIFontManager.LoadSystemFontAssets(UIResources.PreferedFontName);
                     fontAsset.fallbackFontAssetTable = new List<TMP_FontAsset>();
-                    foreach (string name in ThemeResources.FallbackFontNames) {
+                    foreach (string name in UIResources.FallbackFontNames) {
                         var fallbackFont = UIFontManager.LoadSystemFontAssets(name);
                         if (fallbackFont != null)
                             fontAsset.fallbackFontAssetTable.Add(fallbackFont);
                         else
                             Debug.LogWarning($"Load font {fallbackFont} failed");
                     }
-                    fontAsset.fallbackFontAssetTable.Add(ThemeResources.FinalFallbackFont);
+                    fontAsset.fallbackFontAssetTable.Add(UIResources.FinalFallbackFont);
                     _fontAsset = fontAsset;
                 }
 

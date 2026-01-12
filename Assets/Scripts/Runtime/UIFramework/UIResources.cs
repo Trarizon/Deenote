@@ -3,13 +3,15 @@
 using Deenote.UIFramework.Controls;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Deenote.UIFramework
 {
     [CreateAssetMenu(
-      fileName = nameof(UIThemeResources),
-      menuName = $"Deenote.UIFramework/{nameof(UIThemeResources)}")]
-    public sealed class UIThemeResources : ScriptableObject
+      fileName = nameof(UIResources),
+      menuName = $"Deenote.UIFramework/{nameof(UIResources)}")]
+    [MovedFrom(true,sourceClassName:"UIThemeResources")]
+    public sealed class UIResources : ScriptableObject
     {
         [Header("Font")]
         public string PreferedFontName = default!;

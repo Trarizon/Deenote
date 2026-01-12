@@ -2,13 +2,14 @@
 
 using UnityEngine;
 
-namespace Deenote.UIFramework
+namespace Deenote.UIFramework.Theme
 {
     [CreateAssetMenu(
       fileName = nameof(UIThemeArgs),
       menuName = $"Deenote.UIFramework/{nameof(UIThemeArgs)}")]
     public sealed class UIThemeArgs : ScriptableObject
     {
+        public string ThemeId = default!;
         public string ThemeName = default!;
         //// https://github.com/microsoft/microsoft-ui-xaml/blob/winui3/release/1.5-stable/controls/dev/CommonStyles/Common_themeresources_any.xaml
         [Header("Text Fill")]

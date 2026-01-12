@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Library;
+using Deenote.UIFramework.Theme;
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -53,11 +54,11 @@ namespace Deenote.UIFramework.Controls
                 switch (value) {
                     case true:
                         _checkmarkImage.gameObject.SetActive(true);
-                        _checkmarkImage.sprite = UISystem.ThemeResources.CheckBoxCheckedIcon;
+                        _checkmarkImage.sprite = UISystem.UIResources.CheckBoxCheckedIcon;
                         break;
                     case null:
                         _checkmarkImage.gameObject.SetActive(true);
-                        _checkmarkImage.sprite = UISystem.ThemeResources.CheckBoxIndeterminateIcon;
+                        _checkmarkImage.sprite = UISystem.UIResources.CheckBoxIndeterminateIcon;
                         break;
                     case false:
                         _checkmarkImage.gameObject.SetActive(false);
@@ -96,7 +97,7 @@ namespace Deenote.UIFramework.Controls
             _borderImage.color = bdr;
             _checkmarkImage.color = fg;
 
-            var theme = UISystem.ThemeResources;
+            var theme = UISystem.UIResources;
 
             switch (IsChecked) {
                 case true:

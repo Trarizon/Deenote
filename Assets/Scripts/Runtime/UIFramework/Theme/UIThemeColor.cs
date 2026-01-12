@@ -1,4 +1,4 @@
-namespace Deenote.UIFramework
+namespace Deenote.UIFramework.Theme
 {
     public enum UIThemeColor
     {

@@ -95,14 +95,14 @@ namespace Deenote.UI
             {
                 configs.Set("ui/perspective_aspect_ratio", Views.PerspectiveViewPanelView.AspectRatio);
                 configs.SetList("ui/recent_files", Views.MenuNavigationPageView.GetRecentFiles() ?? _configtmpRecentFiles);
-                configs.Set("ui/theme", UISystem.CurrentTheme.ThemeName);
+                configs.Set("ui/theme", UISystem.ThemeManager.CurrentTheme.ThemeId);
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
                 Views.PerspectiveViewPanelView.AspectRatio = configs.GetSingle("ui/perspective_aspect_ratio", 4f / 3f);
                 _configtmpRecentFiles = configs.GetStringList("ui/recent_files");
-                if (!UISystem.SetTheme(configs.GetString("ui/theme"))) {
-                    UISystem.SetTheme(0);
+                if (!UISystem.ThemeManager.TrySetTheme(configs.GetString("ui/theme"))) {
+                    UISystem.ThemeManager.SetDefaultTheme();
                 }
             };
 

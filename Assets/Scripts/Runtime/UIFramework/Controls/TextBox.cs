@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Localization;
+using Deenote.UIFramework.Theme;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using TMPro;

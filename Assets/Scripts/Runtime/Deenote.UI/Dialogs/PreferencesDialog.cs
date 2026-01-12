@@ -12,6 +12,7 @@ using System;
 using System.Collections.Immutable;
 using UnityEngine;
 using Deenote.Library.Mathematics;
+using Deenote.UIFramework.Theme;
 
 namespace Deenote.UI.Dialogs
 {
@@ -167,11 +168,11 @@ namespace Deenote.UI.Dialogs
 
             // Display
 
-            _uiThemeDropdown.ResetOptions(UISystem.Themes, theme => LocalizableText.Localized($"{UIThemeLocalizationKeyPrefix}{theme.ThemeName}"));
-            _uiThemeDropdown.SetValueWithoutNotify(_uiThemeDropdown.FindItemIndex(UISystem.CurrentTheme));
-            _uiThemeDropdown.SelectedIndexChanged += val => UISystem.CurrentTheme = (UIThemeArgs)_uiThemeDropdown.Options[val].Item!;
-            UISystem.ThemeChanged += val => _uiThemeDropdown.SetValueWithoutNotify(_uiThemeDropdown.FindItemIndex(val));
-            _uiThemeDropdown.SetValueWithoutNotify(_uiThemeDropdown.FindItemIndex(UISystem.CurrentTheme));
+            _uiThemeDropdown.ResetOptions(UISystem.ThemeManager.Themes, theme => LocalizableText.Localized($"{UIThemeLocalizationKeyPrefix}{theme.ThemeName}"));
+            _uiThemeDropdown.SetValueWithoutNotify(_uiThemeDropdown.FindItemIndex(UISystem.ThemeManager.CurrentTheme));
+            _uiThemeDropdown.SelectedIndexChanged += val => UISystem.ThemeManager.CurrentTheme = (UIThemeArgs)_uiThemeDropdown.Options[val].Item!;
+            UISystem.ThemeManager.ThemeChanged += val => _uiThemeDropdown.SetValueWithoutNotify(_uiThemeDropdown.FindItemIndex(val));
+            _uiThemeDropdown.SetValueWithoutNotify(_uiThemeDropdown.FindItemIndex(UISystem.ThemeManager.CurrentTheme));
 
             _showFpsToggle.IsCheckedChanged += val => MainSystem.GlobalSettings.IsFpsShown = val;
             MainSystem.GlobalSettings.RegisterNotificationAndInvoke(

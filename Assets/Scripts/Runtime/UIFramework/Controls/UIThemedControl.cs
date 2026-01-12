@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.UIFramework.Theme;
 using UnityEngine;
 
 namespace Deenote.UIFramework.Controls
@@ -11,18 +12,18 @@ namespace Deenote.UIFramework.Controls
 
         protected virtual void Awake()
         {
-            OnThemeChanged(UISystem.CurrentTheme);
-            UISystem.ThemeChanged += OnThemeChanged;
+            OnThemeChanged(UISystem.ThemeManager.CurrentTheme);
+            UISystem.ThemeManager.ThemeChanged += OnThemeChanged;
         }
 
         protected virtual void OnDestroy()
         {
-            UISystem.ThemeChanged -= OnThemeChanged;
+            UISystem.ThemeManager.ThemeChanged -= OnThemeChanged;
         }
 
         protected virtual void OnValidate()
         {
-            OnThemeChanged(UISystem.CurrentTheme);
+            OnThemeChanged(UISystem.ThemeManager.CurrentTheme);
         }
     }
 }

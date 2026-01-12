@@ -89,7 +89,7 @@ namespace Deenote.UIFramework.Controls
         private void Awake()
         {
             _dropdownItems = new PooledObjectListView<DropdownItem>(
-                UnityUtils.CreateObjectPool(UISystem.ThemeResources.DropdownItemPrefab, _contentRectTransform,
+                UnityUtils.CreateObjectPool(UISystem.UIResources.DropdownItemPrefab, _contentRectTransform,
                 item => item.OnInstantiate(this), defaultCapacity: 0));
 
             for (int i = 0; i < _options.Count; i++) {

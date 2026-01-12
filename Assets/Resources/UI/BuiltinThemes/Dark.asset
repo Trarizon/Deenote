@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fbaba924affb6149a0186bf5674c3b4, type: 3}
   m_Name: Dark
   m_EditorClassIdentifier: 
+  ThemeId: Dark
   ThemeName: Dark
   TextPrimaryColor: {r: 1, g: 1, b: 1, a: 1}
   TextSecondaryColor: {r: 1, g: 1, b: 1, a: 0.77254903}

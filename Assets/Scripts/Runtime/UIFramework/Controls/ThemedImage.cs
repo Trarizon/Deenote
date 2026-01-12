@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.UIFramework.Theme;
 using UnityEngine;
 using UnityEngine.UI;
 

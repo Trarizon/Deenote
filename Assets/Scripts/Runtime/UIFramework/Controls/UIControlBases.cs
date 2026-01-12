@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Library;
+using Deenote.UIFramework.Theme;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -29,7 +30,7 @@ namespace Deenote.UIFramework.Controls
                 && IsInteractable;
         }
 
-        protected void DoVisualTransition() => DoVisualTransition(UISystem.CurrentTheme);
+        protected void DoVisualTransition() => DoVisualTransition(UISystem.ThemeManager.CurrentTheme);
 
         protected abstract void DoVisualTransition(UIThemeArgs args);
 

@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Library;
+using Deenote.UIFramework.Theme;
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;

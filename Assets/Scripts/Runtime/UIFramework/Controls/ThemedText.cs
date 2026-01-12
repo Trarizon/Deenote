@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.UIFramework.Theme;
 using TMPro;
 using UnityEngine;
 
