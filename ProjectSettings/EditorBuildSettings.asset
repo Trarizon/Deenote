@@ -12,5 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/GameStages/DeemoStage.unity
     guid: d4a89fd2d46a2b146a998daa8bc966c6
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 6152babf2fd698948a63ce622befb398,
+      type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: f3f55b95dff20064faa7cf8f6080c2fe,
       type: 2}

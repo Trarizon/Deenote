@@ -24,6 +24,7 @@ namespace Deenote
 
         #endregion
 
+        // TODO: Migrate to new plugin system
         [RuntimeInitializeOnLoadMethod]
         private static void RegisterBuiltinPlugins()
         {
