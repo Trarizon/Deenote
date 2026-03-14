@@ -241,11 +241,11 @@ namespace Deenote.Core.Editing
                 return;
 
             _game.AssertStageLoaded();
-            _game.Stage.SetSelectionPanelRectInvisible();
+            _game.Stage.SelectionAreaRect.HideSelectionArea();
 
             _state = DraggingSelectionState.Idle;
             if (_dragStartCoord == _dragEndCoord) {
-                if (_game.TryRaycastPerspectiveViewportPointToNote(viewportPoint, out var noteController)) {
+                if (_game.Stage.TryRaycastPerspectiveViewportPointToNote(viewportPoint, out var noteController)) {
                     var note = noteController.NoteModel;
                     Reselect(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
                 }
@@ -272,7 +272,7 @@ namespace Deenote.Core.Editing
             NumberUtils.SortAsc(ref startCoord.Position, ref endCoord.Position);
             NumberUtils.SortAsc(ref startCoord.Time, ref endCoord.Time);
 
-            _game.Stage.SetSelectionPanelRect(startCoord, endCoord);
+            _game.Stage.SelectionAreaRect.SetSelectionArea(startCoord, endCoord);
 
             // Optimize:现在是全遍历
             // TODO: should consider note sprite size
@@ -314,7 +314,7 @@ namespace Deenote.Core.Editing
                 // still considering how to implement t
 
                 // The note is on stage
-                if (time < currentTime + _game.GetStageNoteAppearAheadTime(speed)) {
+                if (time < currentTime + _game.Stage.EvaluateNoteAppearAheadTime(speed)) {
                     var pseudoTime = ToPseudoTime(time);
                     return pseudoTime >= startCoord.Time
                         && pseudoTime <= endCoord.Time
@@ -334,7 +334,7 @@ namespace Deenote.Core.Editing
                     => currentTime + (time - currentTime) * _game.GetDisplayNoteSpeed(speed);
 
                 float ToAboveStagePseudoTime(float time, float speed)
-                    => time + (_game.StageNoteAppearAheadTime - _game.GetStageNoteAppearAheadTime(speed));
+                    => time + (_game.Stage.NoteAppearAheadTime - _game.Stage.EvaluateNoteAppearAheadTime(speed));
             }
         }
 
@@ -344,7 +344,7 @@ namespace Deenote.Core.Editing
         private void OnSelectedNotesChanged()
         {
             foreach (var note in _game.NotesManager.OnStageNotes)
-                note.RefreshColoring();
+                note.RefreshHighlightState();
             SelectedNotesChanged?.Invoke(this);
         }
 

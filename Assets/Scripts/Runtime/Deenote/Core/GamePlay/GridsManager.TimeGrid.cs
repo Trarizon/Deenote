@@ -3,7 +3,6 @@
 using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.Library;
-using Deenote.Library.Mathematics;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -55,8 +54,8 @@ namespace Deenote.Core.GamePlay
             if (_timeGridLines.Count == 0)
                 return;
 
-            float minx = _game.ConvertNoteCoordPositionToWorldX(-EntityArgs.StageMaxPosition);
-            float maxx = _game.ConvertNoteCoordPositionToWorldX(EntityArgs.StageMaxPosition);
+            float minx = _game.Stage.ConvertNotePositionToWorldX(-EntityArgs.StageMaxPosition);
+            float maxx = _game.Stage.ConvertNotePositionToWorldX(EntityArgs.StageMaxPosition);
 
             var args = _game.Stage.GridLineArgs;
             foreach (var (time, kind) in _timeGridLines) {
@@ -66,7 +65,7 @@ namespace Deenote.Core.GamePlay
                     TimeGridLineKind.TempoLine => (_game.CustomTempoLineColor ?? args.TempoLineColor, args.TimeGridTempoLineWidth),
                     _ => throw new System.NotImplementedException(),
                 };
-                var z = _game.ConvertNoteCoordTimeToWorldZ(time, _editor.Placer.PlacingNoteSpeed);
+                var z = _game.Stage.EvaluateNoteWorldZ(time, _editor.Placer.PlacingNoteSpeed);
                 collector.AddLine(new Vector2(minx, z), new Vector2(maxx, z), color, width);
             }
         }
@@ -91,7 +90,7 @@ namespace Deenote.Core.GamePlay
             var tempoIndex = project.GetTempoIndex(currentTime);
             if (tempoIndex < 0)
                 tempoIndex = 0;
-            float appearTime = currentTime + _game.GetStageNoteAppearAheadTime(_editor.Placer.PlacingNoteSpeed);
+            float appearTime = currentTime + _game.Stage.EvaluateNoteAppearAheadTime(_editor.Placer.PlacingNoteSpeed);
             float minSubBeatInterval = Tempo.MinBeatLineInterval / TimeGridSubBeatCount;
 
             for (; tempoIndex < project.Tempos.Length; tempoIndex++) {

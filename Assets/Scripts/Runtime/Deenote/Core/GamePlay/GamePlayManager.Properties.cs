@@ -12,8 +12,8 @@ namespace Deenote.Core.GamePlay
         private void OnStageLoaded_Properties(GameStageSceneLoader loader)
         {
             loader.StageController.IsStageEffectOn = IsStageEffectOn;
-            _cacheVisibleRangePercentage = null;
-            loader.StageController.VisibleRangePercentage = VisibleRangePercentage;
+            //_cacheVisibleRangePercentage = null;
+            //loader.StageController.VisibleRangePercentage = VisibleRangePercentage;
         }
 
         private void RegisterConfigurations()
@@ -81,7 +81,7 @@ namespace Deenote.Core.GamePlay
                 if (Utils.SetField(ref _highlightedNoteSpeed_bf, value)) {
                     if (IsChartLoaded() && IsStageLoaded()) {
                         foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
+                            note.RefreshHighlightState();
                         }
                     }
                     NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
@@ -109,7 +109,7 @@ namespace Deenote.Core.GamePlay
                 if (Utils.SetField(ref _filterNoteSpeed_bf, value)) {
                     if (IsChartLoaded() && IsStageLoaded()) {
                         foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
+                            note.RefreshHighlightState();
                         }
                     }
                     NotifyFlag(NotificationFlag.IsFilterNoteSpeed);
@@ -207,41 +207,14 @@ namespace Deenote.Core.GamePlay
             set {
                 value = Mathf.Clamp(value, 0f, 1f);
                 if (Utils.SetField(ref _suddenPlus_bf, value)) {
-                    _cacheVisibleRangePercentage = null;
                     if (IsStageLoaded() && IsChartLoaded()) {
                         NotesManager.RefreshStageActiveNotes();
                         foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
+                            note.RefreshStageDeltaTime();
                         }
                     }
                     NotifyFlag(NotificationFlag.SuddenPlus);
                 }
-            }
-        }
-
-        private float? _cacheVisibleRangePercentage;
-
-        public float VisibleRangePercentage
-        {
-            get {
-                this.AssertStageLoaded();
-                if (_cacheVisibleRangePercentage is null) {
-                    var x = ConvertNoteCoordPositionToWorldX(0f);
-                    var maxZ = ConvertNoteCoordTimeToWorldZ(StageNoteActiveAheadTime);
-                    var minZ = ConvertNoteCoordTimeToWorldZ(0f);
-
-                    bool try0, try1;
-                    try0 = Stage.TryConvertNotePanelPositionToRaycastingViewportPoint((x, minZ), out var minVp);
-                    try1 = Stage.TryConvertNotePanelPositionToRaycastingViewportPoint((x, maxZ), out var maxVp);
-                    Debug.Assert(try0 && try1);
-
-                    var vp = new Vector2(maxVp.x, Mathf.Lerp(maxVp.y, minVp.y, SuddenPlus));
-                    try0 = Stage.TryConvertRaycastingViewportPointToNotePanelPosition(vp, out var pos);
-                    Debug.Assert(try0);
-
-                    _cacheVisibleRangePercentage = Mathf.InverseLerp(minZ, maxZ, pos.Z);
-                }
-                return _cacheVisibleRangePercentage.GetValueOrDefault();
             }
         }
 
@@ -259,7 +232,7 @@ namespace Deenote.Core.GamePlay
                 if (Utils.SetField(ref _earlyDisplayLowSpeedNotes_bf, value)) {
                     if (IsStageLoaded() && IsChartLoaded()) {
                         foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
+                            note.RefreshStageDeltaTime();
                         }
                     }
                     NotifyFlag(NotificationFlag.EarlyDisplaySlowNotes);

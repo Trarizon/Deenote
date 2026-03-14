@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c550b2ff08b91894dbe88552b23463fc, type: 3}
   m_Name: GameStageArgs
   m_EditorClassIdentifier: 
-  NotePanelWidth: 6.52
+  NotePanelWidth: 4
   NotePanelBaseLength: 63.4
-  NoteTimeToZBaseMultiplier: 17.4
+  NoteTimeToZBaseMultiplier: 1
   NoteTimeToZBaseMultipliers:
   - 8.91
   - 7

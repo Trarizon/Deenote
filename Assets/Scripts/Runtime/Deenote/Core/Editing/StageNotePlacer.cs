@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Library;
@@ -66,12 +67,12 @@ namespace Deenote.Core.Editing
                 _ => SetPlacingNoteSpeed(null, forceUpdateAndNotify: true));
             _editor._game.StageLoaded += args =>
             {
-                _indicatorPanelTransform = args.Stage.NoteIndicatorPanelTransform;
+                _indicatorPanelTransform = args.Stage.IndicatorPlane.ContentTransform;
                 _indicators?.Clear();
                 var indicators = new PooledObjectListView<PlacementNoteIndicatorController>(
                     UnityUtils.CreateObjectPool(args.Stage.Args.PlacementNoteIndicatorPrefab,
                         _indicatorPanelTransform,
-                        item => item.OnInstantiate(this)));
+                        item => item.OnInstantiate(_editor._game.Stage!.IndicatorPlane)));
 
                 foreach (var note in _prototypes) {
                     indicators.Add(out var indicator);
@@ -461,7 +462,7 @@ namespace Deenote.Core.Editing
         {
             var game = _editor._game;
             game.AssertStageLoaded();
-            return coord.Time <= game.MusicPlayer.Time + game.StageNoteAppearAheadTime;
+            return coord.Time <= game.MusicPlayer.Time + game.Stage.NoteAppearAheadTime;
         }
 
         public enum NotificationFlag

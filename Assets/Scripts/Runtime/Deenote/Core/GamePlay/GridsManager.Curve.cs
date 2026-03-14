@@ -111,8 +111,8 @@ namespace Deenote.Core.GamePlay
                 var strip = (stackalloc Vector2[_curveRenderPositions.Length]);
                 for (int i = 0; i < strip.Length; i++) {
                     var pos = _curveRenderPositions[i];
-                    var x = _game.ConvertNoteCoordPositionToWorldX(pos.Position);
-                    var z = _game.ConvertNoteCoordTimeToWorldZ(pos.Time - _game.MusicPlayer.Time, _editor.Placer.PlacingNoteSpeed);
+                    var x = _game.Stage.ConvertNotePositionToWorldX(pos.Position);
+                    var z = _game.Stage.EvaluateNoteWorldZ(pos.Time - _game.MusicPlayer.Time, _editor.Placer.PlacingNoteSpeed);
                     strip[i] = new Vector2(x, z);
                 }
                 collector.AddLineStrip(strip, args.CurveLineColor, args.CurveLineWidth);
@@ -127,7 +127,7 @@ namespace Deenote.Core.GamePlay
                 return;
 
             var currentTime = _game.MusicPlayer.Time;
-            var stageMaxTime = currentTime + _game.GetStageNoteActiveAheadTime(_editor.Placer.PlacingNoteSpeed);
+            var stageMaxTime = currentTime + _game.Stage.EvaluateNoteActiveAheadTime(_editor.Placer.PlacingNoteSpeed);
 
             using var coords_so = _positionCurveData.GetRenderValues(currentTime, stageMaxTime);
             var coords = coords_so.Span;

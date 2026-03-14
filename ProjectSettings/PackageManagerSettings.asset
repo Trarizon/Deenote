@@ -31,6 +31,7 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.cysharp.unitask
+    - com.dbrizov.naughtyattributes
     - com.github-glitchenzo.nugetforunity
     - com.gustavopsantos.reflex
     m_IsDefault: 0

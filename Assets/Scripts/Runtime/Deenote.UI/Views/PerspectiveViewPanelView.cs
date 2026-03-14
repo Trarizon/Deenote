@@ -92,7 +92,7 @@ namespace Deenote.UI.Views
                 void ResizeTargetTexture(Vector2 old, Vector2 size)
                 {
                     _viewRenderTexture.Resize(MathUtils.RoundToInt(size));
-                    MainSystem.GamePlayManager.Stage?.PerspectiveCamera.ApplyToRenderTexture(_viewRenderTexture);
+                    MainSystem.GamePlayManager.Stage?.ApplyCameraTargetTexture(_viewRenderTexture);
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace Deenote.UI.Views
 
         private void _OnStageLoaded(GamePlayManager.StageLoadedEventArgs args)
         {
-            args.Stage.PerspectiveCamera.ApplyToRenderTexture(_viewRenderTexture);
+            args.Stage.ApplyCameraTargetTexture(_viewRenderTexture);
 
             var foreground = Instantiate(args.PerspectiveViewForegroundPrefab, _contentTransform);
             if (StageForeground != null) {

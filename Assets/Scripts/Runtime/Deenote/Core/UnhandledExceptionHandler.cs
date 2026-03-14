@@ -1,5 +1,6 @@
 #nullable enable
 
+using Cysharp.Threading.Tasks;
 using Deenote.Localization;
 using System;
 using System.IO;
@@ -16,6 +17,7 @@ namespace Deenote.Core
             Application.logMessageReceived += OnUnityLogMessageReceived;
             if (File.Exists(LogFile))
                 File.Delete(LogFile);
+            UniTaskScheduler.UnobservedTaskException += OnUniTaskUnobservedTaskException;
         }
 
         private const string LogFile = "exceptions.log";
@@ -35,6 +37,22 @@ namespace Deenote.Core
             HandleMessage(CreateLogMessage(ex), ex.StackTrace);
             return;
 
+            static string CreateLogMessage(Exception exception)
+            {
+                var sb = new StringBuilder();
+                sb.Append(exception.Message);
+                var inner = exception.InnerException;
+                while (inner != null) {
+                    sb.Append($", {inner.Message}");
+                    inner = inner.InnerException;
+                }
+                return sb.ToString();
+            }
+        }
+
+        private void OnUniTaskUnobservedTaskException(Exception exception)
+        {
+            HandleMessage(CreateLogMessage(exception), exception.StackTrace);
             static string CreateLogMessage(Exception exception)
             {
                 var sb = new StringBuilder();

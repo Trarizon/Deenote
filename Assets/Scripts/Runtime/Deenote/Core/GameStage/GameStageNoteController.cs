@@ -5,7 +5,7 @@ using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using Deenote.Library;
-using Deenote.Library.Mathematics;
+using System;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage
@@ -13,6 +13,7 @@ namespace Deenote.Core.GameStage
     internal abstract class GameStageNoteController : MonoBehaviour
     {
         protected GamePlayManager _game = default!;
+        protected GameStageNotePlaneController _plane = default!;
 
         public NoteModel NoteModel { get; private set; } = default!;
 
@@ -20,20 +21,20 @@ namespace Deenote.Core.GameStage
         private float _noteColorAlpha;
 
         [SerializeField]
-        private NoteDisplayState _state;
+        private NotePlayState _playState;
 
         // Appear ahead time of note when sudden+ is 0,
         // The value may be affected if the note is following a high-speed note
         private float _appearAheadTime0SuddenPlus;
-        private float _stageDeltaTime;
+        protected float _stageDeltaTime;
 
         // The actual appear ahead time, the value 
-        private float AppearAheadTime
+        protected float AppearAheadTime
         {
             get {
                 _game.AssertStageLoaded();
 
-                var suddenPlusAheadTime = _game.GetStageNoteAppearAheadTime(NoteModel.Speed);
+                var suddenPlusAheadTime = _game.Stage.EvaluateNoteAppearAheadTime(NoteModel.Speed);
                 float aheadTime;
                 if (_game.EarlyDisplaySlowNotes) {
                     aheadTime = suddenPlusAheadTime;
@@ -45,12 +46,11 @@ namespace Deenote.Core.GameStage
             }
         }
 
-        internal void OnInstantiate(GamePlayManager gamePlayManager)
+        internal void OnInstantiate(GameStageNotePlaneController plane)
         {
-            _game = gamePlayManager;
-
-            _game.AssertStageLoaded();
-            _game.Stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
+            _plane = plane;
+            _game = _plane.GameStage.GamePlay;
+            _plane.GameStage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
         }
 
         internal void Initialize(NoteModel noteModel)
@@ -67,13 +67,12 @@ namespace Deenote.Core.GameStage
 
         private void OnDestroy()
         {
-            if (_game.IsStageLoaded())
-                _game.Stage.PerspectiveLinesRenderer.LineCollecting -= _OnPerspectiveLineCollecting;
+            _plane.GameStage.PerspectiveLinesRenderer.LineCollecting -= _OnPerspectiveLineCollecting;
         }
 
         private void OnDisable()
         {
-            _state = NoteDisplayState.Inactive;
+            _playState = NotePlayState.Inactive;
             SetLinkLine();
         }
 
@@ -94,40 +93,42 @@ namespace Deenote.Core.GameStage
         /// </summary>
         private void RefreshTimeDisplayState()
         {
-            SetState();
-            switch (_state) {
-                case NoteDisplayState.Invisible:
+            //SetState();
+            switch (_playState) {
+                case NotePlayState.Invisible:
                     SetLinkLine();
                     break;
-                case NoteDisplayState.Fall:
+                case NotePlayState.Fall:
                     SetNotePositionZ(_stageDeltaTime);
-                    SetNoteSpriteAlpha();
+                    //SetNoteSpriteAlpha();
                     SetLinkLine();
-                    SetHoldBodyDisplayLength();
+                    SetHoldingStatus();
+                    //SetHoldBodyDisplayLength();
                     break;
-                case NoteDisplayState.Holding:
+                case NotePlayState.Holding:
                     SetNotePositionZ(0f);
                     SetLinkLine();
-                    SetHoldBodyDisplayLength();
-                    SetHoldingHitEffect();
+                    SetHoldingStatus();
+                    //SetHoldBodyDisplayLength();
+                    //SetHoldingHitEffect();
                     break;
-                case NoteDisplayState.HitEffect:
+                case NotePlayState.HitEffect:
                     SetNotePositionZ(0f);
                     SetLinkLine();
-                    SetHitEffect(-_stageDeltaTime - NoteModel.GetActualDuration());
+                    SetHitEffect();
                     break;
             }
         }
 
-        private NoteDisplayState GetState()
+        private NotePlayState GetState()
         {
             if (IsInvisible())
-                return NoteDisplayState.Invisible;
+                return NotePlayState.Invisible;
             if (_stageDeltaTime >= 0)
-                return NoteDisplayState.Fall;
+                return NotePlayState.Fall;
             if (_stageDeltaTime > -NoteModel.GetActualDuration())
-                return NoteDisplayState.Holding;
-            return NoteDisplayState.HitEffect;
+                return NotePlayState.Holding;
+            return NotePlayState.HitEffect;
 
             bool IsInvisible()
             {
@@ -147,15 +148,11 @@ namespace Deenote.Core.GameStage
             }
         }
 
-        public void RefreshHoldLength()
-        {
-            SetHoldBodyDisplayLength();
-        }
-
         public void RefreshStageDeltaTime()
         {
-            _stageDeltaTime = NoteModel.Time - _game.MusicPlayer.Time;
-            RefreshTimeDisplayState();
+            SetNoteRelativeTime();
+            //_stageDeltaTime = NoteModel.Time - _game.MusicPlayer.Time;
+            //RefreshTimeDisplayState();
         }
 
         public void RefreshLinkLine()
@@ -171,86 +168,204 @@ namespace Deenote.Core.GameStage
             _game.AssertStageLoaded();
 
             SetNotePositionX();
-            SetNoteSprite();
+            //SetNoteSprite();
+            SetNoteHeadKind();
+            SetIsHold();
+            SetHoldingStatus();
             SetNoteSize();
-            RefreshColoring();
+            SetHighlightState();
             SetLinkLine();
-            RefreshHoldLength();
         }
 
-        public void RefreshColorAlpha()
+        //public void RefreshColorAlpha()
+        //{
+        //    if (_playState is NotePlayState.Invisible or NotePlayState.Fall) {
+        //        SetState();
+        //        if (_playState is NotePlayState.Invisible)
+        //            SetLinkLine();
+        //        if (_playState is NotePlayState.Fall)
+        //            SetNoteSpriteAlpha();
+        //    }
+        //}
+
+        public void RefreshHighlightState()
         {
-            if (_state is NoteDisplayState.Invisible or NoteDisplayState.Fall) {
-                SetState();
-                if (_state is NoteDisplayState.Invisible)
-                    SetLinkLine();
-                if (_state is NoteDisplayState.Fall)
-                    SetNoteSpriteAlpha();
+            if (_playState is not NotePlayState.Fall)
+                return;
+
+            SetHighlightState();
+        }
+
+
+        #endregion
+
+        private NoteHeadKind _noteHeadKind;
+
+        #region New Setters
+
+        private void SetNoteRelativeTime()
+        {
+            _stageDeltaTime = NoteModel.Time - _game.MusicPlayer.Time;
+            if (_stageDeltaTime > AppearAheadTime) {
+                goto Invisible;
+            }
+            if (!_game.EarlyDisplaySlowNotes &&
+                // In TimeOrder mode, the note should display only after its previous note displayed
+                _game.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next &&
+                NodeTimeUniqueComparer.Instance.Compare(NoteModel, next) >= 0) {
+                goto Invisible;
+            }
+            if (_stageDeltaTime >= 0) {
+                goto Fall;
+            }
+            if (_stageDeltaTime > -NoteModel.GetActualDuration()) {
+                goto Holding;
+            }
+            goto HitEffect;
+
+        Invisible:
+            if (Utils.SetField(ref _playState, NotePlayState.Invisible)) {
+                OnPlayStateChanged(_playState);
+            }
+            SetLinkLine();
+            return;
+
+        Fall:
+            if (Utils.SetField(ref _playState, NotePlayState.Fall)) {
+                OnPlayStateChanged(_playState);
+            }
+            SetNotePositionZ(_stageDeltaTime);
+            OnFallingProgressChanged(_stageDeltaTime, AppearAheadTime);
+            SetLinkLine();
+            SetHoldingStatus();
+            return;
+
+        Holding:
+            if (Utils.SetField(ref _playState, NotePlayState.Holding)) {
+                OnPlayStateChanged(_playState);
+            }
+            SetNotePositionZ(0f);
+            SetLinkLine();
+            SetHoldingStatus();
+            return;
+
+        HitEffect:
+            if (Utils.SetField(ref _playState, NotePlayState.HitEffect)) {
+                OnPlayStateChanged(_playState);
+            }
+            SetNotePositionZ(0);
+            SetLinkLine();
+            SetHitEffect();
+            return;
+        }
+
+        private void SetNoteHeadKind()
+        {
+            var value = NoteModel switch {
+                { Kind: NoteModel.NoteKind.Swipe } => NoteHeadKind.Swipe,
+                { Kind: NoteModel.NoteKind.Slide } => NoteHeadKind.Slide,
+                { HasSounds: true } => NoteHeadKind.Click,
+                _ => NoteHeadKind.NoSound,
+            };
+
+            if (Utils.SetField(ref _noteHeadKind, value)) {
+                OnNoteHeadKindChanged(value);
             }
         }
 
-        public void RefreshColoring()
+        private void SetIsHold()
         {
-            if (_state is NoteDisplayState.Fall) {
-                SetNoteSpriteColor();
-            }
+            OnNoteIsHoldChanged(NoteModel.IsHold);
+        }
+
+        private void SetHoldingStatus()
+        {
+            var relativeTime = _game.MusicPlayer.Time - NoteModel.Time;
+            OnHoldStatusChanged(new NoteHoldingStatus(relativeTime, NoteModel.Duration));
+        }
+
+        private void SetHighlightState()
+        {
+            var flags = NoteHighlightFlags.None;
+            if (NoteModel.IsSelected)
+                flags |= NoteHighlightFlags.Selected;
+            if (NoteModel.IsCollided)
+                flags |= NoteHighlightFlags.Collided;
+            if (!_game.IsNoteHighlighted(NoteModel))
+                flags |= NoteHighlightFlags.Downplayed;
+            OnNoteHighlightChanged(flags);
+        }
+
+        private void SetHitEffect()
+        {
+            var time = _game.MusicPlayer.Time - NoteModel.EndTime;
+            OnHitEffectTimeChanged(time);
+        }
+
+        private void SetNoteSize()
+        {
+            OnNoteSizeChanged(NoteModel.Size);
         }
 
         #endregion
 
+        // |            *      |
+        // ^judge line  ^note  ^note appear
+        // |<timeToHit->|
+        // |<-appearAheadTime->|
+        protected abstract void OnFallingProgressChanged(float timeToHit, float appearAheadTime);
+        protected abstract void OnNoteHighlightChanged(NoteHighlightFlags flags);
+        protected abstract void OnNoteHeadKindChanged(NoteHeadKind kind);
+        protected abstract void OnNoteIsHoldChanged(bool isHold);
+        protected abstract void OnHoldStatusChanged(NoteHoldingStatus status);
+        protected abstract void OnHitEffectTimeChanged(float time);
+        protected abstract void OnNoteSizeChanged(float size);
+
         #region Setters
-
-        protected abstract void SetHoldingHitEffect();
-
-        protected abstract void SetHitEffect(float timeAfterHit);
 
         private void SetNotePositionX()
         {
-            transform.WithLocalPositionX(_game.ConvertNoteCoordPositionToWorldX(NoteModel.Position));
+            transform.WithLocalPositionX(_game.Stage!.ConvertNotePositionToWorldX(NoteModel.Position));
         }
-
-        protected abstract void SetNoteSprite();
-
-        protected abstract void SetNoteSize();
 
         private void SetNotePositionZ(float time)
         {
             _game.AssertStageLoaded();
 
-            float z = _game.ConvertNoteCoordTimeToWorldZ(time, NoteModel.Speed);
+            float z = _game.Stage.EvaluateNoteWorldZ(time, NoteModel.Speed);
             transform.WithLocalPositionZ(z);
         }
 
-        protected void SetNoteSpriteAlpha()
-        {
-            _game.AssertStageLoaded();
-            Debug.Assert(_state is NoteDisplayState.Fall);
+        //protected void SetNoteSpriteAlpha()
+        //{
+        //    _game.AssertStageLoaded();
+        //    Debug.Assert(_playState is NotePlayState.Fall);
 
-            var appearAheadTime = AppearAheadTime;
-            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Args.NoteFadeInRangePercent);
+        //    var appearAheadTime = AppearAheadTime;
+        //    var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Args.NoteFadeInRangePercent);
 
-            var maxAlpha = _game.IsFilterNoteSpeed && !Mathf.Approximately(NoteModel.Speed, _game.HighlightedNoteSpeed)
-                ? _game.Stage.Args.NoteDownplayAlpha
-                : 1f;
-            _noteColorAlpha = MathUtils.MapTo(_stageDeltaTime, appearAheadTime, noteFadeInEndTime, 0, maxAlpha);
+        //    var maxAlpha = _game.IsFilterNoteSpeed && !Mathf.Approximately(NoteModel.Speed, _game.HighlightedNoteSpeed)
+        //        ? _game.Stage.Args.NoteDownplayAlpha
+        //        : 1f;
+        //    _noteColorAlpha = MathUtils.MapTo(_stageDeltaTime, appearAheadTime, noteFadeInEndTime, 0, maxAlpha);
 
-            SetNoteSpriteRendererAlpha(_noteColorAlpha);
-        }
+        //    SetNoteSpriteRendererAlpha(_noteColorAlpha);
+        //}
 
-        protected abstract void SetNoteSpriteRendererAlpha(float alpha);
+        //protected abstract void SetNoteSpriteRendererAlpha(float alpha);
 
         private void SetLinkLine()
         {
             _game.AssertStageLoaded();
 
-            if (_state is NoteDisplayState.Fall && _game.IsShowLinkLines && NoteModel.NextLink is not null) {
+            if (_playState is NotePlayState.Fall && _game.IsShowLinkLines && NoteModel.NextLink is not null) {
                 var currentTime = _game.MusicPlayer.Time;
 
                 var to = NoteModel.NextLink;
                 var from = NoteModel;
 
-                var (fromX, fromZ) = _game.ConvertNoteCoordToWorldPosition(from.PositionCoord - new NoteCoord(0f, currentTime), from.Speed);
-                var (toX, toZ) = _game.ConvertNoteCoordToWorldPosition(to.PositionCoord - new NoteCoord(0f, currentTime), to.Speed);
+                var (fromX, fromZ) = _game.Stage.EvaluateNoteWorldXZ(from.PositionCoord - new NoteCoord(0f, currentTime), from.Speed);
+                var (toX, toZ) = _game.Stage.EvaluateNoteWorldXZ(to.PositionCoord - new NoteCoord(0f, currentTime), to.Speed);
                 _linkLine = (new Vector2(fromX, fromZ), new Vector2(toX, toZ));
             }
             else {
@@ -262,11 +377,11 @@ namespace Deenote.Core.GameStage
         {
             float time;
             bool isHolding;
-            if (_state is NoteDisplayState.Fall) {
+            if (_playState is NotePlayState.Fall) {
                 time = NoteModel.GetActualDuration();
                 isHolding = false;
             }
-            else if (_state is NoteDisplayState.Holding) {
+            else if (_playState is NotePlayState.Holding) {
                 time = _stageDeltaTime + NoteModel.GetActualDuration();
                 isHolding = true;
             }
@@ -277,43 +392,43 @@ namespace Deenote.Core.GameStage
 
             _game.AssertStageLoaded();
 
-            var scaleY = _game.ConvertNoteCoordTimeToHoldScaleY(time, NoteModel.Speed);
-            SetHoldScaleY(scaleY, isHolding);
+            //var scaleY = _game.ConvertNoteCoordTimeToHoldScaleY(time, NoteModel.Speed);
+            //SetHoldScaleY(scaleY, isHolding);
         }
 
-        protected abstract void SetHoldScaleY(float scaleY, bool isHolding);
+        //protected abstract void SetHoldScaleY(float scaleY, bool isHolding);
 
-        private void SetNoteSpriteColor()
-        {
-            _game.AssertStageLoaded();
-            var stage = _game.Stage;
+        //private void SetNoteSpriteColor()
+        //{
+        //    _game.AssertStageLoaded();
+        //    var stage = _game.Stage;
 
-            Color color;
-            if (NoteModel.IsSelected)
-                color = stage.Args.NoteSelectedColor;
-            else if (NoteModel.IsCollided)
-                color = stage.Args.NoteCollidedColor;
-            else
-                color = Color.white;
-            SetNoteSpriteColorRGB(color);
-        }
+        //    Color color;
+        //    if (NoteModel.IsSelected)
+        //        color = stage.Args.NoteSelectedColor;
+        //    else if (NoteModel.IsCollided)
+        //        color = stage.Args.NoteCollidedColor;
+        //    else
+        //        color = Color.white;
+        //    //SetNoteSpriteColorRGB(color);
+        //}
 
-        protected abstract void SetNoteSpriteColorRGB(Color color);
+        //protected abstract void SetNoteSpriteColorRGB(Color color);
 
         private void SetAppearAheadTime0SuddenPlus(GameStageNoteController? previousStageNote)
         {
             _game.AssertStageLoaded();
 
             if (previousStageNote is null) {
-                _appearAheadTime0SuddenPlus = _game.GetStageNoteActiveAheadTime(NoteModel.Speed);
+                _appearAheadTime0SuddenPlus = _game.Stage.EvaluateNoteActiveAheadTime(NoteModel.Speed);
                 return;
             }
 
             var prevNoteAppearAheadTime = previousStageNote._appearAheadTime0SuddenPlus;
             var prevNoteAppearTime = previousStageNote.NoteModel.Time - prevNoteAppearAheadTime;
-            var noteAppearTime = _game.GetStageNoteActiveTime(NoteModel);
+            var noteAppearTime = _game.Stage.EvaluateNoteActiveTime(NoteModel);
             if (prevNoteAppearTime <= noteAppearTime) {
-                _appearAheadTime0SuddenPlus = _game.GetStageNoteActiveAheadTime(NoteModel.Speed);
+                _appearAheadTime0SuddenPlus = _game.Stage.EvaluateNoteActiveAheadTime(NoteModel.Speed);
                 return;
             }
 
@@ -323,22 +438,57 @@ namespace Deenote.Core.GameStage
         private void SetState()
         {
             var state = GetState();
-            if (Utils.SetField(ref _state, state)) {
-                OnStateChanged(state);
+            if (Utils.SetField(ref _playState, state)) {
+                OnPlayStateChanged(state);
             }
         }
 
-        protected abstract void OnStateChanged(NoteDisplayState state);
+        protected abstract void OnPlayStateChanged(NotePlayState state);
 
         #endregion
 
-        protected enum NoteDisplayState
+        protected enum NotePlayState
         {
             Inactive,
             Invisible,
             Fall,
             Holding,
             HitEffect,
+        }
+
+        public enum NoteHeadKind
+        {
+            Invalid,
+            Click,
+            NoSound,
+            Slide,
+            Swipe,
+        }
+
+        [Flags]
+        public enum NoteHighlightFlags
+        {
+            None = 0,
+            Selected = 1 << 0,
+            Collided = 1 << 1,
+            Downplayed = 1 << 2,
+        }
+
+        public readonly struct NoteHoldingStatus
+        {
+            private readonly float _duration;
+            private readonly float _passedTime;
+
+            public bool IsHolding => _passedTime > 0f && _passedTime < _duration;
+            public float Duration => _duration;
+            public float PassedTime => _passedTime;
+            public float RestTime => _passedTime < 0 ? _duration : _duration - _passedTime;
+
+            internal NoteHoldingStatus(float passedTime, float duration)
+            {
+                _passedTime = passedTime;
+                _duration = duration;
+            }
         }
     }
 }

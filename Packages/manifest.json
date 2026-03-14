@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.cysharp.unitask": "2.5.10",
+    "com.dbrizov.naughtyattributes": "2.1.4",
     "com.github-glitchenzo.nugetforunity": "4.1.1",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "1.21.21",
@@ -37,6 +38,7 @@
       "url": "https://package.openupm.com",
       "scopes": [
         "com.cysharp.unitask",
+        "com.dbrizov.naughtyattributes",
         "com.github-glitchenzo.nugetforunity",
         "com.gustavopsantos.reflex"
       ]

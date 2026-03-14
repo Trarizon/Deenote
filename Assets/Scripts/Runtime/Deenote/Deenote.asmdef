@@ -11,7 +11,8 @@
         "Trarizon.Library",
         "Unity.InputSystem",
         "Deenote.InputSystem.InputActions",
-        "Deenote.UIFramework"
+        "Deenote.UIFramework",
+        "NaughtyAttributes.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

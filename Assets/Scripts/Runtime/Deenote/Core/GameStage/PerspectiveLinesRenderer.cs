@@ -39,6 +39,7 @@ namespace Deenote.Core.GameStage
         private Mesh _mesh;
 
         private GamePlayManager _game = default!;
+        private GameStageController _gameStage = default!;
 
         public event Action<LineCollector>? LineCollecting;
 
@@ -49,19 +50,9 @@ namespace Deenote.Core.GameStage
             _props = new MaterialPropertyBlock();
         }
 
-        internal void OnInstantiate(GamePlayManager manager)
+        internal void OnInstantiate(GameStageController gameStage)
         {
-            _game = manager;
-            _game.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
-        }
-
-        private void OnDestroy()
-        {
-            _game.UnregisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
+            _gameStage = gameStage;
         }
 
         private void Update()
@@ -82,15 +73,12 @@ namespace Deenote.Core.GameStage
             _meshFilter.mesh = UpdateMesh();
         }
 
-        private void _OnSuddenPlusChanged(GamePlayManager manager)
+        public void SetVisibleRangeCullingRatio(float ratio)
         {
-            manager.AssertStageLoaded();
-
-            var args = manager.Stage.Args;
-            float percent = manager.VisibleRangePercentage;
-            float cutoff = args.NotePanelBaseLength * percent;
+            float cutoff = ratio * _gameStage.EvaluateNoteWorldZ(_gameStage.NoteActiveAheadTime);
+            var config = _gameStage.Config;
             _props.SetFloat(CutOffZ, cutoff);
-            _props.SetFloat(FadeInZ, cutoff * args.NoteFadeInRangePercent);
+            _props.SetFloat(FadeInZ, cutoff * config.GridLineFadeInRatio);
         }
 
         private Mesh UpdateMesh()

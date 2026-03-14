@@ -1,43 +1,46 @@
 #nullable enable
 
+using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Args;
 using Deenote.Entities;
+using Deenote.Entities.Models;
 using Deenote.Library;
+using System;
 using System.Diagnostics.CodeAnalysis;
+using TMPro;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage
 {
     public abstract class GameStageController : MonoBehaviour
     {
-        [SerializeField] GameStagePerspectiveCamera _perspectiveCamera = default!;
+        [SerializeField] GameStageNotePlaneController _notePlane = default!;
+        [SerializeField] PlacementNotePlaneController _indicatorPlane = default!;
+        [SerializeField] SelectionAreaRect _selectionAreaRect = default!;
+        [SerializeField] Camera _perspectiveCamera = default!;
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
-        [SerializeField] Transform _notePanelTransform = default!;
-        [SerializeField] Transform _noteIndicatorPanelTransform = default!;
-        [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
-        [SerializeField] Material _holdBodyCullMaterial = default!;
 
-        public GameStagePerspectiveCamera PerspectiveCamera => _perspectiveCamera;
+        [SerializeField] GameStageConfig _config = default!;
 
+        public GamePlayManager GamePlay { get; private set; } = default!;
+        internal GameStageNotePlaneController NotePlane => _notePlane;
+        internal PlacementNotePlaneController IndicatorPlane => _indicatorPlane;
+        internal SelectionAreaRect SelectionAreaRect => _selectionAreaRect;
+        public Camera PerspectiveCamera => _perspectiveCamera;
         public PerspectiveLinesRenderer PerspectiveLinesRenderer => _perspectiveLineRenderer;
 
-        /// <summary>
-        /// The parent transform of instantiated notes
-        /// </summary>
-        public Transform NotePanelTransform => _notePanelTransform;
+        internal GameStageConfig Config => _config;
 
-        public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
+
 
         [field: SerializeField]
         public GameStageArgs Args { get; private set; } = default!;
         [field: SerializeField]
         public GridLineArgs GridLineArgs { get; private set; } = default!;
 
-        protected GamePlayManager _manager = default!;
-
         private bool _isStageEffectOn_bf;
-        private float _visibleRangePercentage_bf;
+        private float _visibleRangeCullingRatio_bf;
 
         public bool IsStageEffectOn
         {
@@ -48,66 +51,178 @@ namespace Deenote.Core.GameStage
                 }
             }
         }
-        public float VisibleRangePercentage
+
+        /// <summary>
+        /// The actual sudden+ on plane
+        /// </summary>
+        public float VisibleRangeCullingRatio
         {
-            get => _visibleRangePercentage_bf;
+            get => _visibleRangeCullingRatio_bf;
             set {
-                if (Utils.SetField(ref _visibleRangePercentage_bf, value)) {
-                    OnVisibleRangePercentageChanged(value);
+                if (Utils.SetField(ref _visibleRangeCullingRatio_bf, value)) {
+                    OnVisiblaRangeCullingRatioChanged(value);
                 }
             }
         }
 
-        private static readonly int HoldCullMaxZPropertyId = Shader.PropertyToID("_CullMaxZ");
+        /// <summary>
+        /// The actual speed used for calculating
+        /// </summary>
+        internal float NoteFallSpeedInternal { get; private set; }
 
-        protected internal virtual void OnInstantiate(GamePlayManager manager)
+        /// <summary>
+        /// The time from a note(speed=1) is activated to falls on the judge line
+        /// </summary>
+        /// <remarks>
+        /// We start to track when note appears as if sudden+ is 0,
+        /// and set its visibility according to <see cref="NoteAppearAheadTime"/>
+        /// </remarks>
+        public float NoteActiveAheadTime => Config.NoteAppearAheadTimeFactor / NoteFallSpeedInternal;
+
+        /// <summary>
+        /// The time from a note(speed=1) appears to falls on the judge line
+        /// </summary>
+        public float NoteAppearAheadTime => NoteActiveAheadTime * VisibleRangeCullingRatio;
+
+        private void Awake()
         {
-            _manager = manager;
-            _manager.RegisterNotification(
+            PerspectiveLinesRenderer.OnInstantiate(this);
+        }
+
+        protected internal virtual void Initialize(GamePlayManager gamePlayManager)
+        {
+            GamePlay = gamePlayManager;
+            GamePlay.RegisterNotification(
+                GamePlayManager.NotificationFlag.StageEffectOn,
+                _manager => IsStageEffectOn = _manager.IsStageEffectOn);
+            GamePlay.RegisterNotification(
+                GamePlayManager.NotificationFlag.NoteSpeed,
+                manager => NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(manager.ActualNoteFallSpeed));
+            GamePlay.RegisterNotification(
                 GamePlayManager.NotificationFlag.SuddenPlus,
-                manager => VisibleRangePercentage = manager.VisibleRangePercentage);
-            _perspectiveLineRenderer.OnInstantiate(_manager);
-        }
-
-        internal void SetSelectionPanelRect(NoteCoord startCoord, NoteCoord endCoord)
-        {
-            var (xMin, zMin) = _manager.ConvertNoteCoordToWorldPosition(startCoord - new NoteCoord(0, _manager.MusicPlayer.Time));
-            var (xMax, zMax) = _manager.ConvertNoteCoordToWorldPosition(endCoord - new NoteCoord(0, _manager.MusicPlayer.Time));
-
-            _noteDragSelectionPanelTransform.gameObject.SetActive(true);
-            _noteDragSelectionPanelTransform.offsetMin = new(xMin, zMin);
-            _noteDragSelectionPanelTransform.offsetMax = new(xMax, zMax);
-        }
-
-        internal void SetSelectionPanelRectInvisible()
-        {
-            _noteDragSelectionPanelTransform.gameObject.SetActive(false);
-            return;
+                manager => VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(manager.SuddenPlus));
+            IsStageEffectOn = gamePlayManager.IsStageEffectOn;
+            NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
+            VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
         }
 
         protected virtual void OnIsStageEffectOnChanged(bool value) { }
 
-        protected virtual void OnVisibleRangePercentageChanged(float value)
+        protected virtual void OnVisiblaRangeCullingRatioChanged(float value)
         {
-            var time = _manager.StageNoteActiveAheadTime * value;
-            var z = _manager.ConvertNoteCoordTimeToWorldZ(time);
-            _holdBodyCullMaterial.SetFloat(HoldCullMaxZPropertyId, z);
+            PerspectiveLinesRenderer.SetVisibleRangeCullingRatio(value);
         }
 
-        #region Perspective Converters
-
-        internal Vector2 ConvertPerspectiveViewportPointToRaycastingViewportPoint(Vector2 perspectiveViewPanelViewportPoint)
+        public virtual void ApplyCameraTargetTexture(RenderTexture renderTexture)
         {
-            var camera = _perspectiveCamera.Camera;
-            return perspectiveViewPanelViewportPoint with {
-                y = perspectiveViewPanelViewportPoint.y / camera.rect.height
+            if (PerspectiveCamera.targetTexture != renderTexture) {
+                PerspectiveCamera.targetTexture = renderTexture;
+            }
+            var width = renderTexture.width;
+            var height = renderTexture.height;
+            var h = 9f / 16f * width / height;
+            PerspectiveCamera.rect = new Rect(0f, 0f, 1f, h);
+        }
+
+        #region Value Convert
+
+        // - ConvertXXX: pure method
+        // - EvaluateXXX: related to states that can be controlled by user, eg. NoteFallSpeed
+        // - RaycastXXX: raycast operation
+
+        private float ConvertFallSpeedToPlaneSpeed(float noteFallSpeed)
+            => 3 * Mathf.Pow(1.4f, noteFallSpeed);
+
+        protected abstract float ConvertSuddenPlusToVisibleRangeCullingRatio(float suddenPlus);
+
+        internal float EvaluateNoteActiveAheadTime(float noteSpeed)
+            => NoteActiveAheadTime / noteSpeed;
+
+        internal float EvaluateNoteActiveTime(IStageNoteNode node)
+            => node.Time - EvaluateNoteActiveAheadTime(node.Speed);
+
+        internal float EvaluateNoteAppearAheadTime(float noteSpeed)
+            => NoteAppearAheadTime / noteSpeed;
+
+        internal float ConvertNotePositionToWorldX(float pos)
+            => pos * Config.NotePosToWorldXFactor;
+
+        internal float ConvertWorldXToNotePosition(float x)
+            => x / Config.NotePosToWorldXFactor;
+
+        internal float ConvertWorldZToNoteTime(float z, float speed)
+            => z / speed / Config.NoteTimeToWorldZFactor;
+
+        internal float ConvertNoteTimeToWorldZ(float time, float speed = 1f)
+            => time * speed * Config.NoteTimeToWorldZFactor;
+
+        internal float EvaluateNoteWorldZ(float time, float noteSpeed = 1f)
+            => time * noteSpeed * NoteFallSpeedInternal * Config.NoteTimeToWorldZFactor;
+
+        internal float EvaluateNoteLocalTime(float z, float noteSpeed = 1f)
+            => z / noteSpeed / NoteFallSpeedInternal / Config.NoteTimeToWorldZFactor;
+
+        internal (float X, float Z) EvaluateNoteWorldXZ(NoteCoord coord, float noteSpeed = 1f)
+            => (ConvertNotePositionToWorldX(coord.Position), EvaluateNoteWorldZ(coord.Time, noteSpeed));
+
+        // Perspective View
+
+        /// <summary>
+        /// Convert viewport point in panel view to local note coord
+        /// </summary>
+        internal bool TryEvaluatePerspectiveViewportPointToLocalNoteCoord(Vector2 perspectiveViewportPoint, float noteSpeed, out NoteCoord coord)
+        {
+            if (!IsInViewArea(perspectiveViewportPoint)) {
+                coord = default;
+                return false;
+            }
+
+            var raycastableVp = ConvertPerspectiveViewportPointToRaycastableViewportPoint(perspectiveViewportPoint);
+            if (TryConvertRaycastableViewportPointToNotePlanePosition(raycastableVp, out var planePos)) {
+                coord = new(
+                    ConvertWorldXToNotePosition(planePos.X),
+                    EvaluateNoteLocalTime(planePos.Z, noteSpeed));
+                return true;
+            }
+
+            coord = default;
+            return false;
+
+            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
+        }
+
+        /// <summary>
+        /// The raycastable viewport is the bottom 16:9 part of the stage view
+        /// </summary>
+        private Vector2 ConvertPerspectiveViewportPointToRaycastableViewportPoint(Vector2 perspectiveViewportPoint)
+        {
+            return perspectiveViewportPoint with {
+                y = perspectiveViewportPoint.y / PerspectiveCamera.rect.height
             };
         }
 
-        internal bool TryRaycastRaycastingViewportPointToNote(Vector2 raycastingViewportPoint, [NotNullWhen(true)] out GameStageNoteController? note)
+        protected bool TryConvertRaycastableViewportPointToNotePlanePosition(Vector2 raycastableViewportPoint, out (float X, float Z) notePlanePosition)
         {
-            var camera = _perspectiveCamera.Camera;
-            var ray = camera.ViewportPointToRay(raycastingViewportPoint);
+            var ray = PerspectiveCamera.ViewportPointToRay(raycastableViewportPoint);
+            if (NotePlane.Plane.Raycast(ray, out var distance)) {
+                var hitPoint = ray.GetPoint(distance);
+                notePlanePosition = (hitPoint.x, hitPoint.z);
+                return true;
+            }
+
+            notePlanePosition = default;
+            return false;
+        }
+
+        internal bool TryRaycastPerspectiveViewportPointToNote(Vector2 perspectiveViewportPoint, [MaybeNullWhen(false)] out GameStageNoteController note)
+        {
+            if (!IsInViewArea(perspectiveViewportPoint)) {
+                note = default;
+                return false;
+            }
+
+            var raycastableVp = ConvertPerspectiveViewportPointToRaycastableViewportPoint(perspectiveViewportPoint);
+            var ray = PerspectiveCamera.ViewportPointToRay(raycastableVp);
             if (Physics.Raycast(ray, out var hitInfo)) {
                 var c = hitInfo.collider;
                 if (c != null && c.TryGetComponent<GameStageNoteRaycastingCollider>(out var collider)) {
@@ -116,36 +231,24 @@ namespace Deenote.Core.GameStage
                 }
             }
 
-            note = null;
+            note = default;
             return false;
+
+            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
         }
 
-        internal bool TryConvertNotePanelPositionToRaycastingViewportPoint((float X, float Z) notePanelPosition, out Vector2 viewportPoint)
+        internal bool TryConvertNotePlanePositionToRaycastableViewportPoint((float X, float Z) notePlanePosition, out Vector2 viewportPoint)
         {
-            var y = _notePanelTransform.position.y;
-            var camera = _perspectiveCamera.Camera;
-            var position = new Vector3(notePanelPosition.X, y, notePanelPosition.Z);
+            var y = NotePlane.ContentTransform.position.y;
+            var camera = PerspectiveCamera;
+            var position = new Vector3(notePlanePosition.X, y, notePlanePosition.Z);
             var vp = camera.WorldToViewportPoint(position);
-
             if (vp.z >= camera.nearClipPlane && vp.z <= camera.farClipPlane) {
                 viewportPoint = vp;
                 return true;
             }
-            viewportPoint = default;
-            return false;
-        }
 
-        internal bool TryConvertRaycastingViewportPointToNotePanelPosition(Vector2 raycastingViewportPoint, out (float X, float Z) notePanelPosition)
-        {
-            var camera = _perspectiveCamera.Camera;
-            var ray = camera.ViewportPointToRay(raycastingViewportPoint);
-            var plane = new Plane(_notePanelTransform.up, _notePanelTransform.position);
-            if (plane.Raycast(ray, out var distance)) {
-                var hitPoint = ray.GetPoint(distance);
-                notePanelPosition = (hitPoint.x, hitPoint.z);
-                return true;
-            }
-            notePanelPosition = default;
+            viewportPoint = default;
             return false;
         }
 

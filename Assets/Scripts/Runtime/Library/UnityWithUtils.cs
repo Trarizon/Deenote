@@ -25,6 +25,9 @@ namespace Deenote.Library
         public static void WithLocalScaleXY(this Transform transform, float x, float y)
             => transform.localScale = transform.localScale with { x = x, y = y };
 
+        public static void WithLocalScaleYZ(this Transform transform,float y,float z)
+            => transform.localScale = transform.localScale with { y = y, z = z };
+
         public static void WithAnchoredMinMaxX(this RectTransform transform, float x)
         {
             transform.anchorMin = transform.anchorMin with { x = x };

@@ -140,11 +140,11 @@ namespace Deenote.Core.GamePlay
 
             _game.AssertStageLoaded();
 
-            float minZ = _game.ConvertNoteCoordTimeToWorldZ(0f);
-            float maxZ = _game.ConvertNoteCoordTimeToWorldZ(_game.StageNoteAppearAheadTime);
+            float minZ = _game.Stage.EvaluateNoteWorldZ(0f);
+            float maxZ = _game.Stage.EvaluateNoteWorldZ(_game.Stage.NoteAppearAheadTime);
             var args = _game.Stage.GridLineArgs;
             foreach (var (pos, kind) in _positionGridLines) {
-                var x = _game.ConvertNoteCoordPositionToWorldX(pos);
+                var x = _game.Stage.ConvertNotePositionToWorldX(pos);
                 collector.AddLine(new Vector2(x, minZ), new Vector2(x, maxZ),
                     _game.CustomSubBeatLineColor ?? args.PositionGridLineColor,
                     width: kind is PositionGridKind.Border ? args.PositionGridBorderWidth : args.PositionGridLineWidth);
@@ -152,8 +152,8 @@ namespace Deenote.Core.GamePlay
 
             // Legacy system
             if (PositionGridGeneration is PositionGridGenerationKind.ByCountAndOffset && IsPositionGridBorderVisible_Legacy) {
-                float minx = _game.ConvertNoteCoordPositionToWorldX(-EntityArgs.StageMaxPosition);
-                float maxx = _game.ConvertNoteCoordPositionToWorldX(EntityArgs.StageMaxPosition);
+                float minx = _game.Stage.ConvertNotePositionToWorldX(-EntityArgs.StageMaxPosition);
+                float maxx = _game.Stage.ConvertNotePositionToWorldX(EntityArgs.StageMaxPosition);
                 collector.AddLine(new Vector2(minx, minZ), new Vector2(minx, maxZ),
                     _game.CustomSubBeatLineColor ?? args.PositionGridLineColor, args.PositionGridBorderWidth);
                 collector.AddLine(new Vector2(maxx, minZ), new Vector2(maxx, maxZ),
