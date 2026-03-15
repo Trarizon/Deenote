@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Core.GameStage.Themes;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage

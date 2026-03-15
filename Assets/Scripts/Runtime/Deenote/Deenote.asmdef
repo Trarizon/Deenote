@@ -8,11 +8,13 @@
         "Deenote.Library",
         "Unity.TextMeshPro",
         "Deenote.Localization",
-        "Trarizon.Library",
         "Unity.InputSystem",
         "Deenote.InputSystem.InputActions",
         "Deenote.UIFramework",
-        "NaughtyAttributes.Core"
+        "NaughtyAttributes.Core",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "UniTask.Addressables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

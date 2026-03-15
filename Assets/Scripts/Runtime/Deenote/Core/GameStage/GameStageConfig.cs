@@ -7,7 +7,7 @@ namespace Deenote.Core.GameStage
     [CreateAssetMenu(
         fileName = nameof(GameStageConfig),
         menuName = "Deenote/GameStage/GameStageConfig")]
-    internal sealed class GameStageConfig : ScriptableObject
+    public sealed class GameStageConfig : ScriptableObject
     {
         public float NotePosToWorldXFactor = 1;
         public float NoteTimeToWorldZFactor = 1;

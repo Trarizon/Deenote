@@ -1,8 +1,10 @@
 #nullable enable
 
+using Deenote.GamePlay.UI;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.Core.GameStage.Themes
 {
     [CreateAssetMenu(
         fileName = "GameStageThemeConfig",
@@ -11,7 +13,10 @@ namespace Deenote.Core.GameStage
     {
         public string Id = "";
         public string Name = "";
+
         [Header("Prefabs")]
+        public AssetReference SceneReference;
+        public PerspectiveViewForegroundBase GameUIPrefab;
         public GameStageNoteController NotePrefab;
     }
 }

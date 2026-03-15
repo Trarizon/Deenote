@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NotePosToWorldXFactor: 1
   NoteTimeToWorldZFactor: 1
-  NoteAppearAheadTimeFactor: 45
+  NoteAppearAheadTimeFactor: 30
   NoteHitEffectMaxDuration: 0.9166667
-  NoteFadeInRatio: 0.6556875
-  GridLineFadeInRatio: 0.6556875
+  NoteFadeInRatio: 0.6
+  GridLineFadeInRatio: 0.6
