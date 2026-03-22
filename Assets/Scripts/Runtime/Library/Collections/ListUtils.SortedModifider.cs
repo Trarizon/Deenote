@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Library.Collections;
+using System;
 using System.Collections.Generic;
 
 namespace Deenote.Library.Collections;
@@ -55,6 +56,13 @@ public static partial class ListUtils
             if (index < 0)
                 index = ~index;
             _list.Insert(index, item);
+        }
+
+        public void AddRange(ReadOnlySpan<T> items)
+        {
+            foreach (var item in items) {
+                Add(item);
+            }
         }
 
         /// <summary>

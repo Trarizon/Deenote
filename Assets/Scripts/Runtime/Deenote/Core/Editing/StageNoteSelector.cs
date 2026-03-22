@@ -15,6 +15,7 @@ using UnityEngine;
 
 namespace Deenote.Core.Editing
 {
+    [Obsolete]
     public sealed class StageNoteSelector
     {
         private const float DragSelectionAreaMaxPosition = 6f;

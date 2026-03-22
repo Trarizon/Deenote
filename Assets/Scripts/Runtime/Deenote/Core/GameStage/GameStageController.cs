@@ -104,6 +104,8 @@ namespace Deenote.Core.GameStage
             IsStageEffectOn = gamePlayManager.IsStageEffectOn;
             NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
             VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
+
+            SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
         }
 
         protected virtual void OnIsStageEffectOnChanged(bool value) { }

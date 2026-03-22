@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Core.Editing;
 using Deenote.Entities;
 using UnityEngine;
 
@@ -11,6 +12,24 @@ namespace Deenote.Core.GameStage
         [SerializeField] RectTransform _dragSelectionArea = default!;
 
         public GameStageController GameStage => _gameStage;
+
+        private StageDragSelector _dragSelector=default!;
+
+        internal void Initialize(StageDragSelector dragSelector)
+        {
+            _dragSelector = dragSelector;
+            _dragSelector.SelectionAreaChanged += _dragSelector_SelectionAreaChanged; ;
+        }
+
+        private void _dragSelector_SelectionAreaChanged(StageDragSelector s, StageDragSelector.SelectionAreaChangedEventArgs e)
+        {
+            SetSelectionArea(e.Start, e.End);
+        }
+
+        private void OnDestroy()
+        {
+            _dragSelector.SelectionAreaChanged -= _dragSelector_SelectionAreaChanged;
+        }
 
         public void SetSelectionArea(NoteCoord startCoord,NoteCoord endCoord)
         {

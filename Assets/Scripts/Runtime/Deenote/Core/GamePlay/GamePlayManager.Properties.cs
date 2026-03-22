@@ -122,6 +122,11 @@ namespace Deenote.Core.GamePlay
             return !IsFilterNoteSpeed || Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
         }
 
+        public bool IsNoteDownplayed(NoteModel note)
+        {
+            return IsFilterNoteSpeed && !Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
+        }
+
         #region Stage
 
         public const int MinNoteSpeed = 5;
