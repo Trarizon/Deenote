@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Deenote
 {
-    public sealed partial class ServiceProvider
+    internal sealed partial class ServiceProvider
     {
         public static StageDragSelector StageDragSelector { get; }
     }

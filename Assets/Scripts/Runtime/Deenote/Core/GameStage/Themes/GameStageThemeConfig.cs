@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.GamePlay.UI;
+using Deenote.Core.GameStage.Foreground;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -16,7 +16,7 @@ namespace Deenote.Core.GameStage.Themes
 
         [Header("Prefabs")]
         public AssetReference SceneReference;
-        public PerspectiveViewForegroundBase GameUIPrefab;
+        public ForegroundPerspectiveViewUI GameUIPrefab;
         public GameStageNoteController NotePrefab;
     }
 }

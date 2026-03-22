@@ -1493,7 +1493,7 @@ GameObject:
   - component: {fileID: 6167929891308958119}
   - component: {fileID: 3109862978520466737}
   m_Layer: 5
-  m_Name: DeemoViewForeground
+  m_Name: DeemoForegroundPerspectiveViewUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1543,7 +1543,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7768032543408510142}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b5f046cf6b7bc841bfc8f67e31af548, type: 3}
+  m_Script: {fileID: 11500000, guid: c865412608caa5041b490ccd7162f3ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   <RectTransform>k__BackingField: {fileID: 8735043110759950269}

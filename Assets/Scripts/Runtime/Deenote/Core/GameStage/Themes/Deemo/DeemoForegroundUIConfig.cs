@@ -2,13 +2,14 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.GamePlay.UI
+namespace Deenote.Core.GameStage.Foreground
 {
     [CreateAssetMenu(
-        fileName = nameof(DeemoGameStageUIArgs),
-        menuName = $"Deenote/GamePlay/{nameof(DeemoGameStageUIArgs)}")]
-    public sealed class DeemoGameStageUIArgs : ScriptableObject
+        fileName = nameof(DeemoForegroundUIConfig),
+        menuName = $"Deenote/GamePlay/{nameof(DeemoForegroundUIConfig)}")]
+    public sealed class DeemoForegroundUIConfig : ScriptableObject
     {
         [Header("Combo")]
         public int MinDisplayCombo;

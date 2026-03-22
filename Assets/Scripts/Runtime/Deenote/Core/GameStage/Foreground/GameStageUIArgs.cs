@@ -2,8 +2,9 @@
 
 using Deenote.Entities;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.GamePlay.UI
+namespace Deenote.Core.GameStage.Foreground
 {
     [CreateAssetMenu(
         fileName = nameof(GameStageUIArgs),

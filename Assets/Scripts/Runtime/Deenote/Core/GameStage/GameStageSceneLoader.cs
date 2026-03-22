@@ -1,7 +1,7 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
-using Deenote.GamePlay.UI;
+using Deenote.Core.GameStage.Foreground;
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,7 +19,7 @@ namespace Deenote.Core.GameStage
         public GameStageController StageController { get; private set; } = default!;
 
         [field: SerializeField]
-        public PerspectiveViewForegroundBase PerspectiveViewForeground { get; private set; } = default!;
+        public ForegroundPerspectiveViewUI PerspectiveViewForeground { get; private set; } = default!;
 
         private void Awake()
         {

@@ -23,7 +23,7 @@ namespace Deenote.Core
             _mouseInputData.SetPressAt(screenPoint);
             _mouseInputData.LeftMouseDown = true;
             switch (State) {
-                case StateFlag.Cancelling;
+                case StateFlag.Cancelling:
                     break;
                 case StateFlag.Idle:
                     if (TryConvertScreenPointToNoteCoord(screenPoint, false, out var coord)) {

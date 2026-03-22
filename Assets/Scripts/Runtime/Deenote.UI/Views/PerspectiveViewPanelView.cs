@@ -2,7 +2,7 @@
 
 using Deenote.Core;
 using Deenote.Core.GamePlay;
-using Deenote.GamePlay.UI;
+using Deenote.Core.GameStage.Foreground;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -29,7 +29,7 @@ namespace Deenote.UI.Views
 
         private RenderTexture _viewRenderTexture = default!;
 
-        public PerspectiveViewForegroundBase StageForeground { get; private set; } = default!;
+        public ForegroundPerspectiveViewUI StageForeground { get; private set; } = default!;
 
         public RenderTexture ViewRendererTexture => _viewRenderTexture;
 

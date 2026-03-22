@@ -4,10 +4,10 @@ using Deenote.Core.Audio;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
+using Deenote.Core.GameStage.Foreground;
 using Deenote.Core.Project;
 using Deenote.Entities;
 using Deenote.Entities.Models;
-using Deenote.GamePlay.UI;
 using Deenote.Library;
 using Deenote.Library.Components;
 using System;
@@ -306,6 +306,6 @@ namespace Deenote.Core.GamePlay
 
         public readonly record struct StageLoadedEventArgs(
             GameStageController Stage,
-            PerspectiveViewForegroundBase PerspectiveViewForegroundPrefab);
+            ForegroundPerspectiveViewUI PerspectiveViewForegroundPrefab);
     }
 }

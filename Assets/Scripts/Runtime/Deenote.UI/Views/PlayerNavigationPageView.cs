@@ -3,10 +3,8 @@
 using CommunityToolkit.Diagnostics;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
-using Deenote.GamePlay;
 using Deenote.Library.Components;
 using Deenote.UIFramework.Controls;
-using System;
 using UnityEngine;
 
 namespace Deenote.UI.Views

@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 926accf531732324598018cadb683452, type: 3}
-  m_Name: DeemoGameStageUIArgs
+  m_Script: {fileID: 11500000, guid: ae359d5e009134d428cf5eff45d27fb1, type: 3}
+  m_Name: DeemoForegroundUIConfig
   m_EditorClassIdentifier: 
   MinDisplayCombo: 5
   ComboNumberGreyIncTime: 0.125

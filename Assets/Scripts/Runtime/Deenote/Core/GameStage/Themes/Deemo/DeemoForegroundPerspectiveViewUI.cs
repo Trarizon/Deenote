@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.Core.GameStage.Foreground;
 using Deenote.Core.Project;
 using Deenote.Entities;
 using Deenote.Library;
@@ -8,11 +9,12 @@ using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UI;
 
-namespace Deenote.GamePlay.UI
+namespace Deenote.Core.GameStage.Themes.Deemo
 {
-    public sealed class DeemoPerspectiveViewForegroundPanel : PerspectiveViewForegroundBase
+    public sealed class DeemoForegroundPerspectiveViewUI : ForegroundPerspectiveViewUI
     {
         [Header("Info Bar")]
         [SerializeField] TMP_Text _musicNameText = default!;
@@ -32,7 +34,7 @@ namespace Deenote.GamePlay.UI
         [SerializeField] Image _charmingImage = default!;
 
         [Header("Resources")]
-        [SerializeField] DeemoGameStageUIArgs _args = default!;
+        [SerializeField] DeemoForegroundUIConfig _args = default!;
 
         private float _shockWaveEnterPosX;
         private float _shockWaveExitPosX;

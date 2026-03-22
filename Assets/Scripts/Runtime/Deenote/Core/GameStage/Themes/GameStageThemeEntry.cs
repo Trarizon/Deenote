@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote;
-using Deenote.GamePlay.UI;
+using Deenote.Core.GameStage.Foreground;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage.Themes
@@ -19,7 +19,7 @@ namespace Deenote.Core.GameStage.Themes
             NoteCoordStrategy = new DefaultGameStageNoteCoordStrategy(stage.Config);
         }
 
-        public PerspectiveViewForegroundBase InstantiateUIAsync(Transform parent)
+        public ForegroundPerspectiveViewUI InstantiateUIAsync(Transform parent)
         {
             return Object.Instantiate(ThemeConfig.GameUIPrefab, parent);
         }

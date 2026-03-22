@@ -1,11 +1,13 @@
 #nullable enable
 
+using Deenote;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.GamePlay.UI
+namespace Deenote.Core.GameStage.Foreground
 {
     [RequireComponent(typeof(RectTransform))]
-    public abstract class PerspectiveViewForegroundBase : MonoBehaviour
+    public abstract class ForegroundPerspectiveViewUI : MonoBehaviour
     {
         [field: SerializeField]
         public RectTransform RectTransform { get; private set; } = default!;
