@@ -80,7 +80,7 @@ namespace Deenote.UI.Dialogs
 
         #endregion
 
-        private ResetableCancellationTokenSource _cts = new();
+        private ResettableCancellationTokenSource _cts = new();
 
         private string _projectResultPath = default!;
 

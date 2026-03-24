@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Trarizon.Library.Linq;
 using UnityEngine;
 
 namespace Deenote.Entities.Models
@@ -21,11 +22,11 @@ namespace Deenote.Entities.Models
 
         [ChartSerializationVersion(ChartSerializationVersions.DeemoIIV2)]
         [JsonProperty("oriVMin", Order = 1), Obsolete("For serialzation only")]
-        private int _SerializeMinVolume => _SerializeNotes.SelectMany(n => n.Sounds, (n, s) => s.Velocity).MinMaxOrNull()?.Min ?? 0;
+        private int _SerializeMinVolume => _SerializeNotes.SelectMany(n => n.Sounds, (n, s) => s.Velocity).MinOrDefault();
 
         [ChartSerializationVersion(ChartSerializationVersions.DeemoIIV2)]
         [JsonProperty("oriVMax", Order = 2), Obsolete("For serialzation only")]
-        private int _SerializeMaxVolume => _SerializeNotes.SelectMany(n => n.Sounds, (n, s) => s.Velocity).MinMaxOrNull()?.Max ?? 0;
+        private int _SerializeMaxVolume => _SerializeNotes.SelectMany(n => n.Sounds, (n, s) => s.Velocity).MaxOrDefault();
 
         [ChartSerializationVersion(ChartSerializationVersions.DeemoIIV2)]
         [JsonProperty("remapVMin", Order = 3)]
@@ -64,7 +65,7 @@ namespace Deenote.Entities.Models
             // MaxVolume=oriVMax;
             RemapMinVolume = remapVMin;
             RemapMaxVolume = remapVMax;
-            Marshal.DeserializeNotes(notes.AsSpanOrEmpty(), out _holdCount, out var visibleNotes, out var soundNotes, out var speedChanges);
+            Marshal.DeserializeNotes(notes.AsSpan(), out _holdCount, out var visibleNotes, out var soundNotes, out var speedChanges);
             NoteNodes = visibleNotes ?? new(NodeTimeUniqueComparer.Instance);
             BackgroundSoundNotes = soundNotes ?? new(NodeTimeComparer.Instance);
             SpeedChangeWarnings = speedChanges ??= new(NodeTimeComparer.Instance);

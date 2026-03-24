@@ -154,7 +154,7 @@ namespace Deenote.Entities.Storage
                 var index = chart.SpeedChangeWarnings.AddFromEnd(ReadSpeedChangeWarning(reader));
                 Debug.Assert(index == i);
             }
-
+            
             var lineCount = reader.ReadInt32();
             chart.SpeedLines.EnsureCapacity(lineCount);
             for (int i = 0; i < lineCount; i++) {

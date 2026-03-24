@@ -1,6 +1,5 @@
 #nullable enable
 
-using Cysharp.Threading.Tasks;
 using Deenote.Entities.Models;
 using System.IO;
 using System.Threading;
@@ -32,7 +31,7 @@ namespace Deenote.Entities.Storage
 
             using var fs = File.OpenRead(projectFilePath);
             using var br = new BinaryReader(fs);
-
+            
             var header = br.ReadUInt16();
             if (header != DeenoteProjectFileHeader)
                 return null;

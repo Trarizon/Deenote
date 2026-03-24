@@ -1,8 +1,8 @@
 #nullable enable
 
-using Deenote.Core.EditorModels;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
+using Deenote.Editing.Contexts;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Library.Collections;

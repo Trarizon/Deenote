@@ -47,7 +47,7 @@ namespace Deenote.UI.Views
         [SerializeField] ProjectInfoChartListItem _chartListItemPrefab = default!;
         private PooledObjectListView<ProjectInfoChartListItem> _chartItems = default!;
 
-        private ResetableCancellationTokenSource _rcts = default!;
+        private ResettableCancellationTokenSource _rcts = default!;
 
         #region MessageBoxArgs
 

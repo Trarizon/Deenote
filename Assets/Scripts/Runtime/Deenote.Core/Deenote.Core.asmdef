@@ -1,0 +1,16 @@
+{
+    "name": "Deenote.Core",
+    "rootNamespace": "Deenote.CoreB",
+    "references": [
+        "Deenote.Library"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

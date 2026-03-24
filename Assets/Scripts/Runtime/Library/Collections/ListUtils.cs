@@ -12,10 +12,7 @@ namespace Deenote.Library.Collections
     public static partial class ListUtils
     {
         public static Span<T> AsSpan<T>(this List<T> list)
-            => Utils<T>.GetUnderlyingArray(list).AsSpan(..list.Count);
-
-        public static Span<T> AsSpanOrEmpty<T>(this List<T>? list)
-            => list is null ? Span<T>.Empty : list.AsSpan();
+            => list is null ? Span<T>.Empty : Utils<T>.GetUnderlyingArray(list).AsSpan(..list.Count);
 
         public static void Replace<T>(this List<T> list, ReadOnlySpan<T> items)
         {

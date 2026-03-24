@@ -31,8 +31,8 @@ namespace Deenote.Core.Project
 
         private bool _isLoading_bf;
         private bool _isSaving_bf;
-        private ResetableCancellationTokenSource _saveCts = new();
-        private ResetableCancellationTokenSource _saveChartsCts = new();
+        private ResettableCancellationTokenSource _saveCts = new();
+        private ResettableCancellationTokenSource _saveChartsCts = new();
 
         public bool IsLoading
         {

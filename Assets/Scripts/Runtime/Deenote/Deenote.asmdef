@@ -14,7 +14,8 @@
         "NaughtyAttributes.Core",
         "Unity.Addressables",
         "Unity.ResourceManager",
-        "UniTask.Addressables"
+        "UniTask.Addressables",
+        ""
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

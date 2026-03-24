@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.Core.EditorModels;
+using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using UnityEngine.Pool;
 

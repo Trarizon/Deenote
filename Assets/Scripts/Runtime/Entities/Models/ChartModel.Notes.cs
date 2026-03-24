@@ -7,6 +7,7 @@ using Deenote.Library.Collections.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Trarizon.Library.Linq;
 using UnityEngine;
 
 namespace Deenote.Entities.Models
