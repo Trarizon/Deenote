@@ -2,12 +2,16 @@
 
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.HighPerformance.Buffers;
+using Deenote.Api.Operations;
 using Deenote.Core.Editing.Operations;
 using Deenote.Core.GamePlay;
-using Deenote.Entities;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
-using Deenote.Entities.Operations;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Charts;
+using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Assertions;
+using Deenote.Editing.Operations;
 using Deenote.Library.Collections;
 using System;
 using System.Runtime.InteropServices;
@@ -19,24 +23,24 @@ namespace Deenote.Core.Editing
     {
         #region Simple Edit Note Properties
 
-        internal static readonly PianoSoundValueModel[] _defaultNoteSounds
-            = new[] { new PianoSoundValueModel(0f, 0f, 72, 0) };
+        internal static readonly PianoSoundData[] _defaultNoteSounds
+            = new[] { new PianoSoundData(0f, 0f, 72, 0) };
 
         private void OnNotePropertyEdited(bool notesVerticalPositionChanged, bool notesVisualDataChanged, NotificationFlag flag)
         {
             _game.AssertChartLoaded();
-            NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
+            ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
             NotifyFlag(flag);
             _game.UpdateNotes(notesVerticalPositionChanged, notesVisualDataChanged);
         }
 
         [Obsolete("Builtin for chart concatenation, this may be changed removed in the future")]
-        public void ConcatNotes(ChartModel other, float offset, float multiplier)
+        public void ConcatNotes(ChartData other, float offset, float multiplier)
         {
             if (!_game.IsChartLoaded())
                 return;
             _operations.Do(_game.CurrentChart
-                .ConcatNotes(other, offset, multiplier)
+                .GetConcatChartOperation(other, offset, multiplier)
                 .OnRedone(_ => _game.UpdateNotes(true, true))
                 .OnUndone(_ => _game.UpdateNotes(true, true)));
         }
@@ -50,7 +54,7 @@ namespace Deenote.Core.Editing
 
             float clipLength = _game.MusicPlayer.ClipLength;
             _operations.Do(_game.CurrentChart
-                .EditNotesCoord(Selector.SelectedNotes, v => NoteCoord.Clamp(valueSelector(v), clipLength))
+                .GetEditNotesCoordOperation(Selector.SelectedNotes, v => NoteCoord.Clamp(valueSelector(v), clipLength))
                 .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NotePositionCoord)));
         }
 
@@ -63,7 +67,7 @@ namespace Deenote.Core.Editing
 
             float clipLength = _game.MusicPlayer.ClipLength;
             _operations.Do(_game.CurrentChart
-                .EditNotesTime(Selector.SelectedNotes, v => EntityArgs.ClampTime(valueSelector(v), clipLength))
+                .GetEditNotesTimeOperation(Selector.SelectedNotes, v => NoteConstraints.ClampTime(valueSelector(v), clipLength))
                 .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteTime)));
         }
 
@@ -76,7 +80,7 @@ namespace Deenote.Core.Editing
 
             float clipLength = _game.MusicPlayer.ClipLength;
             _operations.Do(_game.CurrentChart
-                .EditNotesTime(Selector.SelectedNotes, EntityArgs.ClampTime(newValue, clipLength))
+                .GetEditNotesTimeOperation(Selector.SelectedNotes, NoteConstraints.ClampTime(newValue, clipLength))
                 .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteTime)));
         }
 
@@ -88,7 +92,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotesPosition(Selector.SelectedNotes, v => EntityArgs.ClampPosition(valueSelector(v)))
+                .GetEditNotesPositionOperation(Selector.SelectedNotes, v => NoteConstraints.ClampPosition(valueSelector(v)))
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NotePosition)));
         }
 
@@ -100,7 +104,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotesPosition(Selector.SelectedNotes, EntityArgs.ClampPosition(newValue))
+                .GetEditNotesPositionOperation(Selector.SelectedNotes, NoteConstraints.ClampPosition(newValue))
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NotePosition)));
         }
 
@@ -112,7 +116,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, v => EntityArgs.ClampSize(valueSelector(v)),
+                .GetEditNotesOperation(Selector.SelectedNotes, v => NoteConstraints.ClampSize(valueSelector(v)),
                     n => n.Size, (n, v) => n.Size = v)
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSize)));
         }
@@ -125,7 +129,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, EntityArgs.ClampSize(newValue),
+                .GetEditNotesOperation(Selector.SelectedNotes, NoteConstraints.ClampSize(newValue),
                     n => n.Size, (n, v) => n.Size = v)
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSize)));
         }
@@ -138,7 +142,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, newValue,
+                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
                     n => n.Shift, (n, v) => n.Shift = v)
                 .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteShift)));
         }
@@ -151,7 +155,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, v => EntityArgs.ClampNoteSpeed(valueSelector(v)),
+                .GetEditNotesOperation(Selector.SelectedNotes, v => NoteConstraints.ClampSpeed(valueSelector(v)),
                     n => n.Speed, (n, v) => n.Speed = v)
                 .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteSpeed)));
         }
@@ -164,7 +168,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, EntityArgs.ClampNoteSpeed(newValue),
+                .GetEditNotesOperation(Selector.SelectedNotes, NoteConstraints.ClampSpeed(newValue),
                     n => n.Speed, (n, v) => n.Speed = v)
                 .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteSpeed)));
         }
@@ -177,7 +181,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotesDuration(Selector.SelectedNotes, v => Mathf.Max(0, valueSelector(v)))
+                .GetEditNotesDurationOperation(Selector.SelectedNotes, v => Mathf.Max(0, valueSelector(v)))
                 .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration)));
         }
 
@@ -189,7 +193,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotesEndTime(Selector.SelectedNotes, v => Mathf.Max(0, newValueSelector(v)))
+                .GetEditNotesEndTimeOperation(Selector.SelectedNotes, v => Mathf.Max(0, newValueSelector(v)))
                 .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration)));
         }
 
@@ -203,12 +207,12 @@ namespace Deenote.Core.Editing
             _operations.Do(GetEditNotesDurationOperation(Selector.SelectedNotes, newValue));
         }
 
-        public IUndoableOperation GetEditNotesDurationOperation(ReadOnlySpan<NoteModel> notes, float newValue)
+        public IOperation GetEditNotesDurationOperation(ReadOnlySpan<NoteEditorModel> notes, float newValue)
         {
             _game.AssertChartLoaded();
 
             return _game.CurrentChart
-                .EditNotesDuration(notes, newValue)
+                .GetEditNotesDurationOperation(notes, newValue)
                 .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration));
         }
 
@@ -220,12 +224,12 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, newValue,
+                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
                     n => n.Vibrate, (n, v) => n.Vibrate = v)
                 .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteVibrate)));
         }
 
-        public void EditSelectedNotesKind(NoteModel.NoteKind newValue)
+        public void EditSelectedNotesKind(NoteKind newValue)
         {
             if (!_game.IsChartLoaded())
                 return;
@@ -233,7 +237,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotesKind(Selector.SelectedNotes, newValue)
+                .GetEditNotesKindOperation(Selector.SelectedNotes, newValue)
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteKind)));
         }
 
@@ -245,7 +249,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, newValue,
+                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
                     n => n.WarningType, (n, v) => n.WarningType = v)
                 .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteWarningType)));
         }
@@ -258,12 +262,12 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotes(Selector.SelectedNotes, newValue,
+                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
                     n => n.EventId, (n, v) => n.EventId = v)
                 .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteEventId)));
         }
 
-        public void EditSelectedNoteSounds(ReadOnlySpan<PianoSoundValueModel> values)
+        public void EditSelectedNoteSounds(ReadOnlySpan<PianoSoundData> values)
         {
             if (!_game.IsChartLoaded())
                 return;
@@ -271,7 +275,7 @@ namespace Deenote.Core.Editing
                 return;
 
             _operations.Do(_game.CurrentChart
-                .EditNotesSounds(Selector.SelectedNotes, values)
+                .GetEditNotesSoundsOperation(Selector.SelectedNotes, values)
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSounds)));
         }
 
@@ -286,7 +290,7 @@ namespace Deenote.Core.Editing
             if (Selector.SelectedNotes.IsEmpty)
                 return;
 
-            using var so_editNotes = SpanOwner<NoteModel>.Allocate(Selector.SelectedNotes.Length);
+            using var so_editNotes = SpanOwner<NoteEditorModel>.Allocate(Selector.SelectedNotes.Length);
             var editNotes = so_editNotes.Span;
             int index = 0;
             foreach (var note in Selector.SelectedNotes) {
@@ -295,7 +299,7 @@ namespace Deenote.Core.Editing
             }
 
             _operations.Do(_game.CurrentChart
-                .EditNotesSounds(editNotes[..index], hasSound ? _defaultNoteSounds.AsSpan() : default)
+                .GetEditNotesSoundsOperation(editNotes[..index], hasSound ? _defaultNoteSounds.AsSpan() : default)
                 .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSounds)));
         }
 
@@ -316,7 +320,7 @@ namespace Deenote.Core.Editing
             }
         }
 
-        public void CreateHoldBetween(NoteModel head, NoteModel tail)
+        public void CreateHoldBetween(NoteEditorModel head, NoteEditorModel tail)
         {
             if (tail.Time == head.Time)
                 return;

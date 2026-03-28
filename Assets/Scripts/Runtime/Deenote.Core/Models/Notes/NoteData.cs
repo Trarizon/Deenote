@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Library.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -42,6 +43,12 @@ namespace Deenote.CoreB.Models.Notes
             get => _nextLink;
         }
 
+        public NoteCoord PositionCoord
+        {
+            get => new NoteCoord(Position, Time);
+            set => (Position, Time) = (value.Position, value.Time);
+        }
+
         public bool IsSwipe { get => _swipe; set => _swipe = value; }
         public bool IsSlide => !_swipe && _slide;
         public bool IsHold => !_swipe && Duration > 0;
@@ -66,6 +73,30 @@ namespace Deenote.CoreB.Models.Notes
         public void SetRawIsSlide()
         {
             _slide = true;
+        }
+
+        public NoteData CloneNonLinkInfo(bool cloneSounds = true)
+        {
+            var note = new NoteData();
+            CloneToNonLinkInfo(note, cloneSounds);
+            return note;
+        }
+
+        public void CloneToNonLinkInfo(NoteData other, bool cloneSounds = true)
+        {
+            other.Position = Position;
+            other.Time = Time;
+            other.Size = Size;
+            other.Duration = Duration;
+            other.Speed = Speed;
+            other.Shift = Shift;
+            other.WarningType = WarningType;
+            other.Vibrate = Vibrate;
+            other._slide = _slide;
+            other._swipe = _swipe;
+            if (cloneSounds) {
+                other.Sounds.Replace(Sounds.AsSpan());
+            }
         }
     }
 }

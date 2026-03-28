@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GameStage;
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using Deenote.Library;
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,8 +54,8 @@ namespace Deenote.Core.GamePlay
             if (_timeGridLines.Count == 0)
                 return;
 
-            float minx = _game.Stage.ConvertNotePositionToWorldX(-EntityArgs.StageMaxPosition);
-            float maxx = _game.Stage.ConvertNotePositionToWorldX(EntityArgs.StageMaxPosition);
+            float minx = _game.Stage.ConvertNotePositionToWorldX(NoteConstraints.StageMinPosition);
+            float maxx = _game.Stage.ConvertNotePositionToWorldX(NoteConstraints.StageMaxPosition);
 
             var args = _game.Stage.GridLineArgs;
             foreach (var (time, kind) in _timeGridLines) {
@@ -93,7 +93,7 @@ namespace Deenote.Core.GamePlay
             float appearTime = currentTime + _game.Stage.EvaluateNoteAppearAheadTime(_editor.Placer.PlacingNoteSpeed);
             float minSubBeatInterval = Tempo.MinBeatLineInterval / TimeGridSubBeatCount;
 
-            for (; tempoIndex < project.Tempos.Length; tempoIndex++) {
+            for (; tempoIndex < project.Tempos.Count; tempoIndex++) {
                 if (!ProcessTempoAt(tempoIndex))
                     return;
             }
@@ -146,7 +146,7 @@ namespace Deenote.Core.GamePlay
                 return null;
 
             Tempo tempo = project.Tempos[tempoIndex];
-            if (tempoIndex == project.Tempos.Length - 1 && tempo.Bpm == 0f)
+            if (tempoIndex == project.Tempos.Count - 1 && tempo.Bpm == 0f)
                 return null;
 
             float nextTempoTime = project.GetNonOverflowTempoTime(tempoIndex + 1);
@@ -200,7 +200,7 @@ namespace Deenote.Core.GamePlay
                 return null;
 
             Tempo tempo = project.Tempos[tempoIndex];
-            if (tempoIndex == project.Tempos.Length - 1 && tempo.Bpm == 0f)
+            if (tempoIndex == project.Tempos.Count - 1 && tempo.Bpm == 0f)
                 return null;
 
             if (time - tempo.StartTime <= TimeGridMinEqualityThreshold)
@@ -254,11 +254,11 @@ namespace Deenote.Core.GamePlay
             var project = MainSystem.ProjectManager.CurrentProject;
             var tempoIndex = project.GetTempoIndex(time);
             if (tempoIndex < 0)
-                return project.Tempos.Length > 0 ? project.Tempos[0].StartTime : null;
+                return project.Tempos.Count > 0 ? project.Tempos[0].StartTime : null;
 
             Tempo tempo = project.Tempos[tempoIndex];
             // Is last tempo and last tempo is Bpm 0, there's no beatline
-            if (tempoIndex == project.Tempos.Length - 1 && tempo.Bpm == 0f)
+            if (tempoIndex == project.Tempos.Count - 1 && tempo.Bpm == 0f)
                 return null;
 
             float nextTempoTime = project.GetNonOverflowTempoTime(tempoIndex + 1);

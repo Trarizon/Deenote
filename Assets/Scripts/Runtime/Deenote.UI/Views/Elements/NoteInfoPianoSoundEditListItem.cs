@@ -1,9 +1,10 @@
 #nullable enable
 
-using Deenote.Entities.Models;
 using Deenote.UIFramework.Controls;
 using Deenote.UI.Views.Panels;
 using UnityEngine;
+using Deenote.CoreB.Models.Notes;
+using Deenote.UI.Helpers;
 
 namespace Deenote.UI.Views.Elements
 {
@@ -15,8 +16,8 @@ namespace Deenote.UI.Views.Elements
         [SerializeField] TextBox _delayInput = default!;
         [SerializeField] Button _removeButton = default!;
 
-        private PianoSoundValueModel _sound;
-        public ref readonly PianoSoundValueModel Sound => ref _sound;
+        private PianoSoundData _sound;
+        public ref readonly PianoSoundData Sound => ref _sound;
 
         private NoteInfoPianoSoundEditPanel _panel = default!;
 
@@ -51,7 +52,7 @@ namespace Deenote.UI.Views.Elements
             _panel = panel;
         }
 
-        internal void Initialize(in PianoSoundValueModel sound)
+        internal void Initialize(in PianoSoundData sound)
         {
             _sound = sound;
             _pitchText.SetRawText($"{sound.ToPitchDisplayString()}");

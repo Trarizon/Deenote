@@ -2,9 +2,9 @@
 
 using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.Core.GameStage;
-using Deenote.Entities;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Assertions;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using System;
@@ -19,7 +19,7 @@ namespace Deenote.Core.GamePlay
     {
         private const int CubicCurveSegmentCount = 400;
 
-        private (List<NoteModel> InterpolationNotes, CurveKind Kind) _curveGenerationContext = (new(), default);
+        private (List<NoteEditorModel> InterpolationNotes, CurveKind Kind) _curveGenerationContext = (new(), default);
         private CurveLineData? _positionCurveData;
         private CurveLineData? _sizeCurveData;
         private CurveLineData? _speedCurveData;
@@ -40,9 +40,9 @@ namespace Deenote.Core.GamePlay
 
         public (float Start, float End)? CurveTimeInterval => IsCurveOn ? (_positionCurveData.MinX, _positionCurveData.MaxX) : null;
 
-        public void InitializeCurve(ReadOnlySpan<NoteModel> interpolationNotes, CurveKind kind)
+        public void InitializeCurve(ReadOnlySpan<NoteEditorModel> interpolationNotes, CurveKind kind)
         {
-            NodeTimeComparer.AssertInOrder(interpolationNotes);
+            ModelAsserts.AssertInOrderViaTimeUnique(interpolationNotes);
 
             _curveGenerationContext.InterpolationNotes.Clear();
             _positionCurveData = null;
@@ -78,7 +78,7 @@ namespace Deenote.Core.GamePlay
             }
 
             if (curveData is null) {
-                Func<NoteModel, float> selector = property switch {
+                Func<NoteEditorModel, float> selector = property switch {
                     CurveApplyProperty.Size => n => n.Size,
                     CurveApplyProperty.Speed => n => n.Speed,
                     _ => throw new InvalidOperationException("Unsupported property"),
@@ -167,7 +167,7 @@ namespace Deenote.Core.GamePlay
                 d = new double[pointCount - 1];
             }
 
-            public static CurveLineData Linear(ReadOnlySpan<NoteModel> interpolationNotes, Func<NoteModel, float> valueSelector)
+            public static CurveLineData Linear(ReadOnlySpan<NoteEditorModel> interpolationNotes, Func<NoteEditorModel, float> valueSelector)
             {
                 var curve = new CurveLineData(interpolationNotes.Length);
 
@@ -185,7 +185,7 @@ namespace Deenote.Core.GamePlay
                 return curve;
             }
 
-            public static CurveLineData Cubic(ReadOnlySpan<NoteModel> interpolationNotes, Func<NoteModel, float> valueSelector)
+            public static CurveLineData Cubic(ReadOnlySpan<NoteEditorModel> interpolationNotes, Func<NoteEditorModel, float> valueSelector)
             {
                 var curve = new CurveLineData(interpolationNotes.Length);
 

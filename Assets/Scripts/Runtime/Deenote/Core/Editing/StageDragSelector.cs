@@ -2,9 +2,9 @@
 
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
+using Deenote.CoreB.Models;
 using Deenote.Editing.Contexts;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.Editing.EditorModels;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
@@ -29,7 +29,7 @@ namespace Deenote.Core.Editing
         private NoteCoord _startCoord;
         private NoteCoord _endCoord;
         private DraggingState _state;
-        private readonly List<NoteModel> _inDragRangeNotes = new();
+        private readonly List<NoteEditorModel> _inDragRangeNotes = new();
 
         private bool _enabled;
 
@@ -114,10 +114,10 @@ namespace Deenote.Core.Editing
             // 我在考虑从raycast映射后的coord直接就是考虑sprite size后的coord,
             // 这个size问题能不能试着在raycast2coord的方法里解决
 
-            using var po_add = ListPool<NoteModel>.Get(out var notesSelect);
-            using var po_rmv = ListPool<NoteModel>.Get(out var notesRemove);
+            using var po_add = ListPool<NoteEditorModel>.Get(out var notesSelect);
+            using var po_rmv = ListPool<NoteEditorModel>.Get(out var notesRemove);
 
-            foreach (var note in _context.ProjectContext.CurrentChart!.EnumerateNoteModels()) {
+            foreach (var note in _context.ProjectContext.CurrentChart.Notes) {
                 bool inRange = !_gamePlay.IsNoteDownplayed(note) && IsInSelectionRange(note, start, end);
 
                 if (_inDragRangeNotes.Contains(note)) {
@@ -144,7 +144,7 @@ namespace Deenote.Core.Editing
             notesRemove.Clear();
             notesSelect.Clear();
 
-            bool IsInSelectionRange(NoteModel note, NoteCoord start, NoteCoord end)
+            bool IsInSelectionRange(NoteEditorModel note, NoteCoord start, NoteCoord end)
             {
                 float pos = note.Position;
                 float halfSize = note.Size / 2f;

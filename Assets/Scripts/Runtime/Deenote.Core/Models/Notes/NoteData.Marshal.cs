@@ -1,11 +1,5 @@
 #nullable enable
 
-using Deenote.CoreB.IO.Json;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-
 namespace Deenote.CoreB.Models.Notes
 {
     partial class NoteData
@@ -16,6 +10,20 @@ namespace Deenote.CoreB.Models.Notes
             {
                 prev._nextLink = next;
                 next._prevLink = prev;
+            }
+
+            public static void UnlinkNext(NoteData note)
+            {
+                if (note._nextLink is not null)
+                    note._nextLink._prevLink = null;
+                note._nextLink = null;
+            }
+
+            public static void UnlinkPrev(NoteData note)
+            {
+                if (note._prevLink is not null)
+                    note._prevLink._nextLink = null;
+                note._prevLink = null;
             }
         }
     }

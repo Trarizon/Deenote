@@ -1,16 +1,15 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
-using Deenote.Entities;
-using Deenote.Entities.Models;
-using Deenote.Entities.Storage;
+using Deenote.CoreB.IO;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Projects;
+using Deenote.Editing.Contexts;
+using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Components;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +19,16 @@ namespace Deenote.Core.Project
 {
     public sealed partial class ProjectManager : FlagNotifiableMonoBehaviour<ProjectManager, ProjectManager.NotificationFlag>
     {
-        private ProjectModel? _currentProject_bf;
-        public ProjectModel? CurrentProject
+        private readonly EnvironmentContext _environment = new();
+
+        private ProjectEditorModel? _currentProject_bf;
+        public ProjectEditorModel? CurrentProject
         {
             get => _currentProject_bf;
         }
 
-        private AudioClip? _audioClip;
-        public AudioClip? AudioClip => _audioClip;
+        //private AudioClip? _audioClip;
+        public AudioClip? AudioClip => CurrentProject?.AudioClip;
 
         private bool _isLoading_bf;
         private bool _isSaving_bf;
@@ -62,17 +63,26 @@ namespace Deenote.Core.Project
 #if  UNITY_EDITOR
         private async void Start()
         {
-            var (proj, clip) = await Fake.GetProject();
-            SetCurrentProject(proj, clip);
+            var proj = await Fake.GetProject();
+            Debug.Log($"Loaded project: fake");
+            SetCurrentProject(proj);
         }
 #endif
 
-        public void SetCurrentProject(ProjectModel project, AudioClip audio)
+        public async UniTask<bool> TrySetCurrentProjectAndLoadAudioAsync(ProjectModel project, string filePath)
+        {
+            var proj = new ProjectEditorModel(project, filePath);
+            var loaded = await proj.LoadAudioClipAsync();
+            if (loaded) {
+                SetCurrentProject(proj);
+                return true;
+            }
+            return false;
+        }
+
+        private void SetCurrentProject(ProjectEditorModel project)
         {
             if (Utils.SetField(ref _currentProject_bf, project)) {
-                _audioClip = audio;
-                if (project is not null)
-                    project.AudioLength = audio.length;
                 NotifyFlag(NotificationFlag.CurrentProject);
             }
         }
@@ -81,22 +91,22 @@ namespace Deenote.Core.Project
         {
             using var loadingScope = new LoadingScope(this);
 
-            var proj = await ProjectIO.LoadAsync(filePath);
-            if (proj is null)
+            var pmodel = await ProjectIO.LoadAsync(filePath);
+            if (pmodel is null)
                 return false;
 
-            using var ms = new MemoryStream(proj.AudioFileData);
-            var clip = await AudioUtils.TryLoadAsync(ms, Path.GetExtension(proj.AudioFileRelativePath));
-            if (clip is null)
+            var proj = new ProjectEditorModel(pmodel, filePath);
+            var clipLoaded = await proj.LoadAudioClipAsync();
+            if (!clipLoaded)
                 return false;
 
-            SetCurrentProject(proj, clip);
+            SetCurrentProject(proj);
             return true;
         }
 
         public void UnloadCurrentProject()
         {
-            SetCurrentProject(null!, null!);
+            SetCurrentProject(null!);
         }
 
         public async UniTask SaveCurrentProjectAsync()
@@ -122,7 +132,7 @@ namespace Deenote.Core.Project
             using var scope = new SavingScope(this);
 
             AssertProjectLoaded();
-            await ProjectIO.SaveAsync(CurrentProject, targetFilePath, cancellationToken);
+            await ProjectIO.SaveAsync(CurrentProject.ToModel(), targetFilePath, cancellationToken);
         }
 
         public async UniTask SaveCurrentProjectChartJsonsAsync()
@@ -153,12 +163,12 @@ namespace Deenote.Core.Project
 
             var tasks = new Task[CurrentProject.Charts.Count];
             for (int i = 0; i < CurrentProject.Charts.Count; i++) {
-                ChartModel? chart = CurrentProject.Charts[i];
-                var chartname = string.IsNullOrEmpty(chart.Name) ? chart.Difficulty.ToLowerCaseString() : chart.Name;
+                var chart = CurrentProject.Charts[i];
+                var chartname = string.IsNullOrEmpty(chart.Name) ? chart.Difficulty.ToLowerCaseString(_environment.GameVersion) : chart.Name;
 
                 tasks[i] = File.WriteAllTextAsync(
                     Path.Combine(dir, $"{filename}.{chartname}.{time:yyMMddHHmmss}.json"),
-                    chart.ToJsonString(), _saveChartsCts.Token);
+                    chart.ToData().ToJsonString(), _saveChartsCts.Token);
             }
 
             await Task.WhenAll(tasks);

@@ -2,7 +2,7 @@
 
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -264,7 +264,7 @@ namespace Deenote.UI.Views
                 {
                     MainSystem.ProjectManager.AssertProjectLoaded();
                     var endTime = Mathf.Min(_bpmEndTime, MainSystem.GamePlayManager.MusicPlayer.ClipLength);
-                    MainSystem.StageChartEditor.InsertTempo(new Entities.TempoRange(_bpmValue, _bpmStartTime, _bpmEndTime));
+                    MainSystem.StageChartEditor.InsertTempo(new TempoRange(_bpmValue, _bpmStartTime, _bpmEndTime));
                 };
 
                 MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanaged;

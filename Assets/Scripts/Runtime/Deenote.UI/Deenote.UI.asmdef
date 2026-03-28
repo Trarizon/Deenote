@@ -10,7 +10,7 @@
         "Unity.TextMeshPro",
         "Reflex",
         "Deenote.Localization",
-        "Trarizon.Library"
+        "Deenote.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

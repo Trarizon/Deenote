@@ -2,9 +2,10 @@
 
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
-using Deenote.Entities;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Assertions;
+using Deenote.Editing.EditorModels.Comparing;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
@@ -22,16 +23,16 @@ namespace Deenote.Core.Editing
 
         private GamePlayManager _game = default!;
 
-        private readonly List<NoteModel> _selectedNotes = new();
+        private readonly List<NoteEditorModel> _selectedNotes = new();
 
         private NoteCoord _dragStartCoord;
         private NoteCoord _dragEndCoord;
-        private readonly List<NoteModel> _inDragRangeNotes = new();
+        private readonly List<NoteEditorModel> _inDragRangeNotes = new();
         private DraggingSelectionState _state;
 
         public bool IsDragSelecting => _state != DraggingSelectionState.Idle;
 
-        public ReadOnlySpan<NoteModel> SelectedNotes => _selectedNotes.AsSpan();
+        public ReadOnlySpan<NoteEditorModel> SelectedNotes => default!; // _selectedNotes.AsSpan();
 
         public event Action<StageNoteSelector>? SelectedNotesChanging;
         public event Action<StageNoteSelector>? SelectedNotesChanged;
@@ -55,10 +56,10 @@ namespace Deenote.Core.Editing
 
         #region Select Collection Modification
 
-        public void AddSelect(NoteModel note)
+        public void AddSelect(NoteEditorModel note)
         {
             _game.AssertChartLoaded();
-            Debug.Assert(_game.CurrentChart.NoteNodes.Contains(note));
+            //Debug.Assert(_game.CurrentChart.NoteNodes.Contains(note));
 
             if (note.IsSelected)
                 return;
@@ -68,26 +69,26 @@ namespace Deenote.Core.Editing
             OnSelectedNotesChanged();
         }
 
-        private void AddSelectNonNotify(NoteModel note)
+        private void AddSelectNonNotify(NoteEditorModel note)
         {
             _selectedNotes.Add(note);
             note.IsSelected = true;
         }
 
-        public void AddSelectMultiple(IEnumerable<NoteModel> notes)
+        public void AddSelectMultiple(IEnumerable<NoteEditorModel> notes)
         {
             _game.AssertChartLoaded();
-            Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
+            //Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             OnSelectedNotesChanging();
             AddSelectMultipleNonNotify(notes);
             OnSelectedNotesChanged();
         }
 
-        private void AddSelectMultipleNonNotify(IEnumerable<NoteModel> notes)
+        private void AddSelectMultipleNonNotify(IEnumerable<NoteEditorModel> notes)
         {
             _game.AssertChartLoaded();
-            Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
+            //Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             var prevCount = _selectedNotes.Count;
             _selectedNotes.AddRange(notes);
@@ -96,10 +97,10 @@ namespace Deenote.Core.Editing
             }
         }
 
-        private void AddSelectMultipleNonNotify(ReadOnlySpan<NoteModel> notes)
+        private void AddSelectMultipleNonNotify(ReadOnlySpan<NoteEditorModel> notes)
         {
             _game.AssertChartLoaded();
-            Debug.Assert(notes.ToArray().All(note => _game.CurrentChart.NoteNodes.Contains(note)));
+            //Debug.Assert(notes.ToArray().All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             var prevCount = _selectedNotes.Count;
             _selectedNotes.AddRange(notes);
@@ -108,7 +109,7 @@ namespace Deenote.Core.Editing
             }
         }
 
-        public void Reselect(IEnumerable<NoteModel> notes)
+        public void Reselect(IEnumerable<NoteEditorModel> notes)
         {
             OnSelectedNotesChanging();
 
@@ -118,7 +119,7 @@ namespace Deenote.Core.Editing
             OnSelectedNotesChanged();
         }
 
-        public void Reselect(ReadOnlySpan<NoteModel> notes)
+        public void Reselect(ReadOnlySpan<NoteEditorModel> notes)
         {
             OnSelectedNotesChanging();
 
@@ -135,14 +136,14 @@ namespace Deenote.Core.Editing
             OnSelectedNotesChanging();
 
             ClearNonNotify();
-            foreach (var note in _game.CurrentChart.EnumerateNoteModels()) {
-                AddSelectNonNotify(note);
-            }
+            //foreach (var note in _game.CurrentChart.EnumerateNoteModels()) {
+            //    AddSelectNonNotify(note);
+            //}
 
             OnSelectedNotesChanged();
         }
 
-        public void Deselect(NoteModel note)
+        public void Deselect(NoteEditorModel note)
         {
             OnSelectedNotesChanging();
 
@@ -155,7 +156,7 @@ namespace Deenote.Core.Editing
         /// <summary>
         /// Deselect notes in selection, if note is not selected, do nothing
         /// </summary>
-        public void DeselectMultiple(IEnumerable<NoteModel> notes)
+        public void DeselectMultiple(IEnumerable<NoteEditorModel> notes)
         {
             OnSelectedNotesChanging();
 
@@ -253,7 +254,7 @@ namespace Deenote.Core.Editing
             }
             else {
                 foreach (var note in _inDragRangeNotes) {
-                    note.ApplySelection();
+                    //note.ApplySelection();
                 }
                 _inDragRangeNotes.Clear();
             }
@@ -281,21 +282,21 @@ namespace Deenote.Core.Editing
             // 这个size问题能不能试着在raycast2coord的方法里解决
             _selectedNotes.Clear();
 
-            foreach (var note in _game.CurrentChart.EnumerateNoteModels()) {
-                bool inRange = _game.IsNoteHighlighted(note) && IsInSelectionRange(note);
+            //foreach (var note in _game.CurrentChart.EnumerateNoteModels()) {
+            //    bool inRange = _game.IsNoteHighlighted(note) && IsInSelectionRange(note);
 
-                note.SetIsInSelectionRange(inRange);
-                if (inRange)
-                    _inDragRangeNotes.Add(note);
+            //    note.SetIsInSelectionRange(inRange);
+            //    if (inRange)
+            //        _inDragRangeNotes.Add(note);
 
-                if (note.IsSelected) {
-                    _selectedNotes.Add(note);
-                }
-            }
+            //    if (note.IsSelected) {
+            //        _selectedNotes.Add(note);
+            //    }
+            //}
 
-            NodeTimeComparer.AssertInOrder(_selectedNotes);
+            ModelAsserts.AssertInOrderViaTimeUnique(_selectedNotes);
 
-            bool IsInSelectionRange(NoteModel note)
+            bool IsInSelectionRange(NoteEditorModel note)
             {
                 float pos = note.Position;
                 float halfSize = note.Size / 2f;

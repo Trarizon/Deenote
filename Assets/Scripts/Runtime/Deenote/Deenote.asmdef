@@ -15,7 +15,7 @@
         "Unity.Addressables",
         "Unity.ResourceManager",
         "UniTask.Addressables",
-        ""
+        "Deenote.Api"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

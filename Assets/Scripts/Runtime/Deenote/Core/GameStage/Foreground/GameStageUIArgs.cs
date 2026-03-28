@@ -1,8 +1,7 @@
 #nullable enable
 
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace Deenote.Core.GameStage.Foreground
 {

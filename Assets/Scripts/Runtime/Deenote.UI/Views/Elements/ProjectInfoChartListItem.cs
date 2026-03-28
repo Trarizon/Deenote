@@ -1,15 +1,15 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
+using Deenote.CoreB.Models;
+using Deenote.Editing.EditorModels;
 using Deenote.Localization;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.UI.Dialogs.Elements;
 using Deenote.UIFramework.Controls;
 using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Deenote.UI.Dialogs.Elements;
 
 namespace Deenote.UI.Views.Elements
 {
@@ -24,7 +24,7 @@ namespace Deenote.UI.Views.Elements
 
         private bool _isHovering;
         private ProjectInfoNavigationPageView _parent = default!;
-        public ChartModel ChartModel { get; private set; } = default!;
+        public ChartEditorModel ChartModel { get; private set; } = default!;
 
         #region LocalizedTextKeys
 
@@ -61,7 +61,7 @@ namespace Deenote.UI.Views.Elements
                 var projFilePath = MainSystem.ProjectManager.CurrentProject.ProjectFilePath;
 
                 var suffix = string.IsNullOrEmpty(ChartModel.Name)
-                    ? ChartModel.Difficulty.ToLowerCaseString()
+                    ? ChartModel.Difficulty.ToLowerCaseString(_parent._environment.GameVersion)
                     : ChartModel.Name;
                 var res = await MainWindow.DialogManager.OpenFileExplorerInputFileAsync(
                     LocalizableText.Localized(ExportFileExplorerTitleKey),
@@ -72,7 +72,7 @@ namespace Deenote.UI.Views.Elements
                     return;
 
                 MainWindow.StatusBar.SetLocalizedStatusMessage(ExportingStatusKey);
-                var chart = ChartModel.Clone();
+                var chart = ChartModel.ToData();
                 await File.WriteAllTextAsync(res.Path, chart.ToJsonString());
                 MainWindow.StatusBar.SetLocalizedStatusMessage(ExportedStatusKey);
             });
@@ -83,7 +83,7 @@ namespace Deenote.UI.Views.Elements
             _parent = view;
         }
 
-        internal void Initialize(ChartModel chart)
+        internal void Initialize(ChartEditorModel chart)
         {
             ChartModel = chart;
             RefreshUI();
@@ -97,7 +97,7 @@ namespace Deenote.UI.Views.Elements
             _nameText.TmpText.color = color;
             _levelText.TmpText.color = color;
             if (string.IsNullOrEmpty(ChartModel.Name)) {
-                _nameText.SetRawText(ChartModel.Difficulty.ToDisplayString());
+                _nameText.SetRawText(ChartModel.Difficulty.ToCapitalizedString(_parent._environment.GameVersion));
                 _nameText.TmpText.fontStyle |= FontStyles.Italic;
             }
             else {

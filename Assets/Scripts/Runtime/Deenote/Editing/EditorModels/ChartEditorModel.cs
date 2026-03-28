@@ -4,17 +4,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Charts;
 using Deenote.CoreB.Models.Notes;
-using Deenote.CoreB.Models.Notes.Comparing;
+using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.Editing.EditorModels.Comparing;
 using Deenote.Library.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Trarizon.Library.Linq;
 using UnityEngine.Pool;
 
 namespace Deenote.Editing.EditorModels
 {
-    internal sealed partial class ChartEditorModel : ObservableObject
+    public sealed partial class ChartEditorModel : ObservableObject
     {
         [ObservableProperty] string _name = "";
         [ObservableProperty] Difficulty _difficulty;
@@ -25,10 +25,13 @@ namespace Deenote.Editing.EditorModels
         [ObservableProperty] int _remapMaxVolume;
 
         public List<NoteEditorModel> Notes { get; private set; }
-        public List<BackgroundNoteEditorModel> BackgroundNotes { get; private set; }
-        public List<WarningNoteEditorModel> WarningNotes { get; private set; }
+        internal List<IGameStageNoteNode> NoteNodes { get; private set; }
+        internal List<BackgroundNoteEditorModel> BackgroundNotes { get; private set; }
+        internal List<WarningNoteEditorModel> WarningNotes { get; private set; }
 
-        public ChartEditorModel(ChartModel model)
+        internal Dictionary<ICollidableNote, List<ICollidableNote>> Collisions { get; } = new();
+
+        internal ChartEditorModel(ChartModel model)
         {
             _name = model.Name;
             _difficulty = model.Difficulty;
@@ -39,6 +42,18 @@ namespace Deenote.Editing.EditorModels
             CloneNotes(model);
         }
 
+        public ChartEditorModel()
+        {
+            _difficulty = Difficulty.Hard;
+            _speed = 6;
+            _remapMinVolume = 10;
+            _remapMaxVolume = 70;
+            Notes = new List<NoteEditorModel>();
+            NoteNodes = new List<IGameStageNoteNode>();
+            BackgroundNotes = new List<BackgroundNoteEditorModel>();
+            WarningNotes = new List<WarningNoteEditorModel>();
+        }
+
         public ChartModel ToModel()
         {
             var chart = new ChartModel(Speed, RemapMinVolume, RemapMaxVolume) {
@@ -47,7 +62,7 @@ namespace Deenote.Editing.EditorModels
                 Level = Level,
             };
 
-            using var dp_linkLoopup = DictionaryPool<INoteLinkNode, NoteData>.Get(out var linkLookup);
+            using var dp_linkLoopup = DictionaryPool<INoteLink, NoteData>.Get(out var linkLookup);
 
             foreach (var note in Notes) {
                 var model = note.ToDataNonLinkInfo();
@@ -94,7 +109,7 @@ namespace Deenote.Editing.EditorModels
         {
             var chart = new ChartData(Speed, RemapMinVolume, RemapMaxVolume);
 
-            using var dp_linkLoopup = DictionaryPool<INoteLinkNode, NoteData>.Get(out var linkLookup);
+            using var dp_linkLoopup = DictionaryPool<INoteLink, NoteData>.Get(out var linkLookup);
 
             var notes = new List<NoteData>();
             var backgrounds = new List<NoteData>();
@@ -147,10 +162,10 @@ namespace Deenote.Editing.EditorModels
             return chart;
         }
 
-        [MemberNotNull(nameof(Notes), nameof(BackgroundNotes), nameof(WarningNotes))]
+        [MemberNotNull(nameof(Notes), nameof(NoteNodes), nameof(BackgroundNotes), nameof(WarningNotes))]
         private void CloneNotes(ChartModel model)
         {
-            using var dp_linkLookup = DictionaryPool<NoteData, INoteLinkNode>.Get(out var linkLookup);
+            using var dp_linkLookup = DictionaryPool<NoteData, INoteLink>.Get(out var linkLookup);
 
             var notes = new List<NoteEditorModel>();
             notes.EnsureCapacity(model.Notes.Count);
@@ -203,7 +218,17 @@ namespace Deenote.Editing.EditorModels
                 nextLink.PrevLink = linkNode;
             }
 
+            var nodes = new List<IGameStageNoteNode>();
+            foreach (var note in notes) {
+                nodes.Add(note);
+                if (note.Tail is { } tail) {
+                    nodes.Add(tail);
+                }
+            }
+            nodes.Sort(ModelComparers.ViaTimeUnique);
+
             Notes = notes;
+            NoteNodes = nodes;
             BackgroundNotes = backgrounds;
             WarningNotes = warnings;
         }

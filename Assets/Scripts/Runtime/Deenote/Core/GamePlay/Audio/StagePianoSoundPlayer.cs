@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote.Audio;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes;
 using System;
 
 namespace Deenote.Core.GamePlay.Audio
@@ -19,14 +19,14 @@ namespace Deenote.Core.GamePlay.Audio
         }
 
         // TODO: split playback volume and velocity
-        public void PlaySound(PianoSoundValueModel sound)
+        public void PlaySound(PianoSoundData sound)
         {
             if (Volume == 0f) return;
 
             _ = _source.PlaySoundAsync(sound.Pitch, (int)(sound.Velocity * Volume), sound.Duration, sound.Delay, Speed);
         }
 
-        public void PlaySounds(ReadOnlySpan<PianoSoundValueModel> sounds)
+        public void PlaySounds(ReadOnlySpan<PianoSoundData> sounds)
         {
             if (Volume == 0f) return;
 

@@ -207,7 +207,7 @@ namespace Deenote.UI.Views
             }
             var nresult = await MainWindow.DialogManager.NewProjectDialog.OpenCreateNewAsync();
             if (nresult is { } result) {
-                MainSystem.ProjectManager.SetCurrentProject(result.Project, result.AudioClip);
+                await MainSystem.ProjectManager.TrySetCurrentProjectAndLoadAudioAsync(result.Project, result.ProjectPath);
             }
         }
 

@@ -1,6 +1,7 @@
 #nullable enable
 
-using Deenote.Entities;
+using Deenote.CoreB.Models;
+using Deenote.Editing.EditorModels.Helpers;
 using UnityEngine;
 
 namespace Deenote.Core.Editing
@@ -110,8 +111,8 @@ namespace Deenote.Core.Editing
         private void ResetNotePrototypesToIdle()
         {
             var note = _prototypes[0];
-            _metaPrototype.CloneDataTo(note, true);
-            note.UnlinkWithoutCutChain(keepNoteKind: true);
+            _metaPrototype.CloneTo(note, true);
+            NoteLinkHelpers.UnlinkRemainingChain(note);
             _prototypes.SetCount(1);
             RefreshIndicators();
             SetPlacingNoteSpeed(null, false);
@@ -133,7 +134,7 @@ namespace Deenote.Core.Editing
                     var baseCoord = _editor.ClipBoard.BaseCoord;
                     foreach (var cnote in _editor.ClipBoard.Notes) {
                         resetter.Add(out var note);
-                        cnote.CloneDataTo(note, cloneSounds: true);
+                        note.FromDataNonLinkInfo(cnote);
                     }
                 }
                 RefreshIndicators();

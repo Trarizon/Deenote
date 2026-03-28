@@ -7,11 +7,12 @@ using System.Collections.Generic;
 
 namespace Deenote.Editing.EditorModels
 {
-    internal sealed partial class NoteEditorModel : ObservableObject, IGameStageNode, INoteLinkNode
+    public sealed partial class NoteEditorModel : ObservableObject, IGameStageNoteNode, IGameNote, INoteLink, INoteTime, ICollidableNote
     {
-        private uint _uid;
+        public uint Uid { get; }
 
         private NoteTailEditorModel? _tail;
+        internal NoteTailEditorModel? Tail => Duration > 0 ? _tail ??= new NoteTailEditorModel(this) : null;
 
         public List<PianoSoundData> Sounds { get; } = new();
         [NotifyPropertyChangedFor(nameof(PositionCoord))]
@@ -32,8 +33,12 @@ namespace Deenote.Editing.EditorModels
         [ObservableProperty] WarningType _warningType;
         [ObservableProperty] string _eventId = "";
 
-        [ObservableProperty] INoteLinkNode? _prevLink;
-        [ObservableProperty] INoteLinkNode? _nextLink;
+        internal INoteLink? PrevLink { get; set; }
+        internal INoteLink? NextLink { get; set; }
+
+        INoteLink? INoteLink.NextLink { get => NextLink; set => NextLink = value; }
+        INoteLink? INoteLink.PrevLink { get => PrevLink; set => PrevLink = value; }
+
 
         public bool IsSlide => Kind is NoteKind.Slide;
         public bool IsSwipe => Kind is NoteKind.Swipe;
@@ -48,12 +53,17 @@ namespace Deenote.Editing.EditorModels
         }
 
         public bool IsSelected { get; set; }
-        public bool IsCollided { get; set; }
+        public bool IsCollided => CollisionCount > 0;
+        public int CollisionCount { get; internal set; }
+
+        int ICollidableNote.CollisionCount { get => CollisionCount; set => CollisionCount = value; }
 
         public bool IsComboNode => Duration > 0;
 
         public NoteEditorModel(NoteData model)
         {
+            Uid = INoteUnique.GetUid();
+
             Sounds.AddRange(model.Sounds);
             _position = model.Position;
             _time = model.Time;

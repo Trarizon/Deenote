@@ -3,7 +3,8 @@
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Foreground;
 using Deenote.Core.Project;
-using Deenote.Entities;
+using Deenote.CoreB.Models;
+using Deenote.Editing.Contexts;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -16,6 +17,8 @@ namespace Deenote.Core.GameStage.Themes.Deemo
 {
     public sealed class DeemoForegroundPerspectiveViewUI : ForegroundPerspectiveViewUI
     {
+        private readonly EnvironmentContext _environment = new();
+
         [Header("Info Bar")]
         [SerializeField] TMP_Text _musicNameText = default!;
         [SerializeField] TMP_Text _scoreText = default!;
@@ -140,7 +143,7 @@ namespace Deenote.Core.GameStage.Themes.Deemo
                         return;
                     }
 
-                    int noteCount = chart.NoteCount;
+                    int noteCount = chart.Notes.Count;
                     float accScore = (float)currentCombo / noteCount;
                     // comboActual = Sum(1..judgeNoteCount);
                     // comboTotal = Sum(1..noteCount)
@@ -302,7 +305,7 @@ namespace Deenote.Core.GameStage.Themes.Deemo
 
         private void UpdateLevelText()
         {
-            _levelText.text = $"{Difficulty.ToDisplayString()} Lv {Level}";
+            _levelText.text = $"{Difficulty.ToCapitalizedString(_environment.GameVersion)} Lv {Level}";
         }
     }
 }

@@ -1,9 +1,11 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Entities;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Notes;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Comparing;
+using Deenote.Editing.EditorModels.Helpers;
 using Deenote.Library;
 using System;
 using UnityEngine;
@@ -15,7 +17,7 @@ namespace Deenote.Core.GameStage
         protected GamePlayManager _game = default!;
         protected GameStageNotePlaneController _plane = default!;
 
-        public NoteModel NoteModel { get; private set; } = default!;
+        public NoteEditorModel NoteModel { get; private set; } = default!;
 
         private (Vector2, Vector2)? _linkLine;
         private float _noteColorAlpha;
@@ -53,7 +55,7 @@ namespace Deenote.Core.GameStage
             _plane.GameStage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
         }
 
-        internal void Initialize(NoteModel noteModel)
+        internal void Initialize(NoteEditorModel noteModel)
         {
             NoteModel = noteModel;
         }
@@ -138,7 +140,7 @@ namespace Deenote.Core.GameStage
                 if (!_game.EarlyDisplaySlowNotes) {
                     // In TimeOrder mode, the note should display only after its previous note displayed
                     if (_game.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
-                        if (NodeTimeUniqueComparer.Instance.Compare(NoteModel, next) >= 0) {
+                        if (ModelComparers.ViaTimeUnique.Compare(NoteModel, next) >= 0) {
                             return true;
                         }
                     }
@@ -212,7 +214,7 @@ namespace Deenote.Core.GameStage
             if (!_game.EarlyDisplaySlowNotes &&
                 // In TimeOrder mode, the note should display only after its previous note displayed
                 _game.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next &&
-                NodeTimeUniqueComparer.Instance.Compare(NoteModel, next) >= 0) {
+                ModelComparers.ViaTimeUnique.Compare(NoteModel, next) >= 0) {
                 goto Invisible;
             }
             if (_stageDeltaTime >= 0) {
@@ -262,8 +264,8 @@ namespace Deenote.Core.GameStage
         private void SetNoteHeadKind()
         {
             var value = NoteModel switch {
-                { Kind: NoteModel.NoteKind.Swipe } => NoteHeadKind.Swipe,
-                { Kind: NoteModel.NoteKind.Slide } => NoteHeadKind.Slide,
+                { Kind: NoteKind.Swipe } => NoteHeadKind.Swipe,
+                { Kind: NoteKind.Slide } => NoteHeadKind.Slide,
                 { HasSounds: true } => NoteHeadKind.Click,
                 _ => NoteHeadKind.NoSound,
             };

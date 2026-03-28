@@ -1,9 +1,6 @@
 #nullable enable
 
-using Deenote.Core.GameStage;
-using Deenote.Entities;
-using Deenote.Entities.Models;
-using System.Diagnostics.CodeAnalysis;
+using Deenote.CoreB.Models;
 using UnityEngine;
 
 namespace Deenote.Core.GamePlay

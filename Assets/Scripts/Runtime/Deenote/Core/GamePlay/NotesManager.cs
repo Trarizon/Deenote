@@ -2,8 +2,8 @@
 
 using Deenote;
 using Deenote.Core.GameStage;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Comparing;
 using Deenote.Library.Collections;
 using Deenote.Library.Collections.Generic;
 using Deenote.Library.Mathematics;
@@ -24,7 +24,7 @@ namespace Deenote.Core.GamePlay
     // - _trackingNotes: Note已经出界(-,D]，但是NoteTail依然处于范围(D,A)中
     // _trackingNotes将全部都是Hold
     // _onStageNotes的顺序将和(D,A).OfType<NoteModel>()一致
-    public sealed partial class NotesManager
+    internal sealed partial class NotesManager
     {
         private readonly GamePlayManager _game;
         private IGameStageNoteFactory _noteFactory;
@@ -55,13 +55,13 @@ namespace Deenote.Core.GamePlay
         private int _nextActiveNoteIndex;
         private int _nextActiveNoteIndexInAppearOrder;
 
-        private SortedList<IStageNoteNode> _stageNoteNodesInAppearOrder = default!;
+        private SortedList<IGameStageNoteNode> _stageNoteNodesInAppearOrder = default!;
 
         internal NotesManager(GamePlayManager game)
         {
             _game = game;
             _trackingNotesInTimeOrder = new(Comparer<GameStageNoteController>.Create(
-                (l, r) => NodeTimeUniqueComparer.Instance.Compare(l.NoteModel, r.NoteModel)));
+                (l, r) => ModelComparers.ViaTimeUnique.Compare(l.NoteModel, r.NoteModel)));
             _trackingNotesAppearTimeOrder = new(Comparer<GameStageNoteController>.Create(
                 (l, r) =>
                 {
@@ -70,7 +70,7 @@ namespace Deenote.Core.GamePlay
                     var rtime = _game.Stage.EvaluateNoteActiveTime(r.NoteModel);
                     var cmp = Comparer<float>.Default.Compare(ltime, rtime);
                     if (cmp != 0) return cmp;
-                    cmp = NodeUniqueComparer.Instance.Compare(l.NoteModel, r.NoteModel);
+                    cmp = ModelComparers.ViaTimeUnique.Compare(l.NoteModel, r.NoteModel);
                     Debug.Assert(cmp != 0);
                     return cmp;
                 }));
@@ -98,14 +98,14 @@ namespace Deenote.Core.GamePlay
         private void UpdateNotesAppearOrder()
         {
             if (_stageNoteNodesInAppearOrder is null) {
-                _stageNoteNodesInAppearOrder = new SortedList<IStageNoteNode>(Comparer<IStageNoteNode>.Create((l, r) =>
+                _stageNoteNodesInAppearOrder = new SortedList<IGameStageNoteNode>(Comparer<IGameStageNoteNode>.Create((l, r) =>
                 {
                     _game.AssertStageLoaded();
                     var ltime = _game.Stage.EvaluateNoteActiveTime(l);
                     var rtime = _game.Stage.EvaluateNoteActiveTime(r);
                     var cmp = Comparer<float>.Default.Compare(ltime, rtime);
                     if (cmp != 0) return cmp;
-                    cmp = NodeUniqueComparer.Instance.Compare(l, r);
+                    cmp=ModelComparers.ViaUnique.Compare(l, r);
                     Debug.Assert(cmp != 0);
                     return cmp;
                 }));
@@ -127,7 +127,7 @@ namespace Deenote.Core.GamePlay
         /// ComboNode that just reached judge line,
         /// <see langword="null"/> if current combo is 0
         /// </returns>
-        public IStageNoteNode? GetPreviousHitComboNode()
+        public IGameStageNoteNode? GetPreviousHitComboNode()
         {
             _game.AssertChartLoaded();
 
@@ -139,18 +139,18 @@ namespace Deenote.Core.GamePlay
             return null;
         }
 
-        public NoteModel? GetPreviousHitNote()
+        public NoteEditorModel? GetPreviousHitNote()
         {
             _game.AssertChartLoaded();
 
             for (int i = _nextHitNoteIndex - 1; i >= 0; i--) {
-                if (_game.CurrentChart.NoteNodes[i] is NoteModel note)
+                if (_game.CurrentChart.NoteNodes[i] is NoteEditorModel note)
                     return note;
             }
             return null;
         }
 
-        public IStageNoteNode? GetNextActiveNodeInTimeOrderDisplayMode()
+        public IGameStageNoteNode? GetNextActiveNodeInTimeOrderDisplayMode()
         {
             _game.AssertChartLoaded();
 
@@ -174,7 +174,7 @@ namespace Deenote.Core.GamePlay
             }
         }
 
-        private void ReselectActiveVisibleNotesInternal(ReadOnlySpan<IStageNoteNode> noteNodesInAppearOrder)
+        private void ReselectActiveVisibleNotesInternal(ReadOnlySpan<IGameStageNoteNode> noteNodesInAppearOrder)
         {
             _game.AssertStageLoaded();
             _game.AssertChartLoaded();
@@ -218,7 +218,7 @@ namespace Deenote.Core.GamePlay
             // Notes may have different speed, we do not track note here
             for (; index < noteNodes.Length; index++) {
                 var node = noteNodes[index];
-                if (node is NoteModel && _game.GetNotePseudoTime(node.Time, node.Speed) > activateNoteTime)
+                if (node is NoteEditorModel && _game.GetNotePseudoTime(node.Time, node.Speed) > activateNoteTime)
                     break;
             }
             _nextActiveNoteIndex = index;
@@ -229,7 +229,7 @@ namespace Deenote.Core.GamePlay
 
             for (int i = indexInAppearOrder - 1; i >= 0; i--) {
                 var node = noteNodesInAppearOrder[i];
-                if (node is NoteModel note) {
+                if (node is NoteEditorModel note) {
                     if (note.Time > currentTime)
                         AddTrackNote(note);
                 }
@@ -243,15 +243,15 @@ namespace Deenote.Core.GamePlay
                 prevStageNote = note;
             }
 
-            void IncrementCombo(IStageNoteNode node)
+            void IncrementCombo(IGameStageNoteNode node)
             {
                 if (node.IsComboNode)
                     combo++;
             }
 
-            void TrackNote(IStageNoteNode node)
+            void TrackNote(IGameStageNoteNode node)
             {
-                if (node is not NoteModel note)
+                if (node is not NoteEditorModel note)
                     return;
                 if (note.EndTime > deactiveNoteTime) {
                     AddTrackNote(note);
@@ -283,7 +283,7 @@ namespace Deenote.Core.GamePlay
                 ShiftActiveVisibleNotesBackwardInternal(noteNodesInAppearOrder);
         }
 
-        private void ShiftActiveVisibleNotesForwardInternal(ReadOnlySpan<IStageNoteNode> noteNodesInAppearOrder)
+        private void ShiftActiveVisibleNotesForwardInternal(ReadOnlySpan<IGameStageNoteNode> noteNodesInAppearOrder)
         {
             _game.AssertChartLoaded();
             _game.AssertStageLoaded();
@@ -330,7 +330,7 @@ namespace Deenote.Core.GamePlay
             index = _nextActiveNoteIndex;
             for (; index < noteNodes.Length; index++) {
                 var node = noteNodes[index];
-                if (node is NoteModel && _game.GetNotePseudoTime(node.Time, node.Speed) > activateNoteTime)
+                if (node is NoteEditorModel && _game.GetNotePseudoTime(node.Time, node.Speed) > activateNoteTime)
                     break;
             }
             _nextActiveNoteIndex = index;
@@ -341,7 +341,7 @@ namespace Deenote.Core.GamePlay
             newNextActiveNoteIndexInAppearOrder += _nextActiveNoteIndexInAppearOrder;
             Debug.Log($"{_nextActiveNoteIndexInAppearOrder}, {newNextActiveNoteIndexInAppearOrder}");
             foreach (var node in noteNodesInAppearOrder[_nextActiveNoteIndexInAppearOrder..newNextActiveNoteIndexInAppearOrder]) {
-                if (node is NoteModel note) {
+                if (node is NoteEditorModel note) {
                     AddTrackNote(note);
                 }
             }
@@ -357,7 +357,7 @@ namespace Deenote.Core.GamePlay
             Debug.Assert(_trackingNotesInTimeOrder.Distinct().Count() == _trackingNotesInTimeOrder.Count());
         }
 
-        private void ShiftActiveVisibleNotesBackwardInternal(ReadOnlySpan<IStageNoteNode> noteNodesInAppearOrder)
+        private void ShiftActiveVisibleNotesBackwardInternal(ReadOnlySpan<IGameStageNoteNode> noteNodesInAppearOrder)
         {
             _game.AssertChartLoaded();
             _game.AssertStageLoaded();
@@ -377,14 +377,14 @@ namespace Deenote.Core.GamePlay
                 var node = noteNodes[index];
                 if (node.Time <= deactiveNoteTime)
                     break;
-                if (node is NoteTailNode tail) {
-                    AddTrackNote(tail.HeadModel);
+                if (node is NoteTailEditorModel tail) {
+                    AddTrackNote(tail.Head);
                 }
-                else if (node is NoteModel { IsHold: false } note) {
+                else if (node is NoteEditorModel { IsHold: false } note) {
                     AddTrackNote(note);
                 }
                 else {
-                    Debug.Assert(node is NoteModel, "Unknown IStageNoteNode Type");
+                    Debug.Assert(node is NoteEditorModel, "Unknown IStageNoteNode Type");
                 }
             }
             _nextInactiveNoteIndex = index + 1;
@@ -404,7 +404,7 @@ namespace Deenote.Core.GamePlay
             index = _nextHitNoteIndex;
             for (; index < noteNodes.Length; index++) {
                 var node = noteNodes[index];
-                if (node is NoteModel && _game.GetNotePseudoTime(node.Time, node.Speed) > activateNoteTime)
+                if (node is NoteEditorModel && _game.GetNotePseudoTime(node.Time, node.Speed) > activateNoteTime)
                     break;
             }
             _nextActiveNoteIndex = index;
@@ -460,7 +460,7 @@ namespace Deenote.Core.GamePlay
             _time = currentTime;
         }
 
-        private readonly struct AppearTimeComparable : IComparable<IStageNoteNode>
+        private readonly struct AppearTimeComparable : IComparable<IGameStageNoteNode>
         {
             private readonly float _time;
             private readonly NotesManager _manager;
@@ -471,7 +471,7 @@ namespace Deenote.Core.GamePlay
                 _manager = manager;
             }
 
-            public int CompareTo(IStageNoteNode other)
+            public int CompareTo(IGameStageNoteNode other)
                 => Comparer<float>.Default.Compare(_time, _manager._game.Stage!.EvaluateNoteActiveTime(other));
         }
     }

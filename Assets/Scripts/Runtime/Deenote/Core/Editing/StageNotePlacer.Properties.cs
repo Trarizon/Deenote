@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using UnityEngine;
@@ -104,7 +104,7 @@ namespace Deenote.Core.Editing
             get => _placeSlideModifier_bf;
             set {
                 if (Utils.SetField(ref _placeSlideModifier_bf, value)) {
-                    _metaPrototype.Kind = value ? NoteModel.NoteKind.Slide : NoteModel.NoteKind.Click;
+                    _metaPrototype.Kind = value ? NoteKind.Slide : NoteKind.Click;
                     SwitchPlaceSlideModifier(value);
                 }
             }

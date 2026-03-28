@@ -2,10 +2,12 @@
 
 using CommunityToolkit.Diagnostics;
 using Deenote.Core.Editing;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes;
+using Deenote.Editing.EditorModels;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Localization;
+using Deenote.UI.Helpers;
 using Deenote.UI.Views.Panels;
 using Deenote.UIFramework.Controls;
 using System;
@@ -141,17 +143,17 @@ namespace Deenote.UI.Views
             _clickNoteKindToggle.IsCheckedChanged += check =>
             {
                 if (check)
-                    MainSystem.StageChartEditor.EditSelectedNotesKind(NoteModel.NoteKind.Click);
+                    MainSystem.StageChartEditor.EditSelectedNotesKind(NoteKind.Click);
             };
             _slideNoteKindToggle.IsCheckedChanged += check =>
             {
                 if (check)
-                    MainSystem.StageChartEditor.EditSelectedNotesKind(NoteModel.NoteKind.Slide);
+                    MainSystem.StageChartEditor.EditSelectedNotesKind(NoteKind.Slide);
             };
             _swipeNoteKindToggle.IsCheckedChanged += check =>
             {
                 if (check)
-                    MainSystem.StageChartEditor.EditSelectedNotesKind(NoteModel.NoteKind.Swipe);
+                    MainSystem.StageChartEditor.EditSelectedNotesKind(NoteKind.Swipe);
             };
             MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
                 StageChartEditor.NotificationFlag.NoteKind,
@@ -266,13 +268,13 @@ namespace Deenote.UI.Views
                         SyncFloatInput(_sizeInput, note.Size);
                         SyncFloatInput(_durationInput, note.Duration);
                         switch (note.Kind) {
-                            case NoteModel.NoteKind.Click:
+                            case NoteKind.Click:
                                 _clickNoteKindToggle.SetIsCheckedWithoutNotify(true);
                                 break;
-                            case NoteModel.NoteKind.Slide:
+                            case NoteKind.Slide:
                                 _slideNoteKindToggle.SetIsCheckedWithoutNotify(true);
                                 break;
-                            case NoteModel.NoteKind.Swipe:
+                            case NoteKind.Swipe:
                                 _swipeNoteKindToggle.SetIsCheckedWithoutNotify(true);
                                 break;
                             default:
@@ -340,10 +342,10 @@ namespace Deenote.UI.Views
         private void SyncFloatInput(TextBox textBox, float value)
             => textBox.SetValueWithoutNotify(value.ToString("F3"));
 
-        private void NotifyMultiFloatValueChanged(TextBox textBox, ReadOnlySpan<NoteModel> notes, Func<NoteModel, float> selector)
+        private void NotifyMultiFloatValueChanged(TextBox textBox, ReadOnlySpan<NoteEditorModel> notes, Func<NoteEditorModel, float> selector)
             => textBox.SetValueWithoutNotify(notes.IsSameForAll(selector, out var value) ? value.ToString("F3") : "");
 
-        private bool NotifyMultiFloatValueChanged(TextBox textBox, ReadOnlySpan<NoteModel> notes, Func<NoteModel, float> selector, out float sameValue)
+        private bool NotifyMultiFloatValueChanged(TextBox textBox, ReadOnlySpan<NoteEditorModel> notes, Func<NoteEditorModel, float> selector, out float sameValue)
         {
             bool ret;
             if (notes.IsSameForAll(selector, out sameValue)) {
@@ -357,7 +359,7 @@ namespace Deenote.UI.Views
             return ret;
         }
 
-        private void NotifyMultiBoolValueChanged(CheckBox checkBox, ReadOnlySpan<NoteModel> notes, Func<NoteModel, bool> selector)
+        private void NotifyMultiBoolValueChanged(CheckBox checkBox, ReadOnlySpan<NoteEditorModel> notes, Func<NoteEditorModel, bool> selector)
         {
             if (notes.IsSameForAll(selector, out var value))
                 checkBox.SetValueWithoutNotify(value);
@@ -365,13 +367,13 @@ namespace Deenote.UI.Views
                 checkBox.SetValueWithoutNotify(null);
         }
 
-        private void NotifyMultiKindChanged(ReadOnlySpan<NoteModel> notes)
+        private void NotifyMultiKindChanged(ReadOnlySpan<NoteEditorModel> notes)
         {
             if (notes.IsSameForAll(n => n.Kind, out var kind)) {
                 var toggle = kind switch {
-                    NoteModel.NoteKind.Click => _clickNoteKindToggle,
-                    NoteModel.NoteKind.Slide => _slideNoteKindToggle,
-                    NoteModel.NoteKind.Swipe => _swipeNoteKindToggle,
+                    NoteKind.Click => _clickNoteKindToggle,
+                    NoteKind.Slide => _slideNoteKindToggle,
+                    NoteKind.Swipe => _swipeNoteKindToggle,
                     _ => ThrowHelper.ThrowInvalidOperationException<ToggleButton>("Unknown note kind"),
                 };
                 toggle.SetIsCheckedWithoutNotify(true);
@@ -381,7 +383,7 @@ namespace Deenote.UI.Views
             }
         }
 
-        private void NotifyMultiSpeedValueChanged(ReadOnlySpan<NoteModel> notes)
+        private void NotifyMultiSpeedValueChanged(ReadOnlySpan<NoteEditorModel> notes)
         {
             if (NotifyMultiFloatValueChanged(_speedInput, notes, n => n.Speed, out var speed)) {
                 _selectedNotesSpeed = speed;
@@ -393,7 +395,7 @@ namespace Deenote.UI.Views
             }
         }
 
-        private void NotifyMultiSoundsChanged(ReadOnlySpan<NoteModel> notes)
+        private void NotifyMultiSoundsChanged(ReadOnlySpan<NoteEditorModel> notes)
         {
             switch (notes.Length) {
                 case 0:
@@ -409,7 +411,7 @@ namespace Deenote.UI.Views
                 }
                 default: {
                     _soundsQuickAddRemoveButton.IsInteractable = true;
-                    if (NoteModel.HasSameSounds(notes)) {
+                    if (ModelHelpers.HasSameSounds(notes)) {
                         var sounds = notes[0].Sounds.AsSpan();
                         _soundsButton.Text.SetRawText(GetSoundsDisplayText(sounds));
                         SetSoundsQuickActionButton(sounds.Length > 0);
@@ -430,7 +432,7 @@ namespace Deenote.UI.Views
                 }
             }
 
-            static string GetSoundsDisplayText(ReadOnlySpan<PianoSoundValueModel> sounds)
+            static string GetSoundsDisplayText(ReadOnlySpan<PianoSoundData> sounds)
             {
                 return sounds.Length switch {
                     0 => NoSoundButtonText,
@@ -441,7 +443,7 @@ namespace Deenote.UI.Views
             }
         }
 
-        private void NotifyMultiEventIdChanged(ReadOnlySpan<NoteModel> notes)
+        private void NotifyMultiEventIdChanged(ReadOnlySpan<NoteEditorModel> notes)
         {
             if (notes.IsSameForAll(n => n.EventId, out var eventId)) {
                 _eventIdInput.SetValueWithoutNotify(eventId);

@@ -27,7 +27,7 @@ namespace Deenote.CoreB.Models.Notes
         {
             _data = new NoteData {
                 Time = time,
-                Position = 12f,
+                Position = NoteConstraints.DefaultBackgroundPosition,
             };
             if (!pianoSounds.IsEmpty) {
                 _data.Sounds.AddRange(pianoSounds);

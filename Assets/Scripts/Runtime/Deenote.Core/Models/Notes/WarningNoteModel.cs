@@ -20,7 +20,7 @@ namespace Deenote.CoreB.Models.Notes
         {
             _data = new NoteData {
                 Time = time,
-                Position = 4,
+                Position = NoteConstraints.DefaultWarningNotePosition,
                 WarningType = WarningType.SpeedChange
             };
         }

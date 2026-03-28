@@ -43,7 +43,7 @@ namespace Deenote.CoreB.Models.Charts
             _data = new ChartData(speed, remapMinVolume, remapMaxVolume);
         }
 
-        internal ChartModel(ChartData data)
+        public ChartModel(ChartData data)
         {
             _data = data;
 

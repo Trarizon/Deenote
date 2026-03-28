@@ -7,9 +7,15 @@ namespace Deenote.CoreB.Models.Notes
         float Time { get; }
     }
 
-    public interface INoteLocation : INoteTime
+    public interface INoteSpeed : INoteTime
+    {
+        float Speed { get; }
+    }
+
+    public interface INoteLocation : INoteSpeed
     {
         float Position { get; }
-        float Speed { get; }
+
+        NoteCoord PositionCoord => new(Position, Time);
     }
 }

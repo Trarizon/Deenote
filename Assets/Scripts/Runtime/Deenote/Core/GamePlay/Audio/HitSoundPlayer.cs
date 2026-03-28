@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes;
 using UnityEngine;
 
 namespace Deenote.Core.GamePlay.Audio
@@ -13,17 +13,17 @@ namespace Deenote.Core.GamePlay.Audio
 
         public float Volume { get; internal set; }
 
-        public void PlaySound(NoteModel.NoteKind kind)
+        public void PlaySound(NoteKind kind)
         {
             if (Volume <= 0f)
                 return;
 
             switch (kind) {
-                case NoteModel.NoteKind.Slide:
+                case NoteKind.Slide:
                     _source.PlayOneShot(_args.SlideHitSoundClip, Volume * _args.SlideHitSoundBaseVolume);
                     break;
-                case NoteModel.NoteKind.Click:
-                case NoteModel.NoteKind.Swipe:
+                case NoteKind.Click:
+                case NoteKind.Swipe:
                     _source.PlayOneShot(_args.ClickHitSoundClip, Volume * _args.ClickHitSoundBaseVolume);
                     break;
             }

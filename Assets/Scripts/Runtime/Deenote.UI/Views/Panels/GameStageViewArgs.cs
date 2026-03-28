@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using UnityEngine;
 
 namespace Deenote.UI.Views.Panels

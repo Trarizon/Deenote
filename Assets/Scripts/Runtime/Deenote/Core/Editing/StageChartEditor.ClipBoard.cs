@@ -1,5 +1,9 @@
 #nullable enable
 
+using CommunityToolkit.HighPerformance.Buffers;
+using Deenote.CoreB.Models.Notes;
+using Deenote.Editing.EditorModels.Helpers;
+
 namespace Deenote.Core.Editing
 {
     partial class StageChartEditor
@@ -18,7 +22,12 @@ namespace Deenote.Core.Editing
                 return;
 
             Placer.CancelPlaceNote();
-            ClipBoard.SetNotes(Selector.SelectedNotes);
+            using var so_notes = SpanOwner<NoteData>.Allocate(Selector.SelectedNotes.Length);
+            var notes = so_notes.Span;
+            for (int i = 0; i < notes.Length; i++) {
+                notes[i] = Selector.SelectedNotes[i].ToDataNonLinkInfo();
+            }
+            NoteLinkHelpers.CloneLinkInfos(Selector.SelectedNotes, notes);
         }
 
         public void CutSelectedNotes()

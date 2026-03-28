@@ -1,10 +1,9 @@
 #nullable enable
 
 using Deenote.Core.GameStage;
-using Deenote.Entities.Models;
+using Deenote.Editing.EditorModels;
 using Deenote.Library.Collections.Generic;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -22,7 +21,7 @@ namespace Deenote.Core.GamePlay
 
         #region Collection Modification
 
-        private void AddTrackNote(NoteModel noteModel)
+        private void AddTrackNote(NoteEditorModel noteModel)
         {
             var item = _pool.Get();
             Debug.Assert(!_trackingNotesInTimeOrder.ToList().Contains(item));

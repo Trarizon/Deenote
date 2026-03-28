@@ -42,7 +42,7 @@ namespace Deenote
             SaveSystem = new();
 
             GlobalSettings = new();
-
+         
             StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
         }
 

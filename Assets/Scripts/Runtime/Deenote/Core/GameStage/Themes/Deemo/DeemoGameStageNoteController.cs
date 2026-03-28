@@ -1,9 +1,6 @@
 #nullable enable
 
-using Deenote.Core.GameStage.Themes.Deemo;
-using Deenote.Entities.Models;
 using Deenote.Library;
-using Deenote.Systems.Configurations;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage.Themes.Deemo

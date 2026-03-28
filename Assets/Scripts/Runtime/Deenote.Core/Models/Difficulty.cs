@@ -25,5 +25,17 @@ namespace Deenote.CoreB.Models
                 _ => "unknown",
             };
         }
+
+        public static string ToCapitalizedString(this Difficulty difficulty, GameVersion gameVersion)
+        {
+            return difficulty switch {
+                Difficulty.Easy => "Easy",
+                Difficulty.Normal => "Normal",
+                Difficulty.Hard => "Hard",
+                Difficulty.Extra => gameVersion == GameVersion.Deemo ? "Extra" : "Expert",
+                Difficulty.Special => "Special",
+                _ => "Unknown",
+            };
+        }
     }
 }

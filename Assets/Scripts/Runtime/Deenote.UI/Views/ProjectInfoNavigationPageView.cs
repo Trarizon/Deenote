@@ -3,8 +3,10 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Charts;
+using Deenote.Editing.Contexts;
+using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
@@ -16,12 +18,15 @@ using Deenote.UIFramework.Controls;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Deenote.UI.Views
 {
     public sealed class ProjectInfoNavigationPageView : MonoBehaviour
     {
+        internal readonly EnvironmentContext _environment = new();
+
         [Header("Project")]
         [SerializeField] RectTransform _projectInfoGroup = default!;
         [SerializeField] Button _audioButton = default!;
@@ -73,6 +78,34 @@ namespace Deenote.UI.Views
 
         #endregion
 
+        #region Dropdown
+
+
+        private string[] DifficultyDropdownOptions = new string[] {
+            Difficulty.Easy.ToCapitalizedString(GameVersion.Deemo),
+            Difficulty.Normal.ToCapitalizedString(GameVersion.Deemo),
+            Difficulty.Hard.ToCapitalizedString(GameVersion.Deemo),
+            Difficulty.Extra.ToCapitalizedString(GameVersion.Deemo),
+        };
+
+        private static Difficulty DropdownIndexToDifficulty(int index) => index switch {
+            0 => Difficulty.Easy,
+            1 => Difficulty.Normal,
+            2 => Difficulty.Hard,
+            3 => Difficulty.Extra,
+            _ => throw new SwitchExpressionException(index)
+        };
+
+        private static int ToDropdownIndex(Difficulty difficulty) => difficulty switch {
+            Difficulty.Easy => 0,
+            Difficulty.Normal => 1,
+            Difficulty.Hard => 2,
+            Difficulty.Extra => 3,
+            _ => throw new SwitchExpressionException(difficulty)
+        };
+
+        #endregion
+
         private float _chartConcatOffset = 0f;
         private float _chartConcatMultiplier = 1f;
 
@@ -102,9 +135,8 @@ namespace Deenote.UI.Views
                         var fileName = Path.GetFileName(res.Path);
                         MainWindow.StatusBar.SetLocalizedStatusMessage(LoadAudioLoadingStatusKey, fileName);
 
-                        using var fs = File.OpenRead(res.Path);
-                        var clip = await AudioUtils.TryLoadAsync(fs, Path.GetExtension(res.Path), cancellationToken);
-                        if (clip is null) {
+                        var loaded = await MainSystem.ProjectManager.TryEditProjectAudioAsync(res.Path, cancellationToken);
+                        if (!loaded) {
                             MainWindow.StatusBar.SetReadyStatusMessage();
 
                             cancellationToken.ThrowIfCancellationRequested();
@@ -113,11 +145,6 @@ namespace Deenote.UI.Views
                                 return;
                             continue; // Re-select file
                         }
-
-                        var bytes = new byte[fs.Length];
-                        fs.Seek(0, SeekOrigin.Begin);
-                        fs.Read(bytes);
-                        MainSystem.ProjectManager.EditProjectAudio(res.Path, bytes, clip);
 
                         MainWindow.StatusBar.SetLocalizedStatusMessage(LoadAudioLoadedStatusKey, fileName, 3f);
 
@@ -129,12 +156,12 @@ namespace Deenote.UI.Views
                 _chartDesignerInput.EditSubmitted += MainSystem.ProjectManager.EditProjectChartDesigner;
                 _addChartButton.Clicked += () =>
                 {
-                    var newChart = new ChartModel(new()) {
+                    var newChart = new ChartModel {
                         Difficulty = Difficulty.Hard,
                         Level = "10",
                     };
-                    MainSystem.ProjectManager.AddProjectChart(newChart);
-                    LoadChartModelToStage(newChart);
+                    var editorModel = MainSystem.ProjectManager.AddProjectChart(newChart);
+                    LoadChartModelToStage(editorModel);
                 };
                 _loadChartButton.Clicked += UniTask.Action(async () =>
                 {
@@ -144,16 +171,18 @@ namespace Deenote.UI.Views
                     if (res.IsCancelled)
                         return;
 
-                    if (!ChartModel.TryParse(await File.ReadAllTextAsync(res.Path), out var chart)) {
+                    if (!ChartData.TryParse(await File.ReadAllTextAsync(res.Path), out var chartData)) {
                         await MainWindow.DialogManager.OpenMessageBoxAsync(_loadChartFailedMsgBoxArgs);
                         return;
                     }
 
-                    chart.Difficulty = Difficulty.Hard;
-                    chart.Level = "10";
+                    var chart = new ChartModel(chartData) {
+                        Difficulty = Difficulty.Hard,
+                        Level = "10",
+                    };
 
-                    MainSystem.ProjectManager.AddProjectChart(chart);
-                    LoadChartModelToStage(chart);
+                    var editorChart = MainSystem.ProjectManager.AddProjectChart(chart);
+                    LoadChartModelToStage(editorChart);
                 });
 
                 var manager = MainSystem.ProjectManager;
@@ -208,7 +237,7 @@ namespace Deenote.UI.Views
                 void SetName(string name) => _musicNameInput.SetValueWithoutNotify(name);
                 void SetComposer(string composer) => _composerInput.SetValueWithoutNotify(composer);
                 void SetCharter(string charter) => _chartDesignerInput.SetValueWithoutNotify(charter);
-                void SetCharts(List<ChartModel> charts)
+                void SetCharts(List<ChartEditorModel> charts)
                 {
                     using (var resetter = _chartItems.Resetting(charts.Count)) {
                         foreach (var chart in charts) {
@@ -224,12 +253,12 @@ namespace Deenote.UI.Views
             #region Chart
             {
                 _chartNameInput.EditSubmitted += MainSystem.GamePlayManager.EditChartName;
-                _chartDifficultyDropdown.ResetOptions(DifficultyExt.DropdownOptions.AsSpan());
+                _chartDifficultyDropdown.ResetOptions(DifficultyDropdownOptions);
                 _chartDifficultyDropdown.SelectedIndexChanged += val =>
                 {
-                    var diff = DifficultyExt.FromDropdownIndex(val);
+                    var diff = DropdownIndexToDifficulty(val);
                     MainSystem.GamePlayManager.EditChartDifficulty(diff);
-                    _chartNameInput.SetPlaceHolderText(LocalizableText.Raw(diff.ToDisplayString()));
+                    _chartNameInput.SetPlaceHolderText(LocalizableText.Raw(diff.ToCapitalizedString(_environment.GameVersion)));
                 };
                 _chartLevelInput.EditSubmitted += MainSystem.GamePlayManager.EditChartLevel;
                 _chartSpeedInput.EditSubmitted += val =>
@@ -336,7 +365,7 @@ namespace Deenote.UI.Views
                     if (!MainSystem.GamePlayManager.IsChartLoaded())
                         return;
 
-                    Reselect:
+                Reselect:
                     var fileRes = await MainWindow.DialogManager.OpenFileExplorerSelectFileAsync(
                         LocalizableText.Raw("Select file to concatenate"),
                         MainSystem.Args.SupportLoadChartFileExtensions);
@@ -344,7 +373,7 @@ namespace Deenote.UI.Views
                         return;
                     var file = fileRes.Path;
 
-                    if (!ChartModel.TryParse(File.ReadAllText(file), out var chart)) {
+                    if (!ChartData.TryParse(File.ReadAllText(file), out var chartData)) {
                         var button = await MainWindow.DialogManager.OpenMessageBoxAsync(new MessageBoxArgs(
                             LocalizableText.Raw("Load chart failed."),
                             LocalizableText.Raw("Failed to parse chart file, please select another file."),
@@ -355,14 +384,14 @@ namespace Deenote.UI.Views
                         goto Reselect;
                     }
 
-                    MainSystem.StageChartEditor.ConcatNotes(chart, _chartConcatOffset, _chartConcatMultiplier);
+                    MainSystem.StageChartEditor.ConcatNotes(chartData, _chartConcatOffset, _chartConcatMultiplier);
                 };
 
                 void SetName(string name) => _chartNameInput.SetValueWithoutNotify(name);
                 void SetDifficulty(Difficulty difficulty)
                 {
-                    _chartNameInput.SetPlaceHolderText(LocalizableText.Raw(difficulty.ToDisplayString()));
-                    _chartDifficultyDropdown.SetValueWithoutNotify(difficulty.ToDropdownIndex());
+                    _chartNameInput.SetPlaceHolderText(LocalizableText.Raw(difficulty.ToCapitalizedString(_environment.GameVersion)));
+                    _chartDifficultyDropdown.SetValueWithoutNotify(ToDropdownIndex(difficulty));
                 }
                 void SetLevel(string level) => _chartLevelInput.SetValueWithoutNotify(level);
                 void SetSpeed(float speed) => _chartSpeedInput.SetValueWithoutNotify(speed.ToString("F3"));
@@ -398,7 +427,7 @@ namespace Deenote.UI.Views
 
         #endregion
 
-        private void LoadChartModelToStage(ChartModel chart)
+        private void LoadChartModelToStage(ChartEditorModel chart)
         {
             MainSystem.GamePlayManager.LoadChartInCurrentProject(chart);
             MainWindow.StatusBar.SetLocalizedStatusMessage(ChartLoadedStatusKey);

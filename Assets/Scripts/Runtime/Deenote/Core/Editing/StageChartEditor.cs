@@ -1,13 +1,15 @@
 #nullable enable
 
 using CommunityToolkit.HighPerformance.Buffers;
+using Deenote.Api.Operations;
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
-using Deenote.Entities;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
-using Deenote.Entities.Operations;
-using Deenote.Library.Collections.Generic;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Assertions;
+using Deenote.Editing.Operations;
 using Deenote.Library.Components;
 using System;
 using System.Collections.Immutable;
@@ -82,23 +84,21 @@ namespace Deenote.Core.Editing
         private void OnNoteCollectionChanged()
         {
             _game.AssertChartLoaded();
-            NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
+            NoteComparers.AssertInOrderViaTime(_game.CurrentChart.Notes);
             _game.UpdateNotes(true, false);
         }
 
-        public void AddNote(NoteModel notePrototype, NoteCoord noteCoord)
+        public void AddNote(NoteData note)
         {
             if (!_game.IsChartLoaded())
                 return;
 
-            var note = notePrototype.Clone();
-            note.PositionCoord = noteCoord;
-            _operations.Do(_game.CurrentChart.AddNote(note)
+            _operations.Do(_game.CurrentChart.GetAddNoteOperation(note)
                 .OnRedone(note =>
                 {
                     this.Selector.Clear();
                     OnNoteCollectionChanged();
-                    NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
+                    ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
                 })
                 .OnUndone(note => OnNoteCollectionChanged()));
         }
@@ -106,31 +106,20 @@ namespace Deenote.Core.Editing
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="notePrototypes"></param>
+        /// <param name="notes"></param>
         /// <param name="baseCoord">The coord that first note will be created</param>
-        public void AddMultipleNotes(ReadOnlySpan<NoteModel> notePrototypes, NoteCoord baseCoord)
+        public void AddMultipleNotes(ReadOnlySpan<NoteData> notes)
         {
             if (!_game.IsChartLoaded())
                 return;
-            if (notePrototypes.IsEmpty)
+            if (notes.IsEmpty)
                 return;
-            if (notePrototypes.Length == 1) {
-                AddNote(notePrototypes[0], baseCoord);
+            if (notes.Length == 1) {
+                AddNote(notes[0]);
                 return;
             }
 
-            var notes = new NoteModel[notePrototypes.Length];
-            baseCoord -= notePrototypes[0].PositionCoord;
-
-            for (int i = 0; i < notes.Length; i++) {
-                var prototype = notePrototypes[i];
-                var note = notes[i] = prototype.Clone();
-                note.PositionCoord = NoteCoord.ClampPosition(baseCoord + note.PositionCoord);
-            }
-
-            NoteModel.CloneLinkDatas(notePrototypes, notes);
-
-            _operations.Do(_game.CurrentChart.AddMultipleNotes(ImmutableCollectionsMarshal.AsImmutableArray(notes))
+            _operations.Do(_game.CurrentChart.GetAddNotesOperation(notes)
                 .OnRedone(notes =>
                 {
                     this.Selector.Reselect(notes);
@@ -140,13 +129,11 @@ namespace Deenote.Core.Editing
                 {
                     this.Selector.DeselectMultiple(notes);
                     OnNoteCollectionChanged();
-                    NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
+                    ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
                 }));
         }
 
-        public void RemoveNote(NoteModel note) => RemoveNotes(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
-
-        public void RemoveNotes(ReadOnlySpan<NoteModel> notes)
+        public void RemoveNotes(ReadOnlySpan<NoteEditorModel> notes)
         {
             if (!_game.IsChartLoaded())
                 return;
@@ -156,11 +143,11 @@ namespace Deenote.Core.Editing
             _operations.Do(GetRemoveNotesOperation(notes));
         }
 
-        public IUndoableOperation GetRemoveNotesOperation(ReadOnlySpan<NoteModel> notes)
+        public IOperation GetRemoveNotesOperation(ReadOnlySpan<NoteEditorModel> notes)
         {
             _game.AssertChartLoaded();
 
-            return _game.CurrentChart.RemoveOrderedNotes(notes.ToImmutableArray())
+            return _game.CurrentChart.GetRemoveNotesOperation(notes.ToImmutableArray())
                 .OnRedone(notes =>
                 {
                     this.Selector.Clear();
@@ -190,7 +177,7 @@ namespace Deenote.Core.Editing
                     applySpeed = true;
             }
 
-            using var so_notes = SpanOwner<NoteModel>.Allocate(count);
+            using var so_notes = SpanOwner<NoteData>.Allocate(count);
             var notes = so_notes.Span;
             for (int i = 0; i < count; i++) {
                 var time = Mathf.Lerp(start, end, (float)(i + 1) / (count + 1));
@@ -202,7 +189,7 @@ namespace Deenote.Core.Editing
                 if (applySpeed)
                     note.Speed = _game.Grids.GetCurveTransformedValue(time, GridsManager.CurveApplyProperty.Speed)!.Value;
             }
-            AddMultipleNotes(notes, notes[0].PositionCoord);
+            AddMultipleNotes(notes);
         }
 
         #endregion

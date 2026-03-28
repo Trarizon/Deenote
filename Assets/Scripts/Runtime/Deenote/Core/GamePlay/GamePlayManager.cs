@@ -1,13 +1,12 @@
 #nullable enable
 
 using Deenote.Core.Audio;
-using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.Core.GameStage.Foreground;
 using Deenote.Core.Project;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Helpers;
 using Deenote.Library;
 using Deenote.Library.Components;
 using System;
@@ -27,7 +26,7 @@ namespace Deenote.Core.GamePlay
 
         public GameStageController? Stage { get; private set; }
 
-        public NotesManager NotesManager => _notesManager;
+        internal NotesManager NotesManager => _notesManager;
         public GridsManager Grids => _gridsManager;
         public GameMusicPlayer MusicPlayer => _musicPlayer;
         public StagePianoSoundPlayer PianoSoundPlayer => _pianoSoundPlayer;
@@ -36,7 +35,7 @@ namespace Deenote.Core.GamePlay
         public event Action<StageLoadedEventArgs>? StageLoaded;
 
 
-        public ChartModel? CurrentChart { get; private set; }
+        public ChartEditorModel? CurrentChart { get; private set; }
 
         /// <remarks>
         /// If music is paused, maually set music time by this value,
@@ -77,6 +76,9 @@ namespace Deenote.Core.GamePlay
 
             GameStageSceneLoader.StageLoaded += loader =>
             {
+                Debug.Log("GameStage loaded");
+                try {
+
                 Stage = loader.StageController;
                 Stage.Initialize(this);
                 NotesManager.Initialize(
@@ -91,6 +93,10 @@ namespace Deenote.Core.GamePlay
                 }
 
                 StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
+                } catch (Exception ex) {
+                    Debug.LogError(ex.Message + ex.StackTrace);
+                    throw;
+                }
             };
 
             MusicPlayer.TimeChanged += args =>
@@ -194,7 +200,7 @@ namespace Deenote.Core.GamePlay
             NotifyFlag(NotificationFlag.ActiveNoteUpdated);
         }
 
-        public void LoadChartInCurrentProject(ChartModel chart)
+        public void LoadChartInCurrentProject(ChartEditorModel chart)
         {
             Debug.Assert(MainSystem.ProjectManager.CurrentProject?.Charts.Contains(chart) is true);
 
@@ -202,33 +208,12 @@ namespace Deenote.Core.GamePlay
             MusicPlayer.Time = 0f;
             CurrentChart = chart;
 
-            CheckCollision();
+            NoteCollisionHelpers.InitializeCollision(CurrentChart);
             if (IsStageLoaded()) {
                 UpdateNotes(true, true);
             }
+            Debug.Log("Chart loaded");
             NotifyFlag(NotificationFlag.CurrentChart);
-
-            void CheckCollision()
-            {
-                var chart = CurrentChart;
-
-                for (int i = 0; i < chart.NoteNodes.Count; i++) {
-                    if (chart.NoteNodes[i] is not NoteModel note)
-                        continue;
-
-                    for (int j = i + 1; j < chart.NoteNodes.Count; j++) {
-                        if (chart.NoteNodes[j] is not NoteModel noteCmp)
-                            continue;
-
-                        if (!EntityArgs.IsTimeCollided(note, noteCmp))
-                            break;
-                        if (EntityArgs.IsPositionCollided(note, noteCmp)) {
-                            note.CollisionCount++;
-                            noteCmp.CollisionCount++;
-                        }
-                    }
-                }
-            }
         }
 
         public void UnloadChart()

@@ -1,9 +1,12 @@
 #nullable enable
 
+using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Notes;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Helpers;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
@@ -45,17 +48,17 @@ namespace Deenote.Core.Editing
 
         internal StageChartEditor _editor;
 
-        private NoteModel _metaPrototype;
+        private NotePrototypeModel _metaPrototype;
         private PooledObjectListView<PlacementNoteIndicatorController> _indicators;
-        private PooledObjectListView<NoteModel> _prototypes;
+        private PooledObjectListView<NotePrototypeModel> _prototypes;
 
         public StageNotePlacer(StageChartEditor editor)
         {
             _editor = editor;
-            _metaPrototype = new NoteModel();
-            _prototypes = new PooledObjectListView<NoteModel>(
-                new ObjectPool<NoteModel>(() => new NoteModel(),
-                    note => _metaPrototype.CloneDataTo(note, true), defaultCapacity: 1));
+            _metaPrototype = new NotePrototypeModel();
+            _prototypes = new PooledObjectListView<NotePrototypeModel>(
+                new ObjectPool<NotePrototypeModel>(() => new NotePrototypeModel(),
+                    note => _metaPrototype.CloneTo(note), defaultCapacity: 1));
             _prototypes.Add(out _);
             _indicators = null!;
 
@@ -88,7 +91,8 @@ namespace Deenote.Core.Editing
             };
         }
 
-        public NoteModel ClonePlaceNotePrototype() => _metaPrototype.Clone(cloneSounds: true);
+        internal NoteData ClonePlaceNotePrototype() =>_metaPrototype.ToDataNonLinkInfo();
+
 
         #region MoveIndicator
 
@@ -148,7 +152,7 @@ namespace Deenote.Core.Editing
             }
 
         PlaceSwipe:
-            note.Kind = NoteModel.NoteKind.Swipe;
+            note.Kind = NoteKind.Swipe;
             note.Duration = 0f;
             indicator.Refresh();
             // Indicator may be moved if create hold by dragging down
@@ -180,18 +184,20 @@ namespace Deenote.Core.Editing
 
         private partial StateFlag EndPlaceSingleNote(NoteCoord coord, Vector2 mousePosition)
         {
-            var note = _prototypes[0];
-            Debug.Assert(_indicators[0].NotePrototype == note);
+            var prototype = _prototypes[0];
+            Debug.Assert(_indicators[0].NotePrototype == prototype);
             NoteCoord placeCoord;
-            if (note.IsHold && coord.Time < _beginNoteCoord.Time) {
+            if (prototype.IsHold() && coord.Time < _beginNoteCoord.Time) {
                 // If placing hold by dragging down, the actual time of hold is the end coord's time
                 placeCoord = _beginNoteCoord;
-                placeCoord.Time -= note.Duration;
+                placeCoord.Time -= prototype.Duration;
             }
             else {
                 placeCoord = _beginNoteCoord;
             }
-            _editor.AddNote(note, placeCoord);
+            var note = prototype.ToDataNonLinkInfo();
+            note.PositionCoord = placeCoord;
+            _editor.AddNote(note);
 
             ResetNotePrototypesToIdle();
             if (PlaceSlideModifier)
@@ -266,7 +272,7 @@ namespace Deenote.Core.Editing
                     }
 
                     _prototypes.Add(out var note);
-                    note.InsertAsLinkAfter(_prototypes[^2]);
+                    NoteLinkHelpers.InsertAfter(note, _prototypes[^2]);
                     _indicators.Add(out var indicator);
                     InitIndicator(indicator, note, gridTime);
                     _indicators[^2].Refresh();
@@ -288,7 +294,7 @@ namespace Deenote.Core.Editing
                         return;
                     }
 
-                    _prototypes[^1].UnlinkWithoutCutChain();
+                    NoteLinkHelpers.UnlinkRemainingChain(_prototypes[^1]);
                     _prototypes.RemoveAt(^1);
                     _indicators.RemoveAt(^1);
                     if (_indicators.Count >= 1)
@@ -312,7 +318,7 @@ namespace Deenote.Core.Editing
                         return;
                     }
 
-                    _prototypes[^1].UnlinkWithoutCutChain();
+                    NoteLinkHelpers.UnlinkRemainingChain(_prototypes[^1]);
                     _prototypes.RemoveAt(^1);
                     _indicators.RemoveAt(^1);
 
@@ -334,7 +340,7 @@ namespace Deenote.Core.Editing
                     }
 
                     _prototypes.Add(out var note);
-                    note.InsertAsLinkBefore(_prototypes[^2]);
+                    NoteLinkHelpers.InsertBefore(note, _prototypes[^2]);
                     _indicators.Add(out var indicator);
                     InitIndicator(indicator, note, gridTime);
 
@@ -342,8 +348,10 @@ namespace Deenote.Core.Editing
                 }
             }
 
-            void InitIndicator(PlacementNoteIndicatorController indicator, NoteModel prototype, float gridTime)
+            void InitIndicator(PlacementNoteIndicatorController indicator, NotePrototypeModel prototype, float gridTime)
             {
+                prototype.Kind = NoteKind.Slide;
+
                 var cloneCoord = new NoteCoord(
                     MathUtils.MapTo(gridTime, prevCoord.Time, coord.Time, prevCoord.Position, coord.Position),
                     gridTime);
@@ -359,7 +367,15 @@ namespace Deenote.Core.Editing
         {
             var placeCoord = _beginNoteCoord;
 
-            _editor.AddMultipleNotes(_prototypes.AsSpan(), placeCoord);
+            using var so_notes = SpanOwner<NoteData>.Allocate(_prototypes.Count);
+            var notes = so_notes.Span;
+            for (int i = 0; i < _prototypes.Count; i++) {
+                notes[i] = _prototypes[i].ToDataNonLinkInfo();
+                notes[i].PositionCoord= NoteCoord.ClampPosition(coord + notes[i].PositionCoord);
+            }
+            NoteLinkHelpers.CloneLinkInfos(_prototypes.AsSpan(), notes);
+
+            _editor.AddMultipleNotes(notes);
 
             ResetNotePrototypesToIdle();
             if (PlaceSlideModifier)
@@ -404,7 +420,16 @@ namespace Deenote.Core.Editing
             else {
                 placeCoord = _editor._game.Grids.Quantize(coord, SnapToPositionGrid, SnapToTimeGrid);
             }
-            _editor.AddMultipleNotes(_editor.ClipBoard.Notes, placeCoord);
+
+            using var so_notes = SpanOwner<NoteData>.Allocate(_editor.ClipBoard.Notes.Length);
+            var notes = so_notes.Span;
+            for (int i = 0; i < _editor.ClipBoard.Notes.Length; i++) {
+                notes[i] = _editor.ClipBoard.Notes[i].CloneNonLinkInfo();
+                notes[i].PositionCoord = NoteCoord.ClampPosition(placeCoord + notes[i].PositionCoord);
+            }
+            NoteLinkHelpers.CloneLinkInfos(_editor.ClipBoard.Notes, notes);
+
+            _editor.AddMultipleNotes(_editor.ClipBoard.Notes);
 
             //ResetNotePrototypesToIdle(); Do this in StateMachine, as in current state indicator property edit are not allowed
             if (PlaceSlideModifier)

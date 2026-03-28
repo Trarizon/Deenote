@@ -1,7 +1,7 @@
 #nullable enable
 
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using UnityEngine;
 
@@ -15,9 +15,9 @@ namespace Deenote.Core.GameStage
 
         private Vector2 _localPosition;
         protected Vector2? _linkLineEndOffset;
-        protected NoteModel _note = default!;
+        protected NotePrototypeModel _note = default!;
 
-        public NoteModel NotePrototype => _note;
+        public NotePrototypeModel NotePrototype => _note;
 
         public GameStageController GameStage => _plane.GameStage;
 
@@ -34,7 +34,7 @@ namespace Deenote.Core.GameStage
 
         internal protected abstract void Refresh();
 
-        internal void Initialize(NoteModel note)
+        internal void Initialize(NotePrototypeModel note)
         {
             _note = note;
             Refresh();

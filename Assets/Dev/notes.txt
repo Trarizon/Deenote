@@ -1,3 +1,10 @@
+# NOTES
+
+- MenuNavigationPageView.MenuCreateNewProjectAsync
+  - 因为音频加载挪到ProjectEditorModel里了，现在新建后会直接关掉新建窗口，然后才开始加载音频
+- Undo的设计打算改，不只撤销当前谱面了，改成撤销其他谱面加提醒
+  - 现在InputManager里的chart传的是null，这个不对
+
 # Code comments
 // Note
 // Optimizable

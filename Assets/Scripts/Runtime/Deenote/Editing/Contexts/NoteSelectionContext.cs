@@ -1,7 +1,9 @@
 #nullable enable
 
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.Editing.EditorModels;
+using Deenote.Editing.EditorModels.Assertions;
+using Deenote.Editing.EditorModels.Comparing;
 using Deenote.Library.Collections;
 using System;
 using System.Collections.Generic;
@@ -16,16 +18,16 @@ namespace Deenote.Editing.Contexts
         public ProjectContext ProjectContext => EditorContext.ProjectContext;
         public EditorContext EditorContext { get; }
 
-        internal readonly List<NoteModel> _selectedNotes = new();
+        internal readonly List<NoteEditorModel> _selectedNotes = new();
 
-        public ReadOnlySpan<NoteModel> SelectedNotes => _selectedNotes.AsSpan();
+        public ReadOnlySpan<NoteEditorModel> SelectedNotes => _selectedNotes.AsSpan();
 
         public NoteSelectionContext(EditorContext editorContext)
         {
             EditorContext = editorContext;
         }
 
-        public void SelectNote(NoteModel note)
+        public void SelectNote(NoteEditorModel note)
         {
             if (note.IsSelected)
                 return;
@@ -33,17 +35,17 @@ namespace Deenote.Editing.Contexts
             SelectNotes(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
         }
 
-        public void SelectNotes(ReadOnlySpan<NoteModel> notes)
+        public void SelectNotes(ReadOnlySpan<NoteEditorModel> notes)
         {
             RaiseSelectedNotesChanging();
             SelectNotesNonNotify(notes);
             RaiseSelectedNotesChanged();
         }
 
-        public void ReselectNote(NoteModel note)
+        public void ReselectNote(NoteEditorModel note)
             => ReselectNotes(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
 
-        public void ReselectNotes(ReadOnlySpan<NoteModel> notes)
+        public void ReselectNotes(ReadOnlySpan<NoteEditorModel> notes)
         {
             RaiseSelectedNotesChanging();
             ClearSelectionNonNotify();
@@ -51,22 +53,22 @@ namespace Deenote.Editing.Contexts
             RaiseSelectedNotesChanged();
         }
 
-        public void DeselectNote(NoteModel note)
+        public void DeselectNote(NoteEditorModel note)
             => DeselectNotes(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
 
-        public void DeselectNotes(ReadOnlySpan<NoteModel> notes)
+        public void DeselectNotes(ReadOnlySpan<NoteEditorModel> notes)
         {
             RaiseSelectedNotesChanging();
             DeselectNotesNonNotify(notes);
             RaiseSelectedNotesChanged();
         }
 
-        public void ReplaceNotes(ReadOnlySpan<NoteModel> remove,  ReadOnlySpan<NoteModel> add)
+        public void ReplaceNotes(ReadOnlySpan<NoteEditorModel> remove,  ReadOnlySpan<NoteEditorModel> add)
         {
             RaiseSelectedNotesChanging();
             DeselectNotesNonNotify(remove);
             SelectNotesNonNotify(add);
-            NoteComparers.AssertInTimeOrder(_selectedNotes);
+            ModelAsserts.AssertInOrderViaTimeUnique(_selectedNotes);
             RaiseSelectedNotesChanged();
         }
 
@@ -77,16 +79,16 @@ namespace Deenote.Editing.Contexts
             RaiseSelectedNotesChanged();
         }
 
-        private void SelectNotesNonNotify(ReadOnlySpan<NoteModel> notes)
+        private void SelectNotesNonNotify(ReadOnlySpan<NoteEditorModel> notes)
         {
             Debug.Assert(notes.ToArray().All(note => ProjectContext.CurrentChart?.NoteNodes.Contains(note) ?? false));
-            _selectedNotes.GetSortedModifier(NoteComparers.NodeTime).AddRange(notes);
+            _selectedNotes.GetSortedModifier(ModelComparers.ViaTimeUnique).AddRange(notes);
             foreach (var note in notes) {
                 note.IsSelected = true;
             }
         }
 
-        private void DeselectNotesNonNotify(ReadOnlySpan<NoteModel> notes)
+        private void DeselectNotesNonNotify(ReadOnlySpan<NoteEditorModel> notes)
         {
             foreach (var note in notes) {
                 if (note.IsSelected) {
@@ -124,16 +126,16 @@ namespace Deenote.Editing.Contexts
 
         public readonly struct SelectedNotesChangingEventArgs
         {
-            private readonly List<NoteModel> _notes;
-            public ReadOnlySpan<NoteModel> SelectedNotes => _notes.AsSpan();
-            internal SelectedNotesChangingEventArgs(List<NoteModel> notes) => _notes = notes;
+            private readonly List<NoteEditorModel> _notes;
+            public ReadOnlySpan<NoteEditorModel> SelectedNotes => _notes.AsSpan();
+            internal SelectedNotesChangingEventArgs(List<NoteEditorModel> notes) => _notes = notes;
         }
 
         public readonly struct SelectedNotesChangedEventArgs
         {
-            private readonly List<NoteModel> _notes;
-            public ReadOnlySpan<NoteModel> SelectedNotes => _notes.AsSpan();
-            internal SelectedNotesChangedEventArgs(List<NoteModel> notes) => _notes = notes;
+            private readonly List<NoteEditorModel> _notes;
+            public ReadOnlySpan<NoteEditorModel> SelectedNotes => _notes.AsSpan();
+            internal SelectedNotesChangedEventArgs(List<NoteEditorModel> notes) => _notes = notes;
         }
     }
 }

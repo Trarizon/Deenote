@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GameStage;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes;
 using Deenote.Library;
 using UnityEngine;
 
@@ -117,12 +117,12 @@ namespace Deenote.Core.GamePlay
             }
         }
 
-        public bool IsNoteHighlighted(NoteModel note)
+        public bool IsNoteHighlighted(INoteSpeed note)
         {
             return !IsFilterNoteSpeed || Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
         }
 
-        public bool IsNoteDownplayed(NoteModel note)
+        public bool IsNoteDownplayed(INoteSpeed note)
         {
             return IsFilterNoteSpeed && !Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
         }

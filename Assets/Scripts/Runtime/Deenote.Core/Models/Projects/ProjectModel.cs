@@ -15,5 +15,10 @@ namespace Deenote.CoreB.Models.Projects
         public string AudioFileRelativePath { get; set; } = "";
         public List<ChartModel> Charts { get; } = new List<ChartModel>();
         public List<Tempo> Tempos { get; } = new List<Tempo>();
+
+        public ProjectModel()
+        {
+            
+        }
     }
 }

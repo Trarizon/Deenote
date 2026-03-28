@@ -3,8 +3,8 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Notes;
 using Deenote.InputSystem.InputActions;
 using Deenote.Library;
 using Deenote.Library.Components;
@@ -199,8 +199,8 @@ namespace Deenote.Inputting
             actions.Copy.started += _ => _editor.CopySelectedNotes();
             actions.Cut.started += _ => _editor.CutSelectedNotes();
             actions.Paste.started += _ => _editor.PasteNotes();
-            actions.Redo.started += _ => _editor.OperationMemento.Redo(_game.CurrentChart);
-            actions.Undo.started += _ => _editor.OperationMemento.Undo(_game.CurrentChart);
+            actions.Redo.started += _ => _editor.OperationMemento.Redo(null);
+            actions.Undo.started += _ => _editor.OperationMemento.Undo(null);
             actions.TimeDec.started += _ => _editor.EditSelectedNotesTime(t => t - TimeDelta);
             actions.TimeInc.started += _ => _editor.EditSelectedNotesTime(t => t + TimeDelta);
             actions.TimeDecLarge.started += _ => _editor.EditSelectedNotesTime(t => t - TimeDeltaLarge);
@@ -223,9 +223,9 @@ namespace Deenote.Inputting
             actions.SpeedInc.started += _ => _editor.EditSelectedNotesSpeed(s => s += SpeedDelta);
             actions.SpeedDecLarge.started += _ => _editor.EditSelectedNotesSpeed(s => s -= SpeedDeltaLarge);
             actions.SpeedIncLarge.started += _ => _editor.EditSelectedNotesSpeed(s => s += SpeedDeltaLarge);
-            actions.KindClick.started += _ => _editor.EditSelectedNotesKind(NoteModel.NoteKind.Click);
-            actions.KindSlide.started += _ => _editor.EditSelectedNotesKind(NoteModel.NoteKind.Slide);
-            actions.KindSwipe.started += _ => _editor.EditSelectedNotesKind(NoteModel.NoteKind.Swipe);
+            actions.KindClick.started += _ => _editor.EditSelectedNotesKind(NoteKind.Click);
+            actions.KindSlide.started += _ => _editor.EditSelectedNotesKind(NoteKind.Slide);
+            actions.KindSwipe.started += _ => _editor.EditSelectedNotesKind(NoteKind.Swipe);
             actions.SoundAdd.started += _ => _editor.EditSelectedNoteSounds(true);
             actions.SoundRemove.started += _ => _editor.EditSelectedNoteSounds(false);
             actions.DurationDec.started += _ => _editor.EditSelectedNotesDuration(d => d - DurationDelta);

@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote.CoreB.Models.Notes;
-using Deenote.CoreB.Models.Notes.Comparing;
+using Deenote.CoreB.Models.Notes.Comparers;
 using System;
 using System.Collections.Generic;
 

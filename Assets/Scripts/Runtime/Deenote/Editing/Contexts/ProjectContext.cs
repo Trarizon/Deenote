@@ -2,7 +2,6 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using Deenote.Editing.EditorModels;
-using Deenote.Entities.Models;
 using System;
 
 namespace Deenote.Editing.Contexts
@@ -11,17 +10,17 @@ namespace Deenote.Editing.Contexts
     {
         [ObservableProperty] ProjectEditorModel? _currentProject;
 
-        public ChartModel? CurrentChart { get; }
+        public ChartEditorModel? CurrentChart { get; }
         public EditorContext EditorContext { get; }
 
-        public event Action<ChartModel>? ChartNoteCollectionChanged;
+        public event Action<ChartEditorModel>? ChartNoteCollectionChanged;
 
         public ProjectContext()
         {
             EditorContext = new EditorContext(this);
         }
 
-        public void RaiseChartNotesChanged(ChartModel? chart)
+        public void RaiseChartNotesChanged(ChartEditorModel? chart)
         {
             if (chart is not null) {
                 ChartNoteCollectionChanged?.Invoke(chart);

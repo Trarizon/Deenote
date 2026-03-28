@@ -1,22 +1,27 @@
 #nullable enable
 
-using Deenote.Entities.Models;
-using System.IO;
-using UnityEngine;
+using Cysharp.Threading.Tasks;
+using Deenote.CoreB.Models.Charts;
+using Deenote.Editing.EditorModels;
+using System.Threading;
 
 namespace Deenote.Core.Project
 {
     partial class ProjectManager
     {
-        public void EditProjectAudio(string filePath, byte[] bytes, AudioClip clip)
+        public async UniTask<bool> TryEditProjectAudioAsync(string audioFilePath, CancellationToken cancellationToken = default)
         {
             ValidateProject();
 
-            CurrentProject.AudioFileRelativePath = Path.GetRelativePath(CurrentProject.ProjectFilePath, filePath);
-            CurrentProject.AudioFileData = bytes;
-            _audioClip = clip;
-            CurrentProject.AudioLength = clip.length;
-            NotifyFlag(NotificationFlag.ProjectAudio);
+            var result = await CurrentProject.TrySetAndLoadAudioAsync(audioFilePath, cancellationToken);
+            if (result) {
+                NotifyFlag(NotificationFlag.ProjectAudio);
+                return true;
+            }
+            else {
+                return false;
+            }
+
         }
 
         public void EditProjectMusicName(string name)
@@ -43,7 +48,17 @@ namespace Deenote.Core.Project
             NotifyFlag(NotificationFlag.ProjectChartDesigner);
         }
 
-        public void AddProjectChart(ChartModel chart)
+        public ChartEditorModel AddProjectChart(ChartModel chart)
+        {
+            ValidateProject();
+
+            var editorModel= new ChartEditorModel(chart);
+            CurrentProject.Charts.Add(editorModel);
+            NotifyFlag(NotificationFlag.ProjectCharts);
+            return editorModel;
+        }
+
+        private void AddProjectChart(ChartEditorModel chart)
         {
             ValidateProject();
 
@@ -56,8 +71,8 @@ namespace Deenote.Core.Project
             ValidateProject();
 
             CurrentProject.Charts.RemoveAt(chartIndex);
-            if(CurrentProject.Charts.Count == 0)
-                AddProjectChart(new ChartModel());
+            if (CurrentProject.Charts.Count == 0)
+                AddProjectChart(new ChartEditorModel());
 
             NotifyFlag(NotificationFlag.ProjectCharts);
         }

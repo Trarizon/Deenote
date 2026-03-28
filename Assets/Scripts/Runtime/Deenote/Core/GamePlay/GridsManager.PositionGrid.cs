@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GameStage;
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using Deenote.Library;
 using System.Collections.Generic;
 using UnityEngine;
@@ -152,8 +152,8 @@ namespace Deenote.Core.GamePlay
 
             // Legacy system
             if (PositionGridGeneration is PositionGridGenerationKind.ByCountAndOffset && IsPositionGridBorderVisible_Legacy) {
-                float minx = _game.Stage.ConvertNotePositionToWorldX(-EntityArgs.StageMaxPosition);
-                float maxx = _game.Stage.ConvertNotePositionToWorldX(EntityArgs.StageMaxPosition);
+                float minx = _game.Stage.ConvertNotePositionToWorldX(NoteConstraints.StageMinPosition);
+                float maxx = _game.Stage.ConvertNotePositionToWorldX(NoteConstraints.StageMaxPosition);
                 collector.AddLine(new Vector2(minx, minZ), new Vector2(minx, maxZ),
                     _game.CustomSubBeatLineColor ?? args.PositionGridLineColor, args.PositionGridBorderWidth);
                 collector.AddLine(new Vector2(maxx, minZ), new Vector2(maxx, maxZ),
@@ -195,12 +195,12 @@ namespace Deenote.Core.GamePlay
                         break;
                     }
                     default: {
-                        _positionGridLines.Add(new(-EntityArgs.StageMaxPosition, PositionGridKind.Border));
+                        _positionGridLines.Add(new(NoteConstraints.StageMinPosition, PositionGridKind.Border));
                         for (int i = 1; i < PositionGridCount - 1; i++) {
                             float pos = GetPositionGridPosition(i);
                             _positionGridLines.Add(new(pos, PositionGridKind.Default));
                         }
-                        _positionGridLines.Add(new(EntityArgs.StageMaxPosition, PositionGridKind.Border));
+                        _positionGridLines.Add(new(NoteConstraints.StageMaxPosition, PositionGridKind.Border));
                         break;
                     }
                 }
@@ -233,14 +233,14 @@ namespace Deenote.Core.GamePlay
                 }
 
                 if (IsPositionGridBorderVisible_Legacy) {
-                    float dist = Mathf.Abs(position + EntityArgs.StageMaxPosition);
+                    float dist = Mathf.Abs(position + NoteConstraints.StageMaxPosition);
                     if (dist < minDist) {
                         minDist = dist;
-                        result = -EntityArgs.StageMaxPosition;
+                        result = NoteConstraints.StageMinPosition;
                     }
-                    dist = Mathf.Abs(position - EntityArgs.StageMaxPosition);
+                    dist = Mathf.Abs(position - NoteConstraints.StageMaxPosition);
                     if (dist < minDist) {
-                        result = EntityArgs.StageMaxPosition;
+                        result = NoteConstraints.StageMaxPosition;
                     }
                 }
                 return result;
@@ -284,8 +284,8 @@ namespace Deenote.Core.GamePlay
                         result = gridPos;
                 }
 
-                if (IsPositionGridBorderVisible_Legacy && position > -EntityArgs.StageMaxPosition)
-                    result = -EntityArgs.StageMaxPosition;
+                if (IsPositionGridBorderVisible_Legacy && position > NoteConstraints.StageMinPosition)
+                    result = NoteConstraints.StageMinPosition;
 
                 return result;
             }
@@ -304,8 +304,8 @@ namespace Deenote.Core.GamePlay
                     if (gridPos + PositionGridMinEqualityThreshold < position)
                         return gridPos;
                 }
-                Debug.Assert(position <= -EntityArgs.StageMaxPosition + PositionGridMinEqualityThreshold);
-                return position == -EntityArgs.StageMaxPosition ? null : -EntityArgs.StageMaxPosition;
+                Debug.Assert(position <= NoteConstraints.StageMinPosition + PositionGridMinEqualityThreshold);
+                return position == NoteConstraints.StageMinPosition ? null : NoteConstraints.StageMinPosition;
             }
         }
 
@@ -333,11 +333,11 @@ namespace Deenote.Core.GamePlay
                     }
                 }
 
-                if (IsPositionGridBorderVisible_Legacy && position < EntityArgs.StageMaxPosition) {
+                if (IsPositionGridBorderVisible_Legacy && position < NoteConstraints.StageMaxPosition) {
                     if (result is { } res)
-                        result = Mathf.Min(res, EntityArgs.StageMaxPosition);
+                        result = Mathf.Min(res, NoteConstraints.StageMaxPosition);
                     else
-                        result = EntityArgs.StageMaxPosition;
+                        result = NoteConstraints.StageMaxPosition;
                 }
 
                 return result;
@@ -357,14 +357,14 @@ namespace Deenote.Core.GamePlay
                     if (gridPos - PositionGridMinEqualityThreshold > position)
                         return gridPos;
                 }
-                Debug.Assert(position >= EntityArgs.StageMaxPosition - PositionGridMinEqualityThreshold);
-                return position == EntityArgs.StageMaxPosition ? null : EntityArgs.StageMaxPosition;
+                Debug.Assert(position >= NoteConstraints.StageMaxPosition - PositionGridMinEqualityThreshold);
+                return position == NoteConstraints.StageMaxPosition ? null : NoteConstraints.StageMaxPosition;
             }
         }
 
         private float GetPositionGridPosition(int index)
         {
-            return EntityArgs.StageMaxPositionWidth * ((float)index / (PositionGridCount - 1)) - EntityArgs.StageMaxPosition;
+            return NoteConstraints.StageMaxPositionWidth * ((float)index / (PositionGridCount - 1)) - NoteConstraints.StageMaxPosition;
         }
 
         private float GetPositionGridPosition_Legacy(int index)
@@ -372,10 +372,10 @@ namespace Deenote.Core.GamePlay
             float result = (index + 0.5f) / PositionGridCount_Legacy * 4 - 2;
             result += PositionGridOffset_Legacy;
 
-            if (result < -EntityArgs.StageMaxPosition)
-                result += EntityArgs.StageMaxPositionWidth;
-            else if (result > EntityArgs.StageMaxPosition)
-                result -= EntityArgs.StageMaxPositionWidth;
+            if (result < NoteConstraints.StageMinPosition)
+                result += NoteConstraints.StageMaxPositionWidth;
+            else if (result > NoteConstraints.StageMaxPosition)
+                result -= NoteConstraints.StageMaxPositionWidth;
             return result;
         }
 

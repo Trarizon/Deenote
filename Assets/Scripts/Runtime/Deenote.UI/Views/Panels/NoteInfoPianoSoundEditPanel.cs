@@ -1,10 +1,12 @@
 #nullable enable
 
 using Deenote.Core.Editing;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes;
+using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
+using Deenote.UI.Helpers;
 using Deenote.UI.Views.Elements;
 using Deenote.UIFramework.Controls;
 using System;
@@ -25,7 +27,7 @@ namespace Deenote.UI.Views.Panels
 
         private PooledObjectListView<NoteInfoPianoSoundEditListItem> _soundItems = default!;
 
-        private readonly List<NoteModel> _editingNotes = new();
+        private readonly List<NoteEditorModel> _editingNotes = new();
 
         private bool _isDirty_bf;
         private bool _isPanelActive_bf;
@@ -71,7 +73,7 @@ namespace Deenote.UI.Views.Panels
                 if (_editingNotes.Count == 0)
                     return;
                 _soundItems.Add(out var item);
-                item.Initialize(new PianoSoundValueModel(0f, 0f, pitch, 0));
+                item.Initialize(new PianoSoundData(0f, 0f, pitch, 0));
                 item.transform.SetAsLastSibling();
                 SetDirty();
             };
@@ -139,8 +141,8 @@ namespace Deenote.UI.Views.Panels
                 return;
 
             var sounds = _soundItems.Count > 512
-                ? new PianoSoundValueModel[_soundItems.Count]
-                : (stackalloc PianoSoundValueModel[_soundItems.Count]);
+                ? new PianoSoundData[_soundItems.Count]
+                : (stackalloc PianoSoundData[_soundItems.Count]);
 
             for (int i = 0; i < sounds.Length; i++) {
                 sounds[i] = _soundItems[i].Sound;
@@ -149,7 +151,7 @@ namespace Deenote.UI.Views.Panels
             SetDirty(false);
         }
 
-        private void ResetEditingNotesAndLoad(ReadOnlySpan<NoteModel> notes)
+        private void ResetEditingNotesAndLoad(ReadOnlySpan<NoteEditorModel> notes)
         {
             if (IsPanelActive) {
                 _editingNotes.Clear();
@@ -167,7 +169,7 @@ namespace Deenote.UI.Views.Panels
                 return;
             }
 
-            if (!NoteModel.HasSameSounds(_editingNotes.AsSpan())) {
+            if (!ModelHelpers.HasSameSounds(_editingNotes.AsSpan())) {
                 _soundItems.Clear();
                 return;
             }

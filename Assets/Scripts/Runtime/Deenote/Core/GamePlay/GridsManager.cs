@@ -4,7 +4,7 @@ using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.Core.Project;
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using Deenote.Library.Components;
 using System;
 

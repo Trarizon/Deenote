@@ -1,8 +1,8 @@
 #nullable enable
 
 using CommunityToolkit.HighPerformance;
-using Deenote.Entities.Comparisons;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.Editing.EditorModels;
 using Deenote.Library.Collections;
 using UnityEngine;
 
@@ -26,13 +26,13 @@ namespace Deenote.Core.GamePlay
             if (forward) {
                 while (_nextHitSoundNoteIndex < chart.NoteNodes.Count && chart.NoteNodes[_nextHitSoundNoteIndex].Time <= musicPlayer.Time)
                     _nextHitSoundNoteIndex++;
-                while (_nextHitBackgroundNoteIndex < chart.BackgroundSoundNotes.Count && chart.BackgroundSoundNotes[_nextHitBackgroundNoteIndex].Time <= musicPlayer.Time)
+                while (_nextHitBackgroundNoteIndex < chart.BackgroundNotes.Count && chart.BackgroundNotes[_nextHitBackgroundNoteIndex].Time <= musicPlayer.Time)
                     _nextHitBackgroundNoteIndex++;
             }
             else {
                 while (_nextHitSoundNoteIndex > 0 && chart.NoteNodes[_nextHitSoundNoteIndex - 1].Time > musicPlayer.Time)
                     _nextHitSoundNoteIndex--;
-                while (_nextHitBackgroundNoteIndex > 0 && chart.BackgroundSoundNotes[_nextHitBackgroundNoteIndex - 1].Time > musicPlayer.Time)
+                while (_nextHitBackgroundNoteIndex > 0 && chart.BackgroundNotes[_nextHitBackgroundNoteIndex - 1].Time > musicPlayer.Time)
                     _nextHitBackgroundNoteIndex--;
             }
 
@@ -47,13 +47,13 @@ namespace Deenote.Core.GamePlay
                 return;
 
             for (int i = prevHitNoteIndex; i < _nextHitSoundNoteIndex; i++) {
-                if (chart.NoteNodes[i] is NoteModel note) {
+                if (chart.NoteNodes[i] is NoteEditorModel note) {
                     _game.HitSoundPlayer.PlaySound(note.Kind);
                     _game.PianoSoundPlayer.PlaySounds(note.Sounds.AsSpan());
                 }
             }
             for (int i = prevHitBackgroundNoteIndex; i < _nextHitBackgroundNoteIndex; i++) {
-                _game.PianoSoundPlayer.PlaySounds(chart.BackgroundSoundNotes[i].Sounds);
+                _game.PianoSoundPlayer.PlaySounds(chart.BackgroundNotes[i].Sounds.AsSpan());
             }
         }
 
@@ -63,8 +63,8 @@ namespace Deenote.Core.GamePlay
             var chart = _game.CurrentChart;
             var musicPlayer = _game.MusicPlayer;
 
-            _nextHitSoundNoteIndex = chart.NoteNodes.AsSpan().FindUpperBoundIndex(new NodeTimeComparable(musicPlayer.Time));
-            _nextHitBackgroundNoteIndex = chart.BackgroundSoundNotes.AsSpan().FindUpperBoundIndex(new NodeTimeComparable(musicPlayer.Time));
+            _nextHitSoundNoteIndex = chart.NoteNodes.AsSpan().FindUpperBoundIndex(new NoteTimeComparable(musicPlayer.Time));
+            _nextHitBackgroundNoteIndex = chart.BackgroundNotes.AsSpan().FindUpperBoundIndex(new NoteTimeComparable(musicPlayer.Time));
         }
     }
 }

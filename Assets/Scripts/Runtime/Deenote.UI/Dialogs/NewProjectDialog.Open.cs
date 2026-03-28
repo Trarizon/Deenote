@@ -1,13 +1,13 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Charts;
+using Deenote.CoreB.Models.Projects;
 using Deenote.Library;
 using System;
 using System.IO;
-using System.Threading;
 using UnityEngine;
-using Deenote.Entities;
-using Deenote.Entities.Models;
 
 namespace Deenote.UI.Dialogs
 {
@@ -71,17 +71,19 @@ namespace Deenote.UI.Dialogs
                     byte[] audioBytes = new byte[audioFs.Length];
                     audioFs.Seek(0, SeekOrigin.Begin);
                     audioFs.Read(audioBytes);
-                    var proj = new ProjectModel(_projectResultPath, audioBytes, Path.GetRelativePath(_projectResultPath, audioFilePath)) {
-                        AudioLength = clip.length,
-                        MusicName = _projectName.Text
+
+                    var proj = new ProjectModel {
+                        MusicName = _projectName.Text,
+                        AudioFileData = audioBytes,
+                        AudioFileRelativePath = Path.GetRelativePath(_projectResultPath, audioFilePath)
                     };
-                    proj.Charts.Add(new ChartModel(new()) {
+                    proj.Charts.Add(new ChartModel {
                         Difficulty = Difficulty.Hard,
                         Level = "10",
                     });
 
                     MainWindow.StatusBar.SetLocalizedStatusMessage(NewProjectCreatedStatusKey);
-                    return new Result(proj, clip);
+                    return new Result(proj, _projectResultPath);
                 }
             } catch (OperationCanceledException) {
                 MainWindow.StatusBar.SetLocalizedStatusMessage(NewProjectCreateCancelledStatusKey);
@@ -94,6 +96,6 @@ namespace Deenote.UI.Dialogs
 
         public readonly record struct Result(
             ProjectModel Project,
-            AudioClip AudioClip);
+            string ProjectPath);
     }
 }

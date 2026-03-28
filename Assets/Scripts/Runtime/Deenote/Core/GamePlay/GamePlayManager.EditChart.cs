@@ -1,6 +1,7 @@
 #nullable enable
 
-using Deenote.Entities;
+
+using Deenote.CoreB.Models;
 
 namespace Deenote.Core.GamePlay
 {

@@ -5,7 +5,7 @@ using Deenote.CoreB.Models;
 
 namespace Deenote.Editing.Contexts
 {
-    internal sealed partial class EnvironmentContext : ObservableObject
+    public sealed partial class EnvironmentContext : ObservableObject
     {
         [ObservableProperty] GameVersion _gameVersion;
     }

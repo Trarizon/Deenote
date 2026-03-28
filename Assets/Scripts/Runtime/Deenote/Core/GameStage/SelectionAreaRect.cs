@@ -1,7 +1,7 @@
 #nullable enable
 
 using Deenote.Core.Editing;
-using Deenote.Entities;
+using Deenote.CoreB.Models;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage
@@ -13,7 +13,7 @@ namespace Deenote.Core.GameStage
 
         public GameStageController GameStage => _gameStage;
 
-        private StageDragSelector _dragSelector=default!;
+        private StageDragSelector _dragSelector = default!;
 
         internal void Initialize(StageDragSelector dragSelector)
         {
@@ -31,7 +31,7 @@ namespace Deenote.Core.GameStage
             _dragSelector.SelectionAreaChanged -= _dragSelector_SelectionAreaChanged;
         }
 
-        public void SetSelectionArea(NoteCoord startCoord,NoteCoord endCoord)
+        public void SetSelectionArea(NoteCoord startCoord, NoteCoord endCoord)
         {
             var currentTime = _gameStage.GamePlay.MusicPlayer.Time;
 

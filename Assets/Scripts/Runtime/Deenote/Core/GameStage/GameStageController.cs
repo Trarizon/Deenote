@@ -3,8 +3,8 @@
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Args;
-using Deenote.Entities;
-using Deenote.Entities.Models;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Notes;
 using Deenote.Library;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -105,7 +105,7 @@ namespace Deenote.Core.GameStage
             NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
             VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
 
-            SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
+            //SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
         }
 
         protected virtual void OnIsStageEffectOnChanged(bool value) { }
@@ -140,7 +140,7 @@ namespace Deenote.Core.GameStage
         internal float EvaluateNoteActiveAheadTime(float noteSpeed)
             => NoteActiveAheadTime / noteSpeed;
 
-        internal float EvaluateNoteActiveTime(IStageNoteNode node)
+        internal float EvaluateNoteActiveTime(INoteSpeed node)
             => node.Time - EvaluateNoteActiveAheadTime(node.Speed);
 
         internal float EvaluateNoteAppearAheadTime(float noteSpeed)

@@ -1,13 +1,12 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
-using Deenote.Core.Project;
+using Deenote.CoreB.Models.Charts;
 using Deenote.Localization;
 using Deenote.Plugin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using UnityEngine;
 
 namespace Deenote.Runtime.Plugins
 {
@@ -59,7 +58,7 @@ namespace Deenote.Runtime.Plugins
 
                     context.UI.StatusBar.SetRawTextStatusMessage(texts["exporting"]);
                     await File.WriteAllTextAsync(res.Path,
-                        context.GameManager.CurrentChart.ToJsonString(Entities.ChartSerializationVersion.DeemoV2));
+                        context.GameManager.CurrentChart.ToData().ToJsonString(ChartVersion.DeemoV2));
                     context.UI.StatusBar.SetRawTextStatusMessage(texts["exported"]);
                 })));
         }

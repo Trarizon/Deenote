@@ -7,9 +7,13 @@ using System.Collections.Generic;
 
 namespace Deenote.Editing.EditorModels
 {
-    internal sealed partial class NoteTailEditorModel : ObservableObject, IGameStageNode
+    internal sealed partial class NoteTailEditorModel : ObservableObject, IGameStageNoteNode
     {
+        public uint Uid { get; set; }
+
         private NoteEditorModel _head;
+
+        public NoteEditorModel Head => _head;
 
         public float Position => _head.Position;
         public float Time => _head.EndTime;
@@ -20,7 +24,9 @@ namespace Deenote.Editing.EditorModels
 
         public NoteTailEditorModel(NoteEditorModel head)
         {
+            Uid = INoteUnique.GetUid();
             head.PropertyChanged += Head_PropertyChanged;
+            _head = head;
         }
 
         private void Head_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

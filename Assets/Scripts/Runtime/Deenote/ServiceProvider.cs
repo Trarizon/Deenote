@@ -14,6 +14,6 @@ namespace Deenote
 {
     internal sealed partial class ServiceProvider
     {
-        public static StageDragSelector StageDragSelector { get; }
+        public static StageDragSelector StageDragSelector { get; } 
     }
 }
