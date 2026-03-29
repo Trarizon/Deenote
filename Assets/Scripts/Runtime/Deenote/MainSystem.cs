@@ -1,13 +1,16 @@
 #nullable enable
 
 using Deenote.Audio;
+using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
 using Deenote.Core.Project;
 using Deenote.Library.Components;
+using Deenote.ProjectManagement;
 using Deenote.Systems;
+using NaughtyAttributes;
 using System.Collections.Immutable;
 using UnityEngine;
 
@@ -15,6 +18,7 @@ namespace Deenote
 {
     public sealed partial class MainSystem : SingletonBehaviour<MainSystem>
     {
+        [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger = default!;
         [Header("System")]
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
         [Header("Manager")]
@@ -24,25 +28,34 @@ namespace Deenote
 
         private UnhandledExceptionHandler _unhandledExceptionHandler = default!;
 
-        public static SaveSystem SaveSystem { get; private set; } = default!;
-        public static GlobalSettings GlobalSettings { get; private set; } = default!;
+        public static AutoSaveTrigger AutoSaveTrigger => Instance._autoSaveTrigger;
+
+        public static SaveSystem SaveSystem { get; private set; } 
+        public static GlobalSettings GlobalSettings { get; private set; }
 
         public static PianoSoundSource PianoSoundSource => Instance._pianoSoundSource;
 
-        public static ProjectManager ProjectManager => Instance._projectManager;
+        public static ProjectManager ProjectManager { get; private set; }
         public static GamePlayManager GamePlayManager => Instance._gamePlayManager;
         public static StageChartEditor StageChartEditor => Instance._stageChartEditor;
+
+        public static RootContext Contexts { get; private set; }
+        public static ProjectManagerB ProjectManagerB { get; private set; }
 
         protected override void Awake()
         {
             base.Awake();
 
+            SaveSystem = new();
+            Contexts = new(SaveSystem);
+            ProjectManagerB = new(Contexts.Project, Contexts.Environment);
+            ProjectManager = new(Contexts.Project, Contexts.Environment);
+
             _unhandledExceptionHandler = new();
 
-            SaveSystem = new();
 
             GlobalSettings = new();
-         
+
             StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
         }
 

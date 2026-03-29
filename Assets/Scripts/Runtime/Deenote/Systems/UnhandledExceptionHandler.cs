@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace Deenote.Core
+namespace Deenote.Systems
 {
     public sealed class UnhandledExceptionHandler
     {
@@ -35,6 +35,9 @@ namespace Deenote.Core
         {
             var ex = (Exception)e.ExceptionObject;
             HandleMessage(CreateLogMessage(ex), ex.StackTrace);
+#if UNITY_EDITOR
+            Debug.LogException(ex);
+#endif
             return;
 
             static string CreateLogMessage(Exception exception)
@@ -53,6 +56,9 @@ namespace Deenote.Core
         private void OnUniTaskUnobservedTaskException(Exception exception)
         {
             HandleMessage(CreateLogMessage(exception), exception.StackTrace);
+#if UNITY_EDITOR
+            Debug.LogException(exception);
+#endif
             static string CreateLogMessage(Exception exception)
             {
                 var sb = new StringBuilder();

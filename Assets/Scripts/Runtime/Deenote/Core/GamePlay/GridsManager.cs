@@ -1,10 +1,11 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
-using Deenote.Core.Project;
 using Deenote.CoreB.Models;
+using Deenote.CoreB.Notification;
 using Deenote.Library.Components;
 using System;
 
@@ -12,16 +13,22 @@ namespace Deenote.Core.GamePlay
 {
     public sealed partial class GridsManager : FlagNotifiable<GridsManager, GridsManager.NotificationFlag>, IDisposable
     {
+        private readonly ProjectContext _projectContext;
         private readonly GamePlayManager _game;
         private readonly StageChartEditor _editor;
 
-        public GridsManager(GamePlayManager manager, StageChartEditor editor)
+        public GridsManager(GamePlayManager manager, StageChartEditor editor, ProjectContext project)
         {
             _game = manager;
             _editor = editor;
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.CurrentProject,
-                _OnCurrentProjectChanged);
+            _projectContext = project;
+
+            _projectContext.RegisterNestedPropertyChangedAndInvokeNullable(s => s.CurrentProject, nameof(_projectContext.CurrentProject), (s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.Tempos))) {
+                    UpdateTimeGrids();
+                }
+            });
             _game.RegisterNotification(
                 GamePlayManager.NotificationFlag.SuddenPlus,
                 _OnSuddenPlusChanged);
@@ -67,7 +74,6 @@ namespace Deenote.Core.GamePlay
 
         #region Registrations
 
-        private void _OnCurrentProjectChanged(ProjectManager manager) => UpdateTimeGrids();
         private void _OnSuddenPlusChanged(GamePlayManager manager) => UpdatePositionGrids();
         private void _OnPlacingNoteSpeedChanged(StageNotePlacer _)
         {

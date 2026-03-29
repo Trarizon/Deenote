@@ -1,10 +1,12 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Foreground;
 using Deenote.Core.Project;
 using Deenote.CoreB.Models;
-using Deenote.Editing.Contexts;
+using Deenote.CoreB.Notification;
+using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -17,7 +19,8 @@ namespace Deenote.Core.GameStage.Themes.Deemo
 {
     public sealed class DeemoForegroundPerspectiveViewUI : ForegroundPerspectiveViewUI
     {
-        private readonly EnvironmentContext _environment = new();
+        private ProjectContext _project;
+        private EnvironmentContext _environment;
 
         [Header("Info Bar")]
         [SerializeField] TMP_Text _musicNameText = default!;
@@ -68,6 +71,9 @@ namespace Deenote.Core.GameStage.Themes.Deemo
 
         protected override void Awake()
         {
+            _project = MainSystem.Contexts.Project;
+            _environment = MainSystem.Contexts.Environment;
+
             _shockWaveEnterPosX = _shockWaveEnterPosTransform.anchorMin.x;
             _shockWaveExitPosX = _shockWaveExitPosTransform.anchorMin.x;
         }
@@ -77,18 +83,21 @@ namespace Deenote.Core.GameStage.Themes.Deemo
             _timeSlider.onValueChanged.AddListener(val => MainSystem.GamePlayManager.MusicPlayer.Time = val);
             _pauseButton.onClick.AddListener(() => MainSystem.GamePlayManager.MusicPlayer.TogglePlayingState());
 
-            MainSystem.GamePlayManager.MusicPlayer.ClipChanged += clip => _timeSlider.maxValue = clip.length;
+            MainSystem.GamePlayManager.MusicPlayer.ClipChanged += clip =>
+            {
+                if (clip is not null)
+                    _timeSlider.maxValue = clip.length;
+            };
             MainSystem.GamePlayManager.MusicPlayer.TimeChanged += args => _timeSlider.SetValueWithoutNotify(args.NewTime);
             _timeSlider.maxValue = MainSystem.GamePlayManager.MusicPlayer.ClipLength;
             _timeSlider.SetValueWithoutNotify(MainSystem.GamePlayManager.MusicPlayer.Time);
 
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectMusicName,
-                manager =>
-                {
-                    manager.AssertProjectLoaded();
-                    _musicNameText.text = manager.CurrentProject.MusicName;
-                });
+            _project.RegisterNestedPropertyChangedAndInvokeNullable(s => s.CurrentProject, nameof(_project.CurrentProject), (s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.MusicName))) {
+                    _musicNameText.text = s?.MusicName ?? "";
+                }
+            });
 
             MainSystem.GamePlayManager.RegisterNotification(
                 GamePlayManager.NotificationFlag.ChartLevel,
@@ -104,14 +113,6 @@ namespace Deenote.Core.GameStage.Themes.Deemo
                 {
                     manager.AssertChartLoaded();
                     Difficulty = manager.CurrentChart.Difficulty;
-                });
-
-            MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                ProjectManager.NotificationFlag.CurrentProject,
-                manager =>
-                {
-                    if (manager.IsProjectLoaded())
-                        _musicNameText.text = manager.CurrentProject.MusicName;
                 });
 
             MainSystem.GamePlayManager.RegisterNotificationAndInvoke(

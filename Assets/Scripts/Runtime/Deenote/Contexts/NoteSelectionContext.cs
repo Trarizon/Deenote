@@ -1,6 +1,5 @@
 #nullable enable
 
-using Deenote.CoreB.Models.Notes.Comparers;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Assertions;
 using Deenote.Editing.EditorModels.Comparing;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Deenote.Editing.Contexts
+namespace Deenote.Contexts
 {
     internal sealed class NoteSelectionContext
     {

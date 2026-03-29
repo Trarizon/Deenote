@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Args;
@@ -89,7 +90,7 @@ namespace Deenote.Core.GameStage
             PerspectiveLinesRenderer.OnInstantiate(this);
         }
 
-        protected internal virtual void Initialize(GamePlayManager gamePlayManager)
+        protected internal virtual void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
         {
             GamePlay = gamePlayManager;
             GamePlay.RegisterNotification(

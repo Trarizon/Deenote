@@ -6,6 +6,7 @@ using Deenote.CoreB.Models.Charts;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Models.Notes.Comparers;
 using Deenote.Editing.EditorModels.Comparing;
+using Deenote.Editing.EditorModels.Helpers;
 using Deenote.Library.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,9 +30,9 @@ namespace Deenote.Editing.EditorModels
         internal List<BackgroundNoteEditorModel> BackgroundNotes { get; private set; }
         internal List<WarningNoteEditorModel> WarningNotes { get; private set; }
 
-        internal Dictionary<ICollidableNote, List<ICollidableNote>> Collisions { get; } = new();
+        //internal Dictionary<ICollidableNote, List<ICollidableNote>> Collisions { get; } = new();
 
-        internal ChartEditorModel(ChartModel model)
+        public ChartEditorModel(ChartModel model)
         {
             _name = model.Name;
             _difficulty = model.Difficulty;
@@ -40,6 +41,8 @@ namespace Deenote.Editing.EditorModels
             _remapMinVolume = model.RemapMinVolume;
             _remapMaxVolume = model.RemapMaxVolume;
             CloneNotes(model);
+
+            NoteCollisionHelpers.InitializeCollision(this);
         }
 
         public ChartEditorModel()

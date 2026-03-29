@@ -66,7 +66,7 @@ namespace Deenote
         private async UniTaskVoid OpenProjectFromCommandLineAsync(string filePath)
         {
             MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadingStatusKey);
-            bool isLoaded = await MainSystem.ProjectManager.OpenLoadProjectFileAsync(filePath);
+            bool isLoaded = await MainSystem.ProjectManagerB.OpenLoadFileAsync(filePath);
             if (isLoaded) {
                 MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadedStatusKey);
                 MainWindow.Views.MenuNavigationPageView.AddOrTouchRecentFiles(filePath);

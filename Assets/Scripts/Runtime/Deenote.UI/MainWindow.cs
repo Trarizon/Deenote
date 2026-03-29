@@ -2,6 +2,7 @@
 
 using Deenote.Core;
 using Deenote.Localization;
+using Deenote.Systems;
 using Deenote.UI.Dialogs;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.UI.Views;
@@ -109,6 +110,20 @@ namespace Deenote.UI
             UnhandledExceptionHandler.UnhandledExceptionOccurred += args =>
             {
                 ToastManager.ShowLocalizedToastAsync(UnhandledExceptionToastKey, 3f);
+            };
+
+            MainSystem.AutoSaveTrigger.Saving += () =>
+            {
+                const string AutoSaveSavingStatusKey = "AutoSaveProject_Status_Saving";
+
+                StatusBar.SetLocalizedStatusMessage(AutoSaveSavingStatusKey);
+            };
+
+            MainSystem.AutoSaveTrigger.Saved += () =>
+            {
+                const string AutoSaveSavedStatusKey = "AutoSaveProject_Status_Saved";
+
+                StatusBar.SetLocalizedStatusMessage(AutoSaveSavedStatusKey, DateTime.Now.ToString("HH:mm"), duration: 10f);
             };
         }
 

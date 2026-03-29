@@ -44,14 +44,14 @@ namespace Deenote.Inputting
                 SetGeneralsEnable(ctrl is null);
             };
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager => SetGamePlayEnabled(manager.IsChartLoaded()));
         }
 
         private void OnEnable()
         {
             SetGeneralsEnable(true);
+            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
+                GamePlayManager.NotificationFlag.CurrentChart,
+                manager => SetGamePlayEnabled(manager.IsChartLoaded()));
         }
 
         private void OnDisable()

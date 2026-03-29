@@ -1,73 +1,69 @@
 #nullable enable
 
+using Deenote.Core;
+using Deenote.CoreB.Models;
+using Deenote.CoreB.Notification;
 using Deenote.Library;
+using Deenote.ProjectManagement;
 using System;
-using UnityEngine.Profiling;
 
-namespace Deenote.Core.Project
+namespace Deenote.Contexts
 {
-    partial class ProjectManager
+    public sealed class EnvironmentContext : INotifyPropertyChanged<EnvironmentContext>
     {
-        private const string AutoSaveJsonDirName = "$Deenote_AutoSave";
         private const int DefaultAutoSaveIntervalTime = 5 * 60;
+
+        private GameVersion _gameVersion_bf;
+        public GameVersion GameVersion
+        {
+            get => _gameVersion_bf;
+            set {
+                if (Utils.SetField(ref _gameVersion_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(GameVersion)));
+                }
+            }
+        }
 
         private int _autoSaveIntervalTime_bf;
         /// <remarks>
         /// Unit second
         /// </remarks>
-        [Obsolete]
-        private int AutoSaveIntervalTime
+        public int AutoSaveIntervalTime
         {
             get => _autoSaveIntervalTime_bf;
             set {
                 if (Utils.SetField(ref _autoSaveIntervalTime_bf, value)) {
-                    NotifyFlag(NotificationFlag.AutoSaveInterval);
+                    PropertyChanged?.Invoke(this, new(nameof(AutoSaveIntervalTime)));
                 }
             }
         }
 
         private ProjectAutoSaveOption _autoSave_bf;
-        [Obsolete]
-        private ProjectAutoSaveOption AutoSave
+        public ProjectAutoSaveOption AutoSave
         {
             get => _autoSave_bf;
             set {
                 if (Utils.SetField(ref _autoSave_bf, value)) {
-                    NotifyFlag(NotificationFlag.AutoSave);
+                    PropertyChanged?.Invoke(this, new(nameof(AutoSave)));
                 }
             }
         }
 
-        [Obsolete]
-        private event Action<ProjectSaveEventArgs>? ProjectSaved;
+        public event Action<EnvironmentContext, PropertyEventArgs>? PropertyChanged;
 
-        private void RegisterAutoSaveConfigurations()
+        public EnvironmentContext(SaveSystem saveSystem)
         {
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
+            saveSystem.SavingConfigurations += configs =>
             {
                 configs.Set("project/autosave", (int)AutoSave);
                 configs.Set("project/autosave_interval", AutoSaveIntervalTime);
             };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            saveSystem.LoadedConfigurations += configs =>
             {
                 AutoSave = (ProjectAutoSaveOption)configs.GetInt32("project/autosave", (int)ProjectAutoSaveOption.Off);
                 var autosaveintervaltime = configs.GetInt32("project/autosave_interval", -1);
                 AutoSaveIntervalTime = autosaveintervaltime <= 0 ? DefaultAutoSaveIntervalTime : autosaveintervaltime;
             };
-        }
-
-        public readonly record struct ProjectSaveEventArgs(ProjectSaveContents Contents)
-        {
-            public bool IsProjectSaved => Contents.HasFlag(ProjectSaveContents.Project);
-            public bool IsChartJsonsSaved => Contents.HasFlag(ProjectSaveContents.ChartJsons);
-        }
-
-        [Flags]
-        public enum ProjectSaveContents
-        {
-            None,
-            Project,
-            ChartJsons,
         }
     }
 }

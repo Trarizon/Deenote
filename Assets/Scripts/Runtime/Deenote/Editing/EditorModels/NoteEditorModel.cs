@@ -58,7 +58,7 @@ namespace Deenote.Editing.EditorModels
 
         int ICollidableNote.CollisionCount { get => CollisionCount; set => CollisionCount = value; }
 
-        public bool IsComboNode => Duration > 0;
+        public bool IsComboNode => Duration <= 0;
 
         public NoteEditorModel(NoteData model)
         {

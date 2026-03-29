@@ -1,10 +1,12 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.Core.GameStage.Foreground;
 using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Helpers;
 using Deenote.Library;
@@ -17,6 +19,8 @@ namespace Deenote.Core.GamePlay
 {
     public sealed partial class GamePlayManager : FlagNotifiableMonoBehaviour<GamePlayManager, GamePlayManager.NotificationFlag>
     {
+        private ProjectContext _projectContext;
+
         private NotesManager _notesManager = default!;
         private GridsManager _gridsManager = default!;
         [SerializeField] GameMusicPlayer _musicPlayer = default!;
@@ -35,7 +39,7 @@ namespace Deenote.Core.GamePlay
         public event Action<StageLoadedEventArgs>? StageLoaded;
 
 
-        public ChartEditorModel? CurrentChart { get; private set; }
+        public ChartEditorModel? CurrentChart => _projectContext?.CurrentChart;
 
         /// <remarks>
         /// If music is paused, maually set music time by this value,
@@ -67,7 +71,9 @@ namespace Deenote.Core.GamePlay
 
         private void Awake()
         {
-            _gridsManager = new GridsManager(this, MainSystem.StageChartEditor);
+            _projectContext = MainSystem.Contexts.Project;
+
+            _gridsManager = new GridsManager(this, MainSystem.StageChartEditor, _projectContext);
             _pianoSoundPlayer = new StagePianoSoundPlayer(MainSystem.PianoSoundSource);
             _notesManager = new NotesManager(this);
 
@@ -79,20 +85,20 @@ namespace Deenote.Core.GamePlay
                 Debug.Log("GameStage loaded");
                 try {
 
-                Stage = loader.StageController;
-                Stage.Initialize(this);
-                NotesManager.Initialize(
-                    UnityUtils.CreateObjectPool(
-                        Stage.Args.GamePlayNotePrefab,
-                        Stage.NotePlane.ContentTransform,
-                        item => item.OnInstantiate(Stage.NotePlane)));
-                OnStageLoaded_Properties(loader);
+                    Stage = loader.StageController;
+                    Stage.Initialize(this, _projectContext);
+                    NotesManager.Initialize(
+                        UnityUtils.CreateObjectPool(
+                            Stage.Args.GamePlayNotePrefab,
+                            Stage.NotePlane.ContentTransform,
+                            item => item.OnInstantiate(Stage.NotePlane)));
+                    OnStageLoaded_Properties(loader);
 
-                if (IsChartLoaded()) {
-                    UpdateNotes(true, true);
-                }
+                    if (IsChartLoaded()) {
+                        UpdateNotes(true, true);
+                    }
 
-                StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
+                    StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
                 } catch (Exception ex) {
                     Debug.LogError(ex.Message + ex.StackTrace);
                     throw;
@@ -114,47 +120,70 @@ namespace Deenote.Core.GamePlay
                 // if (args.IsManuallyChanged) RefreshNotesTimeState();
             };
 
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.CurrentProject,
-                manager =>
-                {
-                    var proj = manager.CurrentProject;
-                    if (proj is null) {
-                        UnloadChart();
-                        return;
-                    }
-
-                    if (proj.Charts.Count == 0) {
-                        UnloadChart();
+            _projectContext.RegisterNestedPropertyChangedAndInvokeNullable(s => s.CurrentProject, nameof(ProjectContext.CurrentProject), (s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.AudioClip))) {
+                    if (s?.AudioClip is null) {
+                        _musicPlayer.ReplaceClip(NoClipProvider.Instance);
                     }
                     else {
-                        LoadChartInCurrentProject(proj.Charts[0]);
+                        // TODO: try out streaming clip provider
+                        _musicPlayer.ReplaceClip(new DecodedClipProvider(s.AudioClip!));
                     }
-
-                    // TODO: try out streaming clip provider
-                    _musicPlayer.ReplaceClip(new DecodedClipProvider(manager.AudioClip!));
-                });
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectAudio,
-                manager =>
-                {
-                    manager.AssertProjectLoaded();
-                    _musicPlayer.ReplaceClip(new DecodedClipProvider(manager.AudioClip!));
-                });
-
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectCharts,
-                manager =>
-                {
-                    if (CurrentChart is null)
+                }
+            });
+            _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CurrentChart))) {
+                    var chart = s.CurrentChart;
+                    if (chart is null) {
+                        UnloadChart();
                         return;
-                    if (manager.CurrentProject is null)
-                        return;
-                    // Simple check, if current chart is removed from project, unload this and load the first chart
-                    if (!manager.CurrentProject.Charts.Contains(CurrentChart)) {
-                        LoadChartInCurrentProject(manager.CurrentProject.Charts[0]);
                     }
-                });
+                    LoadChartInCurrentProject(chart);
+                }
+            });
+
+            //MainSystem.ProjectManager.RegisterNotification(
+            //    ProjectManager.NotificationFlag.CurrentProject,
+            //    manager =>
+            //    {
+            //        var proj = manager.CurrentProject;
+            //        if (proj is null) {
+            //            UnloadChart();
+            //            return;
+            //        }
+
+            //        if (proj.Charts.Count == 0) {
+            //            UnloadChart();
+            //        }
+            //        else {
+            //            LoadChartInCurrentProject(proj.Charts[0]);
+            //        }
+
+            //        _musicPlayer.ReplaceClip(new DecodedClipProvider(manager.AudioClip!));
+            //    });
+            //MainSystem.ProjectManager.RegisterNotification(
+            //    ProjectManager.NotificationFlag.ProjectAudio,
+            //    manager =>
+            //    {
+            //        manager.AssertProjectLoaded();
+            //        _musicPlayer.ReplaceClip(new DecodedClipProvider(manager.AudioClip!));
+            //    });
+
+            //MainSystem.ProjectManager.RegisterNotification(
+            //    ProjectManager.NotificationFlag.ProjectCharts,
+            //    manager =>
+            //    {
+            //        if (CurrentChart is null)
+            //            return;
+            //        if (manager.CurrentProject is null)
+            //            return;
+            //        // Simple check, if current chart is removed from project, unload this and load the first chart
+            //        if (!manager.CurrentProject.Charts.Contains(CurrentChart)) {
+            //            LoadChartInCurrentProject(manager.CurrentProject.Charts[0]);
+            //        }
+            //    });
         }
 
         private void OnDestroy()
@@ -202,13 +231,9 @@ namespace Deenote.Core.GamePlay
 
         public void LoadChartInCurrentProject(ChartEditorModel chart)
         {
-            Debug.Assert(MainSystem.ProjectManager.CurrentProject?.Charts.Contains(chart) is true);
-
             MusicPlayer.Stop();
             MusicPlayer.Time = 0f;
-            CurrentChart = chart;
 
-            NoteCollisionHelpers.InitializeCollision(CurrentChart);
             if (IsStageLoaded()) {
                 UpdateNotes(true, true);
             }
@@ -218,9 +243,6 @@ namespace Deenote.Core.GamePlay
 
         public void UnloadChart()
         {
-            if (CurrentChart is null)
-                return;
-            CurrentChart = null;
             MusicPlayer.Stop();
             NotifyFlag(NotificationFlag.CurrentChart);
         }

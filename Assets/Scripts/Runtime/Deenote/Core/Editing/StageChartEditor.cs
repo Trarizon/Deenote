@@ -2,15 +2,18 @@
 
 using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.Api.Operations;
+using Deenote.Contexts;
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Assertions;
 using Deenote.Editing.Operations;
 using Deenote.Library.Components;
+using Deenote.ProjectManagement;
 using System;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
@@ -20,6 +23,7 @@ namespace Deenote.Core.Editing
 {
     public sealed partial class StageChartEditor : FlagNotifiableMonoBehaviour<StageChartEditor, StageChartEditor.NotificationFlag>
     {
+        private ProjectContext _projectContext = default!;
 
         internal ProjectManager _project = default!;
         internal GamePlayManager _game = default!;
@@ -32,6 +36,7 @@ namespace Deenote.Core.Editing
 
         private void Awake()
         {
+            _projectContext = MainSystem.Contexts.Project;
             _operations = new();
 
             Awake_ClipBoard();
@@ -48,10 +53,17 @@ namespace Deenote.Core.Editing
                 Placer.SnapToPositionGrid = configs.GetBoolean("editor/snap_pos", true);
                 Placer.SnapToTimeGrid = configs.GetBoolean("editor/snap_time", true);
             };
-            MainSystem.ProjectManager.ProjectSaved += args =>
+            MainSystem.ProjectManagerB.ProjectSaved += () =>
             {
                 OperationMemento.SaveAtCurrent();
             };
+
+            _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CurrentProject))) {
+                    _operations.Reset();
+                }
+            });
         }
 
         internal void OnInstantiate(ProjectManager project, GamePlayManager game)
@@ -62,12 +74,12 @@ namespace Deenote.Core.Editing
             Placer = new StageNotePlacer(this);
             Selector = new StageNoteSelector(game);
 
-            _project.RegisterNotification(
-                ProjectManager.NotificationFlag.CurrentProject,
-                manager =>
-                {
-                    _operations.Reset();
-                });
+            //_project.RegisterNotification(
+            //    ProjectManager.NotificationFlag.CurrentProject,
+            //    manager =>
+            //    {
+            //        _operations.Reset();
+            //    });
 
             /*
             _game.RegisterNotification(

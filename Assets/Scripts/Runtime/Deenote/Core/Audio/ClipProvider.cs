@@ -6,7 +6,14 @@ namespace Deenote.Core.Audio
 {
     public interface IClipProvider
     {
-        AudioClip Clip { get; }
+        AudioClip? Clip { get; }
+    }
+
+    public sealed class NoClipProvider : IClipProvider
+    {
+        public static NoClipProvider Instance { get; } = new NoClipProvider();
+        private NoClipProvider() { }
+        public AudioClip? Clip => null;
     }
 
     public sealed class DecodedClipProvider : IClipProvider

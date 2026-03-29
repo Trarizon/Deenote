@@ -1,10 +1,10 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
+using Deenote.Contexts;
 using Deenote.CoreB.IO;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Projects;
-using Deenote.Editing.Contexts;
 using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Components;
@@ -17,59 +17,55 @@ using UnityEngine;
 
 namespace Deenote.Core.Project
 {
-    public sealed partial class ProjectManager : FlagNotifiableMonoBehaviour<ProjectManager, ProjectManager.NotificationFlag>
+    [Obsolete]
+    public sealed partial class ProjectManager : FlagNotifiable<ProjectManager, ProjectManager.NotificationFlag>
     {
-        private readonly EnvironmentContext _environment = new();
+        private readonly ProjectContext _context;
+        private readonly EnvironmentContext _environment;
 
-        private ProjectEditorModel? _currentProject_bf;
-        public ProjectEditorModel? CurrentProject
-        {
-            get => _currentProject_bf;
-        }
+        // ProjectManager还剩这一个属性的引用没迁移
+        public ProjectEditorModel? CurrentProject => _context.CurrentProject;
 
         //private AudioClip? _audioClip;
-        public AudioClip? AudioClip => CurrentProject?.AudioClip;
+        [Obsolete]
+        private AudioClip? AudioClip => CurrentProject?.AudioClip;
 
         private bool _isLoading_bf;
         private bool _isSaving_bf;
         private ResettableCancellationTokenSource _saveCts = new();
         private ResettableCancellationTokenSource _saveChartsCts = new();
 
-        public bool IsLoading
+        [Obsolete]
+        private bool IsLoading
         {
             get => _isLoading_bf;
-            private set {
+            /*private*/ set {
                 if (Utils.SetField(ref _isLoading_bf, value)) {
                     NotifyFlag(NotificationFlag.IsLoading);
                 }
             }
         }
 
-        public bool IsSaving
+        [Obsolete]
+        private bool IsSaving
         {
             get => _isSaving_bf;
-            private set {
+            /*private*/ set {
                 if (Utils.SetField(ref _isSaving_bf, value)) {
                     NotifyFlag(NotificationFlag.IsSaving);
                 }
             }
         }
 
-        private void Awake()
+        public ProjectManager(ProjectContext projectContext,EnvironmentContext environment)
         {
-            RegisterAutoSaveConfigurations();
+            _context = projectContext;
+            _environment = environment;
+            //RegisterAutoSaveConfigurations();
         }
 
-#if  UNITY_EDITOR
-        private async void Start()
-        {
-            var proj = await Fake.GetProject();
-            Debug.Log($"Loaded project: fake");
-            SetCurrentProject(proj);
-        }
-#endif
-
-        public async UniTask<bool> TrySetCurrentProjectAndLoadAudioAsync(ProjectModel project, string filePath)
+        [Obsolete]
+        private async UniTask<bool> TrySetCurrentProjectAndLoadAudioAsync(ProjectModel project, string filePath)
         {
             var proj = new ProjectEditorModel(project, filePath);
             var loaded = await proj.LoadAudioClipAsync();
@@ -80,14 +76,15 @@ namespace Deenote.Core.Project
             return false;
         }
 
+        [Obsolete]
         private void SetCurrentProject(ProjectEditorModel project)
         {
-            if (Utils.SetField(ref _currentProject_bf, project)) {
-                NotifyFlag(NotificationFlag.CurrentProject);
-            }
+            _context.CurrentProject = project;
+            NotifyFlag(NotificationFlag.CurrentProject);
         }
 
-        public async UniTask<bool> OpenLoadProjectFileAsync(string filePath)
+        [Obsolete]
+        private async UniTask<bool> OpenLoadProjectFileAsync(string filePath)
         {
             using var loadingScope = new LoadingScope(this);
 
@@ -104,12 +101,14 @@ namespace Deenote.Core.Project
             return true;
         }
 
-        public void UnloadCurrentProject()
+        [Obsolete]
+        private void UnloadCurrentProject()
         {
             SetCurrentProject(null!);
         }
 
-        public async UniTask SaveCurrentProjectAsync()
+        [Obsolete]
+        private async UniTask SaveCurrentProjectAsync()
         {
             ValidateProject();
 
@@ -118,7 +117,8 @@ namespace Deenote.Core.Project
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
         }
 
-        public async UniTask SaveCurrentProjectToAsync(string targetFilePath)
+        [Obsolete]
+        private async UniTask SaveCurrentProjectToAsync(string targetFilePath)
         {
             ValidateProject();
 
@@ -135,7 +135,8 @@ namespace Deenote.Core.Project
             await ProjectIO.SaveAsync(CurrentProject.ToModel(), targetFilePath, cancellationToken);
         }
 
-        public async UniTask SaveCurrentProjectChartJsonsAsync()
+        [Obsolete]
+        private async UniTask SaveCurrentProjectChartJsonsAsync()
         {
             ValidateProject();
             await SaveCurrentProjectChartJsonsToAsyncInternal(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
@@ -199,6 +200,7 @@ namespace Deenote.Core.Project
 
         #endregion
 
+        [Obsolete]
         public enum NotificationFlag
         {
             IsLoading,

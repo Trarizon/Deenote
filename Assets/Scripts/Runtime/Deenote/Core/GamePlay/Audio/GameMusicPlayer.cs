@@ -57,7 +57,7 @@ namespace Deenote.Core.GamePlay.Audio
         /// Called when the audio clip is changed.
         /// The argument is the length of the new clip in seconds.
         /// </summary>
-        public event Action<AudioClip>? ClipChanged;
+        public event Action<AudioClip?>? ClipChanged;
 
         private void SetTime(float value, bool isByJump)
         {

@@ -1,24 +1,28 @@
 #nullable enable
 
 using CommunityToolkit.Diagnostics;
+using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.GamePlay;
-using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.Library.Components;
+using Deenote.Library.Mathematics;
 using Deenote.Localization;
+using Deenote.ProjectManagement;
 using Deenote.UIFramework;
 using Deenote.UIFramework.Controls;
+using Deenote.UIFramework.Theme;
 using System;
 using System.Collections.Immutable;
 using UnityEngine;
-using Deenote.Library.Mathematics;
-using Deenote.UIFramework.Theme;
 
 namespace Deenote.UI.Dialogs
 {
     [RequireComponent(typeof(Dialog))]
     public sealed class PreferencesDialog : ModalDialog
     {
+        private EnvironmentContext _environment;
+
         [SerializeField] Dialog _dialog = default!;
 
         [Header("Properties")]
@@ -48,6 +52,13 @@ namespace Deenote.UI.Dialogs
         private const string UIThemeLocalizationKeyPrefix = "UITheme_";
 
         #endregion
+
+
+        protected override void Awake()
+        {
+            base.Awake();
+            _environment = MainSystem.Contexts.Environment;
+        }
 
         private void Start()
         {
@@ -149,15 +160,18 @@ namespace Deenote.UI.Dialogs
             _languageDropdown.SetValueWithoutNotify(_languageDropdown.FindIndex(text => text == LocalizationSystem.CurrentLanguage.LanguageDisplayName));
 
             _autoSaveDropdown.ResetOptions(_autoSaveDropdownOptions.AsSpan());
-            _autoSaveDropdown.SelectedIndexChanged += val => MainSystem.ProjectManager.AutoSave = GetAutoSaveDropdownOption(val);
-            MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                ProjectManager.NotificationFlag.AutoSave,
-                manager => _autoSaveDropdown.SetValueWithoutNotify(GetAutoSaveDropdownIndex(manager.AutoSave)));
+            _autoSaveDropdown.SelectedIndexChanged += val => _environment.AutoSave = GetAutoSaveDropdownOption(val);
             _autoSaveIntervalDropdown.ResetOptions(_autoSaveIntervals.AsSpan(), time => ArgedLocalizableText.Localized(AutoSaveIntervalMinutesKey, (time / 60).ToString()));
-            _autoSaveIntervalDropdown.SelectedIndexChanged += val => MainSystem.ProjectManager.AutoSaveIntervalTime = GetAutoSaveIntervalDropdownOption(val);
-            MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                ProjectManager.NotificationFlag.AutoSaveInterval,
-                manager => _autoSaveIntervalDropdown.SetValueWithoutNotify(GetAutoSaveIntervalDropdownIndex(manager.AutoSaveIntervalTime)));
+            _autoSaveIntervalDropdown.SelectedIndexChanged += val => _environment.AutoSaveIntervalTime = GetAutoSaveIntervalDropdownOption(val);
+            _environment.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.AutoSaveIntervalTime))) {
+                    _autoSaveIntervalDropdown.SetValueWithoutNotify(GetAutoSaveIntervalDropdownIndex(s.AutoSaveIntervalTime));
+                }
+                if (e.MatchProperty(nameof(s.AutoSave))) {
+                    _autoSaveDropdown.SetValueWithoutNotify(GetAutoSaveDropdownIndex(s.AutoSave));
+                }
+            });
 
             _checkUpdateToggle.IsCheckedChanged += val => MainSystem.GlobalSettings.CheckUpdateOnStartup = val;
             MainSystem.GlobalSettings.RegisterNotificationAndInvoke(
@@ -237,7 +251,7 @@ namespace Deenote.UI.Dialogs
 
         // options: 1, 5, 10, 20, 30
         private static readonly ImmutableArray<int> _autoSaveIntervals = ImmutableArray.Create(
-            60, 5 * 60, 10 * 60,30 * 60);
+            60, 5 * 60, 10 * 60, 30 * 60);
 
         private static int GetAutoSaveIntervalDropdownOption(int optionIndex)
             => _autoSaveIntervals[optionIndex];

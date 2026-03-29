@@ -1,7 +1,9 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.Library.Components;
 using TMPro;
 using UnityEngine;
@@ -20,17 +22,20 @@ namespace Deenote.Core.GameStage.Themes.Deemo
         [SerializeField] TMP_Text _staveMusicNameText = default!;
         [SerializeField] Material _holdBodyCullMaterial = default!;
 
-        protected internal override void Initialize(GamePlayManager gamePlayManager)
+        protected internal override void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
         {
-            base.Initialize(gamePlayManager);
+            base.Initialize(gamePlayManager, projectContext);
 
             gamePlayManager.RegisterNotification(
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 _OnActiveNotesUpdated);
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectMusicName,
-                ProjectManager.NotificationFlag.CurrentProject,
-                _OnProjectNameChanged);
+            projectContext.RegisterNestedPropertyChangedAndInvoke(x => x.CurrentProject, nameof(ProjectContext.CurrentProject),
+                (s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.MusicName))) {
+                        _staveMusicNameText.text = s.MusicName;
+                    }
+                });
         }
 
         private void OnDestroy()
@@ -38,10 +43,6 @@ namespace Deenote.Core.GameStage.Themes.Deemo
             GamePlay.UnregisterNotification(
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 _OnActiveNotesUpdated);
-            MainSystem.ProjectManager.UnregisterNotification(
-                ProjectManager.NotificationFlag.ProjectMusicName,
-                ProjectManager.NotificationFlag.CurrentProject,
-                _OnProjectNameChanged);
         }
 
         private void _OnActiveNotesUpdated(GamePlayManager manager)

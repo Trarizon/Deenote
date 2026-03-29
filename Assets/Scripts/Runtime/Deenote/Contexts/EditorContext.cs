@@ -1,8 +1,9 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.Editing;
 
-namespace Deenote.Editing.Contexts
+namespace Deenote.Contexts
 {
     internal sealed class EditorContext
     {

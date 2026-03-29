@@ -4,6 +4,8 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Deenote.Library.IO
 {
@@ -21,6 +23,11 @@ namespace Deenote.Library.IO
             var result = new byte[len];
             br.Read(result);
             return result;
+        }
+
+        public static Task<byte[]> ReadArrayWithLengthPrefixAsync(this BinaryReader br, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => ReadArrayWithLengthPrefix(br), cancellationToken);
         }
 
         public static unsafe void Write<T>(this BinaryWriter bw, in T value) where T : unmanaged

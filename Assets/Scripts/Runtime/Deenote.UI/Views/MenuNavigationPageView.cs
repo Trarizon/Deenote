@@ -7,6 +7,7 @@ using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Localization;
+using Deenote.ProjectManagement;
 using Deenote.UI.Dialogs;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.UI.Views.Elements;
@@ -15,11 +16,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using Deenote.CoreB.Notification;
+using Deenote.Contexts;
 
 namespace Deenote.UI.Views
 {
     public sealed class MenuNavigationPageView : MonoBehaviour
     {
+        private ProjectContext _projectContext;
+        internal ProjectManagerB _projectManager;
+
         private const int MaxRecentFilesCount = 5;
 
         [SerializeField] Button _newButton = default!;
@@ -113,6 +119,9 @@ namespace Deenote.UI.Views
 
         private void Awake()
         {
+            _projectContext = MainSystem.Contexts.Project;
+            _projectManager = MainSystem.ProjectManagerB;
+
             _recentFiles = new(UnityUtils.CreateObjectPool(
                 _recentFilePrefab, _recentFilesCollapsable.Content,
                 item => item.OnInstantiate(this), defaultCapacity: 0, maxSize: MaxRecentFilesCount));
@@ -174,22 +183,22 @@ namespace Deenote.UI.Views
                     }
                 });
 
-                MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                    ProjectManager.NotificationFlag.CurrentProject,
-                    manager =>
-                    {
-                        bool active = manager.IsProjectLoaded();
+                _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.CurrentProject))) {
+                        bool active = s.CurrentProject is not null;
                         _saveButton.IsInteractable = active;
                         _saveAsButton.IsInteractable = active;
-                    });
-                MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                    ProjectManager.NotificationFlag.IsLoading,
-                    manager =>
-                    {
-                        bool active = !manager.IsLoading;
-                        _newButton.IsInteractable = active;
-                        _openButton.IsInteractable = active;
-                    });
+                    }
+                });
+                _projectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.LoadingStatus))) {
+                        bool isLoading = s.LoadingStatus is ProjectLoadingStatus.Loading;
+                        _newButton.IsInteractable = !isLoading;
+                        _openButton.IsInteractable = !isLoading;
+                    }
+                });
             }
         }
 
@@ -207,7 +216,7 @@ namespace Deenote.UI.Views
             }
             var nresult = await MainWindow.DialogManager.NewProjectDialog.OpenCreateNewAsync();
             if (nresult is { } result) {
-                await MainSystem.ProjectManager.TrySetCurrentProjectAndLoadAudioAsync(result.Project, result.ProjectPath);
+                await _projectManager.TrySetCurrentProjectAndLoadAudioAsync(result.Project, result.ProjectPath);
             }
         }
 
@@ -229,8 +238,8 @@ namespace Deenote.UI.Views
                 return;
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadingStatusKey);
-            MainSystem.ProjectManager.UnloadCurrentProject();
-            bool isLoaded = await MainSystem.ProjectManager.OpenLoadProjectFileAsync(feRes.Path);
+            _projectManager.UnloadCurrentProject();
+            bool isLoaded = await _projectManager.OpenLoadFileAsync(feRes.Path);
             if (isLoaded) {
                 AddOrTouchRecentFiles(feRes.Path);
                 MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadedStatusKey);
@@ -251,7 +260,7 @@ namespace Deenote.UI.Views
             var proj = MainSystem.ProjectManager.CurrentProject;
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
-            await MainSystem.ProjectManager.SaveCurrentProjectAsync();
+            await _projectManager.SaveCurrentProjectAsync();
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavedStatusKey, duration: SaveStatusMessageDuration);
             AddOrTouchRecentFiles(proj.ProjectFilePath);
         }
@@ -277,7 +286,7 @@ namespace Deenote.UI.Views
             }
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
-            await MainSystem.ProjectManager.SaveCurrentProjectToAsync(feRes.Path);
+            await _projectManager.SaveCurrentProjectToAsync(feRes.Path);
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavedStatusKey, duration: SaveStatusMessageDuration);
             AddOrTouchRecentFiles(MainSystem.ProjectManager.CurrentProject.ProjectFilePath);
         }

@@ -21,18 +21,18 @@ namespace Deenote.CoreB.IO
 
         public const byte FileVersionMark = 1;
 
-        public Task<ProjectModel?> DeserializeAsync(FileStream stream, CancellationToken cancellationToken = default)
+        public async Task<ProjectModel?> DeserializeAsync(FileStream stream, CancellationToken cancellationToken = default)
         {
             using var reader = new BinaryReader(stream);
             var header = reader.ReadUInt16();
             if (header != ProjectIO.DeenoteProjectFileHeader)
-                return Task.FromResult<ProjectModel?>(null);
+                return null;
 
             var version = reader.ReadByte();
             if (version != FileVersionMark)
-                return Task.FromResult<ProjectModel?>(null);
+                return null;
 
-            var project = Task.Run(() => ReadProject(reader, cancellationToken));
+            var project = await ReadProjectAsync(reader, cancellationToken).ConfigureAwait(false);
             return project!;
         }
 
@@ -82,7 +82,7 @@ namespace Deenote.CoreB.IO
             }
         }
 
-        private static ProjectModel ReadProject(BinaryReader reader, CancellationToken cancellationToken = default)
+        private static async Task<ProjectModel> ReadProjectAsync(BinaryReader reader, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -90,9 +90,7 @@ namespace Deenote.CoreB.IO
             var composer = reader.ReadString();
             var chartDesigner = reader.ReadString();
             var audioFileRelativePath = reader.ReadString();
-            var audioFileData = reader.ReadArrayWithLengthPrefix();
-
-            cancellationToken.ThrowIfCancellationRequested();
+            var audioFileData = await reader.ReadArrayWithLengthPrefixAsync(cancellationToken).ConfigureAwait(false);
 
             var proj = new ProjectModel {
                 AudioFileData = audioFileData,
@@ -213,6 +211,9 @@ namespace Deenote.CoreB.IO
 
             for (int i = 0; i < noteCount; i++) {
                 var prevLink = links[i];
+                if (prevLink == -1)
+                    continue;
+
                 var note = chart.Notes[i];
                 NoteData prevNote;
                 if (prevLink < chart.Notes.Count)

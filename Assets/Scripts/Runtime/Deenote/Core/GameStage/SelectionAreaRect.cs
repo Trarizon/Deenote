@@ -18,7 +18,7 @@ namespace Deenote.Core.GameStage
         internal void Initialize(StageDragSelector dragSelector)
         {
             _dragSelector = dragSelector;
-            _dragSelector.SelectionAreaChanged += _dragSelector_SelectionAreaChanged; ;
+            _dragSelector.SelectionAreaChanged += _dragSelector_SelectionAreaChanged;
         }
 
         private void _dragSelector_SelectionAreaChanged(StageDragSelector s, StageDragSelector.SelectionAreaChangedEventArgs e)

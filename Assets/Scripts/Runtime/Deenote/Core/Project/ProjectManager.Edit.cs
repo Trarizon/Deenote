@@ -3,28 +3,23 @@
 using Cysharp.Threading.Tasks;
 using Deenote.CoreB.Models.Charts;
 using Deenote.Editing.EditorModels;
+using System;
 using System.Threading;
 
 namespace Deenote.Core.Project
 {
     partial class ProjectManager
     {
-        public async UniTask<bool> TryEditProjectAudioAsync(string audioFilePath, CancellationToken cancellationToken = default)
+        [Obsolete]
+        private UniTask<bool> TryEditProjectAudioAsync(string audioFilePath, CancellationToken cancellationToken = default)
         {
             ValidateProject();
 
-            var result = await CurrentProject.TrySetAndLoadAudioAsync(audioFilePath, cancellationToken);
-            if (result) {
-                NotifyFlag(NotificationFlag.ProjectAudio);
-                return true;
-            }
-            else {
-                return false;
-            }
-
+            return CurrentProject.TrySetAudioByFilePathAsync(audioFilePath, cancellationToken);
         }
 
-        public void EditProjectMusicName(string name)
+        [Obsolete]
+        private void EditProjectMusicName(string name)
         {
             ValidateProject();
 
@@ -32,7 +27,8 @@ namespace Deenote.Core.Project
             NotifyFlag(NotificationFlag.ProjectMusicName);
         }
 
-        public void EditProjectComposer(string composer)
+        [Obsolete]
+        private void EditProjectComposer(string composer)
         {
             ValidateProject();
 
@@ -40,7 +36,8 @@ namespace Deenote.Core.Project
             NotifyFlag(NotificationFlag.ProjectComposer);
         }
 
-        public void EditProjectChartDesigner(string chartDesigner)
+        [Obsolete]
+        private void EditProjectChartDesigner(string chartDesigner)
         {
             ValidateProject();
 
@@ -48,11 +45,12 @@ namespace Deenote.Core.Project
             NotifyFlag(NotificationFlag.ProjectChartDesigner);
         }
 
-        public ChartEditorModel AddProjectChart(ChartModel chart)
+        [Obsolete]
+        private ChartEditorModel AddProjectChart(ChartModel chart)
         {
             ValidateProject();
 
-            var editorModel= new ChartEditorModel(chart);
+            var editorModel = new ChartEditorModel(chart);
             CurrentProject.Charts.Add(editorModel);
             NotifyFlag(NotificationFlag.ProjectCharts);
             return editorModel;
@@ -66,7 +64,8 @@ namespace Deenote.Core.Project
             NotifyFlag(NotificationFlag.ProjectCharts);
         }
 
-        public void RemoveProjectChartAt(int chartIndex)
+        [Obsolete]
+        private void RemoveProjectChartAt(int chartIndex)
         {
             ValidateProject();
 
