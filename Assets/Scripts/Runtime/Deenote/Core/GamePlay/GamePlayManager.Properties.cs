@@ -2,6 +2,7 @@
 
 using Deenote.Core.GameStage;
 using Deenote.CoreB.Models.Notes;
+using Deenote.GamePlay;
 using Deenote.Library;
 using UnityEngine;
 
@@ -9,62 +10,50 @@ namespace Deenote.Core.GamePlay
 {
     partial class GamePlayManager
     {
-        private void OnStageLoaded_Properties(GameStageSceneLoader loader)
-        {
-            loader.StageController.IsStageEffectOn = IsStageEffectOn;
-            //_cacheVisibleRangePercentage = null;
-            //loader.StageController.VisibleRangePercentage = VisibleRangePercentage;
-        }
-
         private void RegisterConfigurations()
         {
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("stage/highlight_note_speed", HighlightedNoteSpeed);
-                configs.Set("stage/apply_speed_diff", IsApplySpeedDifference);
-                configs.Set("stage/filter_note_speed", IsFilterNoteSpeed);
+            //MainSystem.SaveSystem.SavingConfigurations += configs =>
+            //{
+            //    configs.Set("stage/highlight_note_speed", HighlightedNoteSpeed);
+            //    configs.Set("stage/apply_speed_diff", IsApplySpeedDifference);
+            //    configs.Set("stage/filter_note_speed", IsFilterNoteSpeed);
 
-                configs.Set("stage/note_speed", NoteFallSpeed);
-                configs.Set("stage/show_link_lines", IsShowLinkLines);
-                configs.Set("stage/piano_note_distinguish", IsPianoNotesDistinguished);
-                configs.Set("stage/effect", IsStageEffectOn);
-                configs.Set("stage/sudden_plus", SuddenPlus);
-                configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
-                configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
-                configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
+            //    configs.Set("stage/note_speed", NoteFallSpeed);
+            //    configs.Set("stage/show_link_lines", IsShowLinkLines);
+            //    configs.Set("stage/piano_note_distinguish", IsPianoNotesDistinguished);
+            //    configs.Set("stage/effect", IsStageEffectOn);
+            //    configs.Set("stage/sudden_plus", SuddenPlus);
+            //    configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
+            //    configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
 
-                configs.Set("stage/music_speed", MusicSpeed);
-                configs.Set("stage/hitsound_volume", HitSoundVolume);
-                configs.Set("stage/music_volume", MusicVolume);
-                configs.Set("stage/piano_volume", PianoVolume);
-            };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
-                IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
-                IsFilterNoteSpeed = configs.GetBoolean("stage/filter_note_speed", false);
+            //    configs.Set("stage/music_speed", MusicSpeed);
+            //    configs.Set("stage/hitsound_volume", HitSoundVolume);
+            //    configs.Set("stage/music_volume", MusicVolume);
+            //    configs.Set("stage/piano_volume", PianoVolume);
+            //};
+            //MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            //{
+            //    HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
+            //    IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
+            //    IsFilterNoteSpeed = configs.GetBoolean("stage/filter_note_speed", false);
 
-                NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
-                IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
-                IsPianoNotesDistinguished = configs.GetBoolean("stage/piano_note_distinguish", true);
-                IsStageEffectOn = configs.GetBoolean("stage/effect", true);
-                SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
-                EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
-                IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
-                PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
+            //    NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
+            //    IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
+            //    IsPianoNotesDistinguished = configs.GetBoolean("stage/piano_note_distinguish", true);
+            //    IsStageEffectOn = configs.GetBoolean("stage/effect", true);
+            //    SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
+            //    EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
+            //    PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
 
-                MusicSpeed = configs.GetInt32("stage/music_speed", 10);
-                HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
-                MusicVolume = configs.GetSingle("stage/music_volume", 100f);
-                PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
-            };
+            //    MusicSpeed = configs.GetInt32("stage/music_speed", 10);
+            //    HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
+            //    MusicVolume = configs.GetSingle("stage/music_volume", 100f);
+            //    PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
+            //};
         }
 
         private const float ZeroAvoidHighlightedSpeed = 0.1f;
 
-        private float _highlightedNoteSpeed_bf;
-        private bool _applySpeedDifference_bf;
-        private bool _filterNoteSpeed_bf;
 
         /// <summary>
         /// If <see cref="IsFilterNoteSpeed"/> is <see langword="true"/>,
@@ -74,46 +63,28 @@ namespace Deenote.Core.GamePlay
         /// </summary>
         public float HighlightedNoteSpeed
         {
-            get => _highlightedNoteSpeed_bf;
+            get => _stageContext.HighlightedNoteSpeed;
             set {
-                if (value <= 0f)
-                    value = ZeroAvoidHighlightedSpeed;
-                if (Utils.SetField(ref _highlightedNoteSpeed_bf, value)) {
-                    if (IsChartLoaded() && IsStageLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshHighlightState();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
-                }
+                _stageContext.HighlightedNoteSpeed = value;
+                NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
             }
         }
 
         public bool IsApplySpeedDifference
         {
-            get => _applySpeedDifference_bf;
+            get => _stageContext.IsApplySpeedDifference;
             set {
-                if (Utils.SetField(ref _applySpeedDifference_bf, value)) {
-                    if (IsChartLoaded() && IsStageLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                    }
-                    NotifyFlag(NotificationFlag.IsApplySpeedDifference);
-                }
+                _stageContext.IsApplySpeedDifference = value;
+                NotifyFlag(NotificationFlag.IsApplySpeedDifference);
             }
         }
 
         public bool IsFilterNoteSpeed
         {
-            get => _filterNoteSpeed_bf;
+            get => _stageContext.IsFilterNoteSpeed;
             set {
-                if (Utils.SetField(ref _filterNoteSpeed_bf, value)) {
-                    if (IsChartLoaded() && IsStageLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshHighlightState();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.IsFilterNoteSpeed);
-                }
+                _stageContext.IsApplySpeedDifference = value;
+                NotifyFlag(NotificationFlag.IsFilterNoteSpeed);
             }
         }
 
@@ -132,29 +103,15 @@ namespace Deenote.Core.GamePlay
         public const int MinNoteSpeed = 5;
         public const int MaxNoteSpeed = 95;
 
-        private int _noteSpeed_bf;
-        private bool _showLinkLines_bf;
-        private bool _isPianoNotesDistinguished_bf;
-        private float _suddenPlus_bf;
-        private bool _isStageEffectOn_bf;
-        private bool _earlyDisplayLowSpeedNotes_bf;
-        private bool _ignoreNoteSpeed_bf;
-        private bool _pauseWhenLoseFocus_bf;
-
         /// <summary>
         /// Range [5, 95], display [0.5, 9.5]
         /// </summary>
         public int NoteFallSpeed
         {
-            get => _noteSpeed_bf;
+            get => _stageContext.NoteFallSpeed;
             set {
-                value = Mathf.Clamp(value, MinNoteSpeed, MaxNoteSpeed);
-                if (Utils.SetField(ref _noteSpeed_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                    }
-                    NotifyFlag(NotificationFlag.NoteSpeed);
-                }
+                _stageContext.NoteFallSpeed = value;
+                NotifyFlag(NotificationFlag.NoteSpeed);
             }
         }
 
@@ -162,44 +119,28 @@ namespace Deenote.Core.GamePlay
 
         public bool IsShowLinkLines
         {
-            get => _showLinkLines_bf;
+            get => _stageContext.IsShowLinkLines;
             set {
-                if (Utils.SetField(ref _showLinkLines_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshLinkLine();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.IsShowLinkLines);
-                }
+                _stageContext.IsShowLinkLines = value;
+                NotifyFlag(NotificationFlag.IsShowLinkLines);
             }
         }
 
         public bool IsPianoNotesDistinguished
         {
-            get => _isPianoNotesDistinguished_bf;
+            get => _stageContext.IsDistinguishPianoNotes;
             set {
-                if (Utils.SetField(ref _isPianoNotesDistinguished_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshVisual();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.DistinguishPianoNotes);
-                }
+                _stageContext.IsDistinguishPianoNotes = value;
+                NotifyFlag(NotificationFlag.DistinguishPianoNotes);
             }
         }
 
         public bool IsStageEffectOn
         {
-            get => _isStageEffectOn_bf;
+            get => _stageContext.IsStageEffectOn;
             set {
-                if (Utils.SetField(ref _isStageEffectOn_bf, value)) {
-                    if (IsStageLoaded()) {
-                        Stage.IsStageEffectOn = value;
-                    }
-                    NotifyFlag(NotificationFlag.StageEffectOn);
-                }
+                _stageContext.IsStageEffectOn = value;
+                NotifyFlag(NotificationFlag.StageEffectOn);
             }
         }
 
@@ -208,18 +149,10 @@ namespace Deenote.Core.GamePlay
         /// </summary>
         public float SuddenPlus
         {
-            get => _suddenPlus_bf;
+            get => _stageContext.SuddenPlus;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (Utils.SetField(ref _suddenPlus_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshStageDeltaTime();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.SuddenPlus);
-                }
+                _stageContext.SuddenPlus = value;
+                NotifyFlag(NotificationFlag.SuddenPlus);
             }
         }
 
@@ -232,38 +165,19 @@ namespace Deenote.Core.GamePlay
         /// </remarks>
         public bool EarlyDisplaySlowNotes
         {
-            get => _earlyDisplayLowSpeedNotes_bf;
+            get => _stageContext.IsEarlyDisplaySlowNotes;
             set {
-                if (Utils.SetField(ref _earlyDisplayLowSpeedNotes_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshStageDeltaTime();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.EarlyDisplaySlowNotes);
-                }
-            }
-        }
-
-        public bool IgnoreNoteSpeed
-        {
-            get => _ignoreNoteSpeed_bf;
-            set {
-                if (Utils.SetField(ref _ignoreNoteSpeed_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                    }
-                }
+                _stageContext.IsEarlyDisplaySlowNotes = value;
+                NotifyFlag(NotificationFlag.EarlyDisplaySlowNotes);
             }
         }
 
         public bool PauseWhenLoseFocus
         {
-            get => _pauseWhenLoseFocus_bf;
+            get => _context.PauseWhenLoseFocus;
             set {
-                if (Utils.SetField(ref _pauseWhenLoseFocus_bf, value)) {
-                    NotifyFlag(NotificationFlag.PauseWhenLoseFocus);
-                }
+                _context.PauseWhenLoseFocus = value;
+                NotifyFlag(NotificationFlag.PauseWhenLoseFocus);
             }
         }
 
@@ -274,23 +188,18 @@ namespace Deenote.Core.GamePlay
         public const int MinMusicSpeed = 1;
         public const int MaxMusicSpeed = 30;
 
-        // The field is required as we may restore it when manual-play mode off
-        private int _musicSpeed_bf;
-
         /// <summary>
         /// Range [1, 30], representing [0.1, 3.0]
         /// </summary>
         public int MusicSpeed
         {
-            get => _musicSpeed_bf;
+            get => _context.MusicSpeed;
             set {
-                value = Mathf.Clamp(value, MinMusicSpeed, MaxMusicSpeed);
-                if (Utils.SetField(ref _musicSpeed_bf, value)) {
-                    var actualVal = ConvertToActualMusicSpeed(value);
-                    MusicPlayer.Pitch = actualVal;
-                    PianoSoundPlayer.Speed = actualVal;
-                    NotifyFlag(NotificationFlag.MusicSpeed);
-                }
+                _context.MusicSpeed = value;
+                var actualVal = ConvertToActualMusicSpeed(_context.MusicSpeed);
+                MusicPlayer.Pitch = actualVal;
+                PianoSoundPlayer.Speed = actualVal;
+                NotifyFlag(NotificationFlag.MusicSpeed);
             }
         }
 
@@ -301,13 +210,11 @@ namespace Deenote.Core.GamePlay
         /// </summary>
         public float HitSoundVolume
         {
-            get => HitSoundPlayer.Volume;
+            get => _context.HitSoundVolume;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (HitSoundPlayer.Volume != value) {
-                    HitSoundPlayer.Volume = value;
-                    NotifyFlag(NotificationFlag.HitSoundVolume);
-                }
+                _context.HitSoundVolume = value;
+                HitSoundPlayer.Volume = value;
+                NotifyFlag(NotificationFlag.HitSoundVolume);
             }
         }
 
@@ -316,13 +223,11 @@ namespace Deenote.Core.GamePlay
         /// </summary>
         public float MusicVolume
         {
-            get => MusicPlayer.Volume;
+            get => _context.MusicVolume;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (MusicPlayer.Volume != value) {
-                    MusicPlayer.Volume = value;
-                    NotifyFlag(NotificationFlag.MusicVolume);
-                }
+                _context.MusicVolume = value;
+                MusicPlayer.Volume = value;
+                NotifyFlag(NotificationFlag.MusicVolume);
             }
         }
 
@@ -331,13 +236,11 @@ namespace Deenote.Core.GamePlay
         /// </summary>
         public float PianoVolume
         {
-            get => PianoSoundPlayer.Volume;
+            get => _context.PianoVolume;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (PianoSoundPlayer.Volume != value) {
-                    PianoSoundPlayer.Volume = value;
-                    NotifyFlag(NotificationFlag.PianoVolume);
-                }
+                _context.PianoVolume = value;
+                PianoSoundPlayer.Volume = value;
+                NotifyFlag(NotificationFlag.PianoVolume);
             }
         }
 

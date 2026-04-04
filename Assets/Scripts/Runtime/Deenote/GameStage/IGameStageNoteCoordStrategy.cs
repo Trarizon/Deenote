@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.GameStage
 {
     public interface IGameStageNoteCoordStrategy
     {
@@ -13,7 +13,7 @@ namespace Deenote.Core.GameStage
         float ZToTime(float z, float fallSpeed, float noteSpeed);
     }
 
-    public class DefaultGameStageNoteCoordStrategy : IGameStageNoteCoordStrategy
+    internal class DefaultGameStageNoteCoordStrategy : IGameStageNoteCoordStrategy
     {
         private readonly GameStageConfig _config;
 

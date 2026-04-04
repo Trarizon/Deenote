@@ -65,7 +65,7 @@ namespace Deenote.Library.Mathematics
             }
         }
 
-        public static string ToRGBAString(this Color color)
+        public static string ToRgbaString(this Color color)
             => ToRGBAString((Color32)color);
 
         public static string ToRGBAString(this Color32 color)

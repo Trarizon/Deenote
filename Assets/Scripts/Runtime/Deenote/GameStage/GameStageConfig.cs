@@ -1,9 +1,11 @@
 #nullable enable
 
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.GameStage
 {
+    [MovedFrom("Deenote.Core.GameStage")]
     [CreateAssetMenu(
         fileName = nameof(GameStageConfig),
         menuName = "Deenote/GameStage/GameStageConfig")]
@@ -16,9 +18,9 @@ namespace Deenote.Core.GameStage
         [Space]
         [Tooltip("This value affects that when a note should be released")]
         public float NoteHitEffectMaxDuration;
-        [Range(0f,1f)]
+        [Range(0f, 1f)]
         public float NoteFadeInRatio;
-        [Range(0f,1f)]
+        [Range(0f, 1f)]
         public float GridLineFadeInRatio;
     }
 }

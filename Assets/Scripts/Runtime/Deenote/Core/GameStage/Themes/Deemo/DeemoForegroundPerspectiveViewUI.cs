@@ -7,6 +7,7 @@ using Deenote.Core.Project;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
+using Deenote.GameStage;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -21,6 +22,7 @@ namespace Deenote.Core.GameStage.Themes.Deemo
     {
         private ProjectContext _project;
         private EnvironmentContext _environment;
+        private GameStageContext _gameStage;
 
         [Header("Info Bar")]
         [SerializeField] TMP_Text _musicNameText = default!;
@@ -73,6 +75,7 @@ namespace Deenote.Core.GameStage.Themes.Deemo
         {
             _project = MainSystem.Contexts.Project;
             _environment = MainSystem.Contexts.Environment;
+            _gameStage = MainSystem.Contexts.GameStage;
 
             _shockWaveEnterPosX = _shockWaveEnterPosTransform.anchorMin.x;
             _shockWaveExitPosX = _shockWaveExitPosTransform.anchorMin.x;
@@ -115,36 +118,39 @@ namespace Deenote.Core.GameStage.Themes.Deemo
                     Difficulty = manager.CurrentChart.Difficulty;
                 });
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager =>
-                {
-                    if (manager.CurrentChart is { } chart) {
-                        Level = manager.CurrentChart.Level;
-                        Difficulty = manager.CurrentChart.Difficulty;
-                        gameObject.SetActive(true);
-                    }
-                    else {
+            _project.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CurrentChart))) {
+                    var chart = s.CurrentChart;
+                    if (chart is null) {
                         gameObject.SetActive(false);
                     }
-                });
+                    else {
+                        Level = chart.Level;
+                        Difficulty = chart.Difficulty;
+                        gameObject.SetActive(true);
+                    }
+                }
+            });
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                manager =>
-                {
-                    if (manager.CurrentChart is not { } chart)
+            _gameStage.NotesContext.Updated += (s) =>
+            {
+                if (_project.CurrentChart is null)
+                    return;
+                UpdateComboRegistrant(s);
+            };
+            _gameStage.NotesContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CurrentCombo))) {
+                    if (_project.CurrentChart is null)
                         return;
-
-                    UpdateComboRegistrant(manager);
-
-                    var currentCombo = manager.NotesManager.CurrentCombo;
+                    var currentCombo = s.CurrentCombo;
                     if (currentCombo <= 0) {
                         _scoreText.text = "0.00 %";
                         return;
                     }
 
-                    int noteCount = chart.Notes.Count;
+                    var noteCount = _project.CurrentChart.Notes.Count;
                     float accScore = (float)currentCombo / noteCount;
                     // comboActual = Sum(1..judgeNoteCount);
                     // comboTotal = Sum(1..noteCount)
@@ -154,12 +160,40 @@ namespace Deenote.Core.GameStage.Themes.Deemo
 
                     float score = accScore * 80_00f + comboScore * 20_00f;
                     _scoreText.text = $"{Mathf.Floor(score) / 100f:F2} %";
-                });
+                }
+            });
+
+            //MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
+            //    GamePlayManager.NotificationFlag.ActiveNoteUpdated,
+            //    manager =>
+            //    {
+            //        if (manager.CurrentChart is not { } chart)
+            //            return;
+
+            //        UpdateComboRegistrant(manager);
+
+            //        var currentCombo = manager.NotesManager.CurrentCombo;
+            //        if (currentCombo <= 0) {
+            //            _scoreText.text = "0.00 %";
+            //            return;
+            //        }
+
+            //        int noteCount = chart.Notes.Count;
+            //        float accScore = (float)currentCombo / noteCount;
+            //        // comboActual = Sum(1..judgeNoteCount);
+            //        // comboTotal = Sum(1..noteCount)
+            //        // comboScore = comboActual / comboTotal
+            //        //            = ((1 + judged) * judged) / ((1 + count) * count)
+            //        float comboScore = (float)((1 + currentCombo) * currentCombo) / ((1 + noteCount) * noteCount);
+
+            //        float score = accScore * 80_00f + comboScore * 20_00f;
+            //        _scoreText.text = $"{Mathf.Floor(score) / 100f:F2} %";
+            //    });
         }
 
-        private void UpdateComboRegistrant(GamePlayManager stage)
+        private void UpdateComboRegistrant(GameStageNotesContext context)
         {
-            int combo = stage.NotesManager.CurrentCombo;
+            int combo = context.CurrentCombo;
             if (combo < _args.MinDisplayCombo) {
                 _comboGameObject.SetActive(false);
                 return;
@@ -167,11 +201,11 @@ namespace Deenote.Core.GameStage.Themes.Deemo
 
             // prevHitNoteIndex wont smaller than combo, so here
             // it is asserted a valid index
-            var prevHitNote = stage.NotesManager.GetPreviousHitComboNode();
+            var prevHitNote = context.GetPreviousHitComboNode();
             Debug.Assert(prevHitNote?.IsComboNode ?? false);
 
             _comboGameObject.SetActive(true);
-            var deltaTime = stage.MusicPlayer.Time - prevHitNote!.Time;
+            var deltaTime = context.CurrentTime - prevHitNote!.Time;
             Debug.Assert(deltaTime >= 0, $"actual delta time:{deltaTime}");
             _numberText.text = _shadowText.text = combo.ToString();
 

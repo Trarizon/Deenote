@@ -20,11 +20,17 @@ namespace Deenote.Library
 
         public void Reset()
         {
-            if(_cts is not null) {
+            if (_cts is not null) {
                 _cts.Cancel();
                 _cts.Dispose();
             }
             _cts = new();
+        }
+
+        public CancellationToken ResetAndGetToken()
+        {
+            Reset();
+            return _cts!.Token;
         }
 
         public void CancelAndReset()

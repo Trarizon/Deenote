@@ -16,7 +16,18 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: de8b6a76385681e4485016780ca83997
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: d4a89fd2d46a2b146a998daa8bc966c6
+    m_Address: Assets/res/GameStage/Deemo/DeemoStage.unity
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5fd930ec92e987444aa4c87af2c144ab
+    m_Address: Assets/res/GameStage/DeemoThemeConfig.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - GameStageThemeConfig
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 55736434aa48a934c9d5d0e7aad3ccf4, type: 2}
   m_SchemaSet:

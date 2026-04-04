@@ -27,7 +27,6 @@ namespace Deenote.Core.GamePlay
     internal sealed partial class NotesManager
     {
         private readonly GamePlayManager _game;
-        private IGameStageNoteFactory _noteFactory;
         private float _time;
 
         /// <summary>
@@ -74,11 +73,6 @@ namespace Deenote.Core.GamePlay
                     Debug.Assert(cmp != 0);
                     return cmp;
                 }));
-        }
-
-        internal void Initialize(IGameStageNoteFactory noteFactory)
-        {
-            _noteFactory = noteFactory;
         }
 
         internal void Initialize(ObjectPool<GameStageNoteController> gameStageNotePool)

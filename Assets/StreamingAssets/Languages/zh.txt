@@ -605,6 +605,9 @@ Dialog_AboutTurorials_Page_UpgradeGuide_Content="""
 
 AboutDialog_Versions_Dnt_1_0=Deenote 1.0
 AboutDialog_Versions_Dnt_1_0_Content="""
+    <b>Deenote 1.0.7</b>
+    - 修复格线渲染引起的内存泄漏
+
     <b>Deenote 1.0.6</b>
 
     - 修复了删除最后一张谱面时，预览界面未更新的bug

@@ -1,8 +1,10 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Models;
+using Deenote.CoreB.Notification;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -14,6 +16,8 @@ namespace Deenote.UI.Views
 {
     public sealed class EditorNavigationPageView : MonoBehaviour
     {
+        private ProjectContext _projectContext;
+
         [SerializeField] TextBox _highlightNoteSpeedInput = default!;
         [SerializeField] ToggleButton _applySpeedDiffToggle = default!;
         [SerializeField] ToggleButton _filterNoteSpeedToggle = default!;
@@ -58,6 +62,11 @@ namespace Deenote.UI.Views
         private float _bpmStartTime;
         private float _bpmEndTime;
         private float _bpmValue;
+
+        private void Awake()
+        {
+            _projectContext = MainSystem.Contexts.Project;
+        }
 
         private void Start()
         {
@@ -270,13 +279,13 @@ namespace Deenote.UI.Views
                 MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanaged;
                 _OnSelectedNotesChanaged(MainSystem.StageChartEditor.Selector);
 
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.CurrentChart,
-                    manager =>
-                    {
-                        var chartLoaded = manager.IsChartLoaded();
+                _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.CurrentChart))) {
+                        var chartLoaded = s.CurrentChart is not null;
                         _bpmFillButton.IsInteractable = chartLoaded;
-                    });
+                    }
+                });
 
                 void _OnSelectedNotesChanaged(StageNoteSelector selector)
                 {

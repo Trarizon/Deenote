@@ -1,19 +1,21 @@
 #nullable enable
 
+using Deenote.Core.GameStage;
 using Deenote.Core.GameStage.Foreground;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace Deenote.Core.GameStage.Themes
+namespace Deenote.GameStage.Themes
 {
     [CreateAssetMenu(
         fileName = "GameStageThemeConfig",
-        menuName = "Deenote/GameStageThemeConfig")]
+        menuName = "Deenote/GameStage/GameStageThemeConfig")]
     internal sealed class GameStageThemeConfig : ScriptableObject
     {
         public string Id = "";
         public string Name = "";
 
+        public GameStageConfig GameStageConfig;
         [Header("Prefabs")]
         public AssetReference SceneReference;
         public ForegroundPerspectiveViewUI GameUIPrefab;

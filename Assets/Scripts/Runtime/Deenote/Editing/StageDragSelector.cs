@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote;
 using Deenote.Contexts;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
@@ -13,7 +14,7 @@ using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace Deenote.Core.Editing
+namespace Deenote.Editing
 {
     internal enum StageDragSelectionMode
     {

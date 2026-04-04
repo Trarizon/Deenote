@@ -348,7 +348,6 @@ MonoBehaviour:
   _staveMusicNameText: {fileID: 720293037}
   _holdBodyCullMaterial: {fileID: 2100000, guid: 919dd3b629e4fb64c9774a646b1a058e,
     type: 2}
-  _deemoArgs: {fileID: 11400000, guid: d05ba06daaeec864cb50af552910a654, type: 2}
 --- !u!1 &433164889
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,7 +539,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 76409817fefe78b44b3e9b7410815c8e, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.73527086}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.54427886}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1304,53 +1303,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1087241193}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1167608017
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1167608019}
-  - component: {fileID: 1167608018}
-  m_Layer: 0
-  m_Name: GameStageSceneLoader
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1167608018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1167608017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31475d5d29025ef4c8085ea6e245f860, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <StageController>k__BackingField: {fileID: 384983969}
-  <PerspectiveViewForeground>k__BackingField: {fileID: 3109862978520466737, guid: 4c1d716edf4dce74f8cef56eb87b30a3,
-    type: 3}
---- !u!4 &1167608019
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1167608017}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1184020940
 GameObject:
   m_ObjectHideFlags: 0
@@ -1857,7 +1809,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.77748984}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.7625445}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 0
@@ -2392,5 +2344,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1167608019}
   - {fileID: 384983966}

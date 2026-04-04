@@ -205,7 +205,7 @@ namespace Deenote.UI.Dialogs
 
             void SyncColorValue(TextBox textBox, Color? color)
             {
-                var str = color?.ToRGBAString();
+                var str = color?.ToRgbaString();
                 if (str is null)
                     textBox.SetValueWithoutNotify("");
                 else

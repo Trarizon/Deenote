@@ -2,6 +2,7 @@
 
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models;
+using Deenote.Editing;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage

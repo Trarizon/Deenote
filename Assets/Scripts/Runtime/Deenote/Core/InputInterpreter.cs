@@ -3,6 +3,7 @@
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Models;
+using Deenote.Editing;
 using Deenote.InputSystem.InputActions;
 using Deenote.Library;
 using UnityEngine;

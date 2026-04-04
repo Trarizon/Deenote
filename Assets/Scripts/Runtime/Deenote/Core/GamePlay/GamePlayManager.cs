@@ -9,6 +9,8 @@ using Deenote.Core.Project;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Helpers;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library;
 using Deenote.Library.Components;
 using System;
@@ -19,7 +21,9 @@ namespace Deenote.Core.GamePlay
 {
     public sealed partial class GamePlayManager : FlagNotifiableMonoBehaviour<GamePlayManager, GamePlayManager.NotificationFlag>
     {
-        private ProjectContext _projectContext;
+        internal GamePlayContext _context;
+        internal GameStageContext _stageContext;
+        internal ProjectContext _projectContext;
 
         private NotesManager _notesManager = default!;
         private GridsManager _gridsManager = default!;
@@ -27,8 +31,7 @@ namespace Deenote.Core.GamePlay
         private StagePianoSoundPlayer _pianoSoundPlayer = default!;
         [SerializeField] HitSoundPlayer _hitSoundPlayer = default!;
 
-
-        public GameStageController? Stage { get; private set; }
+        public GameStageController? Stage { get => _stageContext.GameStage; private set { } }
 
         internal NotesManager NotesManager => _notesManager;
         public GridsManager Grids => _gridsManager;
@@ -71,39 +74,67 @@ namespace Deenote.Core.GamePlay
 
         private void Awake()
         {
-            _projectContext = MainSystem.Contexts.Project;
-
             _gridsManager = new GridsManager(this, MainSystem.StageChartEditor, _projectContext);
             _pianoSoundPlayer = new StagePianoSoundPlayer(MainSystem.PianoSoundSource);
             _notesManager = new NotesManager(this);
 
-            RegisterConfigurations();
-            RegisterCustomPropertiesConfigurations();
+            return;
 
-            GameStageSceneLoader.StageLoaded += loader =>
+            //RegisterConfigurations();
+            //RegisterCustomPropertiesConfigurations();
+
+            var themeContext = MainSystem.Contexts.GameStage.ThemeContext;
+            themeContext.RegisterPropertyChangedAndInvoke((s, e) =>
             {
-                Debug.Log("GameStage loaded");
-                try {
+                if (e.MatchProperty(nameof(s.CurrentTheme))) {
+                    if (s.CurrentTheme is null)
+                        return;
+                    try {
+                        Stage = s.CurrentTheme.Stage;
+                        //Stage.Initialize(this, _projectContext);
+                        //NotesManager.Initialize(
+                        //    UnityUtils.CreateObjectPool(
+                        //        Stage.Args.GamePlayNotePrefab,
+                        //        Stage.NotePlane.ContentTransform,
+                        //        item => item.OnInstantiate(Stage.NotePlane)));
+                        ////OnStageLoaded_Properties(loader);
 
-                    Stage = loader.StageController;
-                    Stage.Initialize(this, _projectContext);
-                    NotesManager.Initialize(
-                        UnityUtils.CreateObjectPool(
-                            Stage.Args.GamePlayNotePrefab,
-                            Stage.NotePlane.ContentTransform,
-                            item => item.OnInstantiate(Stage.NotePlane)));
-                    OnStageLoaded_Properties(loader);
+                        //if (IsChartLoaded()) {
+                        //    UpdateNotes(true, true);
+                        //}
 
-                    if (IsChartLoaded()) {
-                        UpdateNotes(true, true);
+                        StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, s.CurrentTheme.PerspectiveViewForeground));
+                    } catch (Exception ex) {
+                        Debug.LogError(ex.Message + ex.StackTrace);
+                        throw;
                     }
-
-                    StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
-                } catch (Exception ex) {
-                    Debug.LogError(ex.Message + ex.StackTrace);
-                    throw;
                 }
-            };
+            });
+
+            //GameStageSceneLoader.StageLoaded += loader =>
+            //{
+            //    Debug.Log("GameStage loaded");
+            //    try {
+
+            //        Stage = loader.StageController;
+            //        Stage.Initialize(this, _projectContext);
+            //        NotesManager.Initialize(
+            //            UnityUtils.CreateObjectPool(
+            //                Stage.Args.GamePlayNotePrefab,
+            //                Stage.NotePlane.ContentTransform,
+            //                item => item.OnInstantiate(Stage.NotePlane)));
+            //        OnStageLoaded_Properties(loader);
+
+            //        if (IsChartLoaded()) {
+            //            UpdateNotes(true, true);
+            //        }
+
+            //        StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
+            //    } catch (Exception ex) {
+            //        Debug.LogError(ex.Message + ex.StackTrace);
+            //        throw;
+            //    }
+            //};
 
             MusicPlayer.TimeChanged += args =>
             {
@@ -111,7 +142,7 @@ namespace Deenote.Core.GamePlay
                     return;
 
                 var forward = args.NewTime > args.OldTime;
-                NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
+                //NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
                 NotifyFlag(NotificationFlag.ActiveNoteUpdated);
                 // In previous version, note time was controlled by StageNoteController.Update,
                 // so we have to manually call update when manually change music time.
@@ -193,6 +224,7 @@ namespace Deenote.Core.GamePlay
 
         private void Update()
         {
+            return;
             if (!IsChartLoaded())
                 return;
             if (!MusicPlayer.IsPlaying && _manualPlaySpeedMultiplier is { } manuallPlaySpeed)
@@ -210,7 +242,8 @@ namespace Deenote.Core.GamePlay
         {
             AssertChartLoaded();
             AssertStageLoaded();
-
+            _stageContext.NotesContext.RefreshActiveVisibleNotes();
+            return;
             switch (noteCollectionChangedOrNoteTimeRelatedPropertyChanged, notesVisualDataChanged) {
                 case (true, false):
                     NotesManager.RefreshStageActiveNotes();

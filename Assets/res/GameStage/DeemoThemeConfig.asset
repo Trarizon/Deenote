@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f03f0045d0877dc4587dd2c3ee5c77ee, type: 3}
+  m_Name: DeemoThemeConfig
+  m_EditorClassIdentifier: 
+  Id: Deemo
+  Name: Deemo
+  GameStageConfig: {fileID: 11400000, guid: ed64e606f86dc004d986c5e0d42e23b2, type: 2}
+  SceneReference:
+    m_AssetGUID: d4a89fd2d46a2b146a998daa8bc966c6
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  GameUIPrefab: {fileID: 3109862978520466737, guid: 4c1d716edf4dce74f8cef56eb87b30a3,
+    type: 3}
+  NotePrefab: {fileID: 3873625400187784241, guid: 160a09d6b531cb34d876b0226dae8742,
+    type: 3}

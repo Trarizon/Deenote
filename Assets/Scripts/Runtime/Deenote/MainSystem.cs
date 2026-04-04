@@ -5,8 +5,11 @@ using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage;
+using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.Project;
+using Deenote.GamePlay;
+using Deenote.GameStage;
+using Deenote.GameStage.Themes;
 using Deenote.Library.Components;
 using Deenote.ProjectManagement;
 using Deenote.Systems;
@@ -18,9 +21,11 @@ namespace Deenote
 {
     public sealed partial class MainSystem : SingletonBehaviour<MainSystem>
     {
+        [Required][SerializeField] GameMusicPlayer _gameMusicPlayer;
         [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger = default!;
         [Header("System")]
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
+        [SerializeField] MonoBehaviourHooks _hooks = default!;
         [Header("Manager")]
         [SerializeField] ProjectManager _projectManager = default!;
         [SerializeField] GamePlayManager _gamePlayManager = default!;
@@ -30,10 +35,11 @@ namespace Deenote
 
         public static AutoSaveTrigger AutoSaveTrigger => Instance._autoSaveTrigger;
 
-        public static SaveSystem SaveSystem { get; private set; } 
+        public static SaveSystem SaveSystem { get; private set; }
         public static GlobalSettings GlobalSettings { get; private set; }
 
         public static PianoSoundSource PianoSoundSource => Instance._pianoSoundSource;
+        internal static MonoBehaviourHooks GlobalHook => Instance._hooks;
 
         public static ProjectManager ProjectManager { get; private set; }
         public static GamePlayManager GamePlayManager => Instance._gamePlayManager;
@@ -41,20 +47,30 @@ namespace Deenote
 
         public static RootContext Contexts { get; private set; }
         public static ProjectManagerB ProjectManagerB { get; private set; }
+        public static GamePlayManagerB GamePlayManagerB { get; private set; }
+        internal static GameStageManager GameStageManager { get; private set; }
+        public static GameStageThemeManager GameStageThemeManager { get; private set; }
 
         protected override void Awake()
         {
             base.Awake();
+            _unhandledExceptionHandler = new();
 
             SaveSystem = new();
             Contexts = new(SaveSystem);
             ProjectManagerB = new(Contexts.Project, Contexts.Environment);
             ProjectManager = new(Contexts.Project, Contexts.Environment);
+            GamePlayManagerB = new(Contexts.GamePlay, Contexts.Project, _gameMusicPlayer);
+            GameStageThemeManager = new(Contexts.GameStage.ThemeContext);
+            GameStageManager = new(Contexts.GameStage, Contexts.Project, GameStageThemeManager);
 
-            _unhandledExceptionHandler = new();
 
 
             GlobalSettings = new();
+
+            GamePlayManager._context = Contexts.GamePlay;
+            GamePlayManager._stageContext = Contexts.GameStage;
+            GamePlayManager._projectContext = Contexts.Project;
 
             StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
         }
@@ -62,7 +78,7 @@ namespace Deenote
         private void Start()
         {
             SaveSystem.LoadConfigurations();
-            _ = GameStageSceneLoader.LoadAsync("DeemoStage");
+            //_ = GameStageSceneLoader.LoadAsync("DeemoStage");
         }
 
         public static partial class Args

@@ -18,14 +18,15 @@ namespace Deenote.Core.GameStage.Themes.Deemo
         protected internal override void Refresh()
         {
             var stage = GameStage;
-            var game = GameStage.GamePlay;
+            // REFACTOR: 
+            var game = MainSystem.Contexts.GameStage;
 
             //var args = stage.Args;
             var prefab = NotePrototype switch {
                 { Kind: NoteKind.Swipe } => _config.SwipeNoteSpriteData,
                 { Kind: NoteKind.Slide } => _config.SlideNoteSpriteData,
                 { Sounds.Count: > 0 } => _config.ClickNoteSpriteData,
-                _ => game.IsPianoNotesDistinguished
+                _ => game.IsDistinguishPianoNotes
                     ? _config.NoSoundNoteSpriteData
                     : _config.ClickNoteSpriteData,
             };

@@ -8,7 +8,8 @@ using UnityEngine.SceneManagement;
 
 namespace Deenote.Core.GameStage
 {
-    public sealed class GameStageSceneLoader : MonoBehaviour
+    [Obsolete]
+    internal sealed class GameStageSceneLoader : MonoBehaviour
     {
         private static Scene? _loadedStageScene;
         private static GameStageSceneLoader? _instance;

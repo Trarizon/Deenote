@@ -1,8 +1,11 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Foreground;
+using Deenote.CoreB.Notification;
+using Deenote.GameStage.Themes;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -16,6 +19,8 @@ namespace Deenote.UI.Views
 {
     public sealed partial class PerspectiveViewPanelView : MonoBehaviour
     {
+        private ProjectContext _projectContext;
+
         [SerializeField] AspectRatioFitter _aspectRatioFitter = default!;
         [SerializeField] RawImage _viewRawImage = default!;
         [SerializeField] IntegralSizeAspectRatioFitter _viewImageAspectRatioFitter = default!;
@@ -68,9 +73,12 @@ namespace Deenote.UI.Views
 
         private void Awake()
         {
+            _projectContext= MainSystem.Contexts.Project;
+
             InitAspectRatioController();
 
-            MainSystem.GamePlayManager.StageLoaded += _OnStageLoaded;
+            MainSystem.GameStageThemeManager.ThemeLoaded += _OnStageLoaded;
+            //MainSystem.GamePlayManager.StageLoaded += _OnStageLoaded;
 
             void InitAspectRatioController()
             {
@@ -99,24 +107,20 @@ namespace Deenote.UI.Views
 
         private void Start()
         {
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager =>
-                {
-                    if (manager.IsChartLoaded()) {
-                        _viewRawImage.enabled = true;
-                    }
-                    else {
-                        _viewRawImage.enabled = false;
-                    }
-                });
+            _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CurrentChart))) {
+                    _viewRawImage.enabled = s.CurrentChart is not null;
+                }
+            });
         }
 
-        private void _OnStageLoaded(GamePlayManager.StageLoadedEventArgs args)
+        private void _OnStageLoaded(GameStageThemeEntry args)
         {
             args.Stage.ApplyCameraTargetTexture(_viewRenderTexture);
 
-            var foreground = Instantiate(args.PerspectiveViewForegroundPrefab, _contentTransform);
+            var foreground = args.InstantiateUIAsync(_contentTransform);
+            //var foreground = Instantiate(args.PerspectiveViewForegroundPrefab, _contentTransform);
             if (StageForeground != null) {
                 Destroy(StageForeground.gameObject);
             }

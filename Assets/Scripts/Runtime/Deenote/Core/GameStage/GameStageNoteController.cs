@@ -6,6 +6,7 @@ using Deenote.CoreB.Models.Notes;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Comparing;
 using Deenote.Editing.EditorModels.Helpers;
+using Deenote.GameStage;
 using Deenote.Library;
 using System;
 using UnityEngine;
@@ -48,8 +49,11 @@ namespace Deenote.Core.GameStage
             }
         }
 
+        private GameStageNotesContext _notesContext;
+
         internal void OnInstantiate(GameStageNotePlaneController plane)
         {
+            _notesContext = MainSystem.Contexts.GameStage.NotesContext;
             _plane = plane;
             _game = _plane.GameStage.GamePlay;
             _plane.GameStage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
@@ -139,7 +143,7 @@ namespace Deenote.Core.GameStage
 
                 if (!_game.EarlyDisplaySlowNotes) {
                     // In TimeOrder mode, the note should display only after its previous note displayed
-                    if (_game.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
+                    if (_notesContext.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
                         if (ModelComparers.ViaTimeUnique.Compare(NoteModel, next) >= 0) {
                             return true;
                         }
@@ -213,7 +217,7 @@ namespace Deenote.Core.GameStage
             }
             if (!_game.EarlyDisplaySlowNotes &&
                 // In TimeOrder mode, the note should display only after its previous note displayed
-                _game.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next &&
+                _notesContext.GetNextActiveNodeInTimeOrderDisplayMode() is { } next &&
                 ModelComparers.ViaTimeUnique.Compare(NoteModel, next) >= 0) {
                 goto Invisible;
             }

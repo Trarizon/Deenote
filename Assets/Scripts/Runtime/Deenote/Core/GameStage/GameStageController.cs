@@ -6,9 +6,13 @@ using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Args;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Notification;
+using Deenote.GameStage;
+using Deenote.GameStage.Themes;
 using Deenote.Library;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Remoting.Contexts;
 using TMPro;
 using UnityEngine;
 
@@ -24,7 +28,8 @@ namespace Deenote.Core.GameStage
 
         [SerializeField] GameStageConfig _config = default!;
 
-        public GamePlayManager GamePlay { get; private set; } = default!;
+        [Obsolete]
+        public GamePlayManager GamePlay { get => MainSystem.GamePlayManager;  }
         internal GameStageNotePlaneController NotePlane => _notePlane;
         internal PlacementNotePlaneController IndicatorPlane => _indicatorPlane;
         internal SelectionAreaRect SelectionAreaRect => _selectionAreaRect;
@@ -40,18 +45,7 @@ namespace Deenote.Core.GameStage
         [field: SerializeField]
         public GridLineArgs GridLineArgs { get; private set; } = default!;
 
-        private bool _isStageEffectOn_bf;
         private float _visibleRangeCullingRatio_bf;
-
-        public bool IsStageEffectOn
-        {
-            get => _isStageEffectOn_bf;
-            set {
-                if (Utils.SetField(ref _isStageEffectOn_bf, value)) {
-                    OnIsStageEffectOnChanged(value);
-                }
-            }
-        }
 
         /// <summary>
         /// The actual sudden+ on plane
@@ -61,7 +55,7 @@ namespace Deenote.Core.GameStage
             get => _visibleRangeCullingRatio_bf;
             set {
                 if (Utils.SetField(ref _visibleRangeCullingRatio_bf, value)) {
-                    OnVisiblaRangeCullingRatioChanged(value);
+                    //OnVisiblaRangeCullingRatioChanged(value);
                 }
             }
         }
@@ -69,7 +63,8 @@ namespace Deenote.Core.GameStage
         /// <summary>
         /// The actual speed used for calculating
         /// </summary>
-        internal float NoteFallSpeedInternal { get; private set; }
+        [Obsolete]
+        private float NoteFallSpeedInternal { get; set; }
 
         /// <summary>
         /// The time from a note(speed=1) is activated to falls on the judge line
@@ -78,7 +73,7 @@ namespace Deenote.Core.GameStage
         /// We start to track when note appears as if sudden+ is 0,
         /// and set its visibility according to <see cref="NoteAppearAheadTime"/>
         /// </remarks>
-        public float NoteActiveAheadTime => Config.NoteAppearAheadTimeFactor / NoteFallSpeedInternal;
+        public float NoteActiveAheadTime => _context.ThemeContext.CurrentTheme.NoteCoordStrategy.GetNoteActiveAheadTime(_context.ActualNoteFallSpeed, 1); //Config.NoteAppearAheadTimeFactor / NoteFallSpeedInternal;
 
         /// <summary>
         /// The time from a note(speed=1) appears to falls on the judge line
@@ -88,32 +83,48 @@ namespace Deenote.Core.GameStage
         private void Awake()
         {
             PerspectiveLinesRenderer.OnInstantiate(this);
+            _context = MainSystem.Contexts.GameStage;
         }
 
+        public GameStageThemeEntry ThemeEntry { get; private set; } = default!;
+
+        internal void OnInstantiate(GameStageThemeEntry themeEntry)
+        {
+            ThemeEntry = themeEntry;
+        }
+
+        private GameStageContext _context;
+
+        [Obsolete]
         protected internal virtual void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
         {
-            GamePlay = gamePlayManager;
-            GamePlay.RegisterNotification(
-                GamePlayManager.NotificationFlag.StageEffectOn,
-                _manager => IsStageEffectOn = _manager.IsStageEffectOn);
+            //GamePlay = gamePlayManager;
+            //GamePlay.RegisterNotification(
+            //    GamePlayManager.NotificationFlag.StageEffectOn,
+            //    _manager => IsStageEffectOn = _manager.IsStageEffectOn);
             GamePlay.RegisterNotification(
                 GamePlayManager.NotificationFlag.NoteSpeed,
                 manager => NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(manager.ActualNoteFallSpeed));
             GamePlay.RegisterNotification(
                 GamePlayManager.NotificationFlag.SuddenPlus,
                 manager => VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(manager.SuddenPlus));
-            IsStageEffectOn = gamePlayManager.IsStageEffectOn;
+            //IsStageEffectOn = gamePlayManager.IsStageEffectOn;
             NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
             VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
 
             //SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
         }
 
-        protected virtual void OnIsStageEffectOnChanged(bool value) { }
-
-        protected virtual void OnVisiblaRangeCullingRatioChanged(float value)
+        protected internal virtual void Initialize(GameStageContext context)
         {
-            PerspectiveLinesRenderer.SetVisibleRangeCullingRatio(value);
+            context.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.SuddenPlus))) {
+                    var ratio = ConvertSuddenPlusToVisibleRangeCullingRatio(s.SuddenPlus);
+                    VisibleRangeCullingRatio = ratio;
+                    PerspectiveLinesRenderer.SetVisibleRangeCullingRatio(ratio);
+                }
+            });
         }
 
         public virtual void ApplyCameraTargetTexture(RenderTexture renderTexture)
@@ -160,10 +171,10 @@ namespace Deenote.Core.GameStage
             => time * speed * Config.NoteTimeToWorldZFactor;
 
         internal float EvaluateNoteWorldZ(float time, float noteSpeed = 1f)
-            => time * noteSpeed * NoteFallSpeedInternal * Config.NoteTimeToWorldZFactor;
+            => time * noteSpeed * ConvertFallSpeedToPlaneSpeed(_context.ActualNoteFallSpeed) * Config.NoteTimeToWorldZFactor;
 
         internal float EvaluateNoteLocalTime(float z, float noteSpeed = 1f)
-            => z / noteSpeed / NoteFallSpeedInternal / Config.NoteTimeToWorldZFactor;
+            => z / noteSpeed / ConvertFallSpeedToPlaneSpeed(_context.ActualNoteFallSpeed) / Config.NoteTimeToWorldZFactor;
 
         internal (float X, float Z) EvaluateNoteWorldXZ(NoteCoord coord, float noteSpeed = 1f)
             => (ConvertNotePositionToWorldX(coord.Position), EvaluateNoteWorldZ(coord.Time, noteSpeed));

@@ -10,54 +10,48 @@ namespace Deenote.Core.GamePlay
     {
         private void RegisterCustomPropertiesConfigurations()
         {
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("stage/line-color-subbeat", CustomSubBeatLineColor?.ToRGBAString());
-                configs.Set("stage/line-color-beat", CustomBeatLineColor?.ToRGBAString());
-                configs.Set("stage/line-color-tempo", CustomTempoLineColor?.ToRGBAString());
-            };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                if (ColorUtils.TryParse(configs.GetString("stage/line-color-subbeat"), out var sbc)) {
-                    CustomSubBeatLineColor = sbc;
-                }
-                if (ColorUtils.TryParse(configs.GetString("stage/line-color-beat"), out var bc)) {
-                    CustomBeatLineColor = bc;
-                }
-                if (ColorUtils.TryParse(configs.GetString("stage/line-color-tempo"), out var tc)) {
-                    CustomTempoLineColor = tc;
-                }
-            };
+            //MainSystem.SaveSystem.SavingConfigurations += configs =>
+            //{
+            //    configs.Set("stage/line-color-subbeat", CustomSubBeatLineColor?.ToRgbaString());
+            //    configs.Set("stage/line-color-beat", CustomBeatLineColor?.ToRgbaString());
+            //    configs.Set("stage/line-color-tempo", CustomTempoLineColor?.ToRgbaString());
+            //};
+            //MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            //{
+            //    if (ColorUtils.TryParse(configs.GetString("stage/line-color-subbeat"), out var sbc)) {
+            //        CustomSubBeatLineColor = sbc;
+            //    }
+            //    if (ColorUtils.TryParse(configs.GetString("stage/line-color-beat"), out var bc)) {
+            //        CustomBeatLineColor = bc;
+            //    }
+            //    if (ColorUtils.TryParse(configs.GetString("stage/line-color-tempo"), out var tc)) {
+            //        CustomTempoLineColor = tc;
+            //    }
+            //};
         }
 
-        private Color? _customSubBeatLineColor;
-        private Color? _customBeatLineColor;
-        private Color? _customTempoLineColor;
         public Color? CustomSubBeatLineColor
         {
-            get => _customSubBeatLineColor;
+            get => _stageContext.CustomSubBeatLineColor;
             set {
-                if (Utils.SetField(ref _customSubBeatLineColor, value)) {
-                    NotifyFlag(NotificationFlag.CustomSubBeatLineColor);
-                }
+                _stageContext.CustomSubBeatLineColor = value;
+                NotifyFlag(NotificationFlag.CustomSubBeatLineColor);
             }
         }
         public Color? CustomBeatLineColor
         {
-            get => _customBeatLineColor;
+            get => _stageContext.CustomBeatLineColor;
             set {
-                if (Utils.SetField(ref _customBeatLineColor, value)) {
-                    NotifyFlag(NotificationFlag.CustomBeatLineColor);
-                }
+                _stageContext.CustomBeatLineColor = value;
+                NotifyFlag(NotificationFlag.CustomBeatLineColor);
             }
         }
         public Color? CustomTempoLineColor
         {
-            get => _customTempoLineColor;
+            get => _stageContext.CustomTempoLineColor;
             set {
-                if (Utils.SetField(ref _customTempoLineColor, value)) {
-                    NotifyFlag(NotificationFlag.CustomTempoLineColor);
-                }
+                _stageContext.CustomTempoLineColor = value;
+                NotifyFlag(NotificationFlag.CustomTempoLineColor);
             }
         }
     }
