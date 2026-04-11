@@ -3,6 +3,7 @@
 using Deenote.Contexts;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Models.Notes.Comparers;
+using Deenote.CoreB.Notification;
 using Deenote.Library.Collections;
 using System;
 
@@ -19,12 +20,25 @@ namespace Deenote.GamePlay
 
         private float _time;
 
-        public NoteSoundsPlayManager(ProjectContext project, GamePlayContext gamePlay, HitSoundPlayer hitSoundPlayer, StagePianoSoundPlayer pianoSoundPlayer)
+        public NoteSoundsPlayManager(GamePlayContext gamePlay, ProjectContext project, HitSoundPlayer hitSoundPlayer, StagePianoSoundPlayer pianoSoundPlayer)
         {
             _project = project;
             _gamePlay = gamePlay;
             _hitSoundPlayer = hitSoundPlayer;
             _pianoSoundPlayer = pianoSoundPlayer;
+
+            _gamePlay.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.HitSoundVolume))) {
+                    _hitSoundPlayer.Volume = s.HitSoundVolume;
+                }
+                if (e.MatchProperty(nameof(s.PianoVolume))) {
+                    _pianoSoundPlayer.Volume = s.PianoVolume;
+                }
+                if (e.MatchProperty(nameof(s.ActualMusicSpeed))) {
+                    _pianoSoundPlayer.Speed = s.ActualMusicSpeed;
+                }
+            });
         }
 
         public void UpdateTime(float time, bool playSounds)

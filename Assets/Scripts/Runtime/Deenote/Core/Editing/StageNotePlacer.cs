@@ -5,8 +5,10 @@ using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Helpers;
+using Deenote.GameStage;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
@@ -47,14 +49,16 @@ namespace Deenote.Core.Editing
         private const float SwipeDragAngleCotangent = 1.7320508076f;
 
         internal StageChartEditor _editor;
+        private readonly GameStageContext _stageContext;
 
         private NotePrototypeModel _metaPrototype;
         private PooledObjectListView<PlacementNoteIndicatorController> _indicators;
         private PooledObjectListView<NotePrototypeModel> _prototypes;
 
-        public StageNotePlacer(StageChartEditor editor)
+        public StageNotePlacer(StageChartEditor editor, GameStageContext gameStageContext)
         {
             _editor = editor;
+            _stageContext = gameStageContext;
             _metaPrototype = new NotePrototypeModel();
             _prototypes = new PooledObjectListView<NotePrototypeModel>(
                 new ObjectPool<NotePrototypeModel>(() => new NotePrototypeModel(),
@@ -65,9 +69,12 @@ namespace Deenote.Core.Editing
             _editor._game.RegisterNotification(
                 GamePlayManager.NotificationFlag.CurrentChart,
                 _ => CancelPlaceNote());
-            _editor._game.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.HighlightedNoteSpeed,
-                _ => SetPlacingNoteSpeed(null, forceUpdateAndNotify: true));
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.HighlightedNoteSpeed))) {
+                    SetPlacingNoteSpeed(null, forceUpdateAndNotify: true);
+                }
+            });
             _editor._game.StageLoaded += args =>
             {
                 _indicatorPanelTransform = args.Stage.IndicatorPlane.ContentTransform;
@@ -75,7 +82,7 @@ namespace Deenote.Core.Editing
                 var indicators = new PooledObjectListView<PlacementNoteIndicatorController>(
                     UnityUtils.CreateObjectPool(args.Stage.Args.PlacementNoteIndicatorPrefab,
                         _indicatorPanelTransform,
-                        item => item.OnInstantiate(_editor._game.Stage!.IndicatorPlane)));
+                        item => item.OnInstantiate(_editor._game.Stage!.IndicatorPlane, _stageContext)));
 
                 foreach (var note in _prototypes) {
                     indicators.Add(out var indicator);
@@ -91,7 +98,7 @@ namespace Deenote.Core.Editing
             };
         }
 
-        internal NoteData ClonePlaceNotePrototype() =>_metaPrototype.ToDataNonLinkInfo();
+        internal NoteData ClonePlaceNotePrototype() => _metaPrototype.ToDataNonLinkInfo();
 
 
         #region MoveIndicator
@@ -371,7 +378,7 @@ namespace Deenote.Core.Editing
             var notes = so_notes.Span;
             for (int i = 0; i < _prototypes.Count; i++) {
                 notes[i] = _prototypes[i].ToDataNonLinkInfo();
-                notes[i].PositionCoord= NoteCoord.ClampPosition(coord + notes[i].PositionCoord);
+                notes[i].PositionCoord = NoteCoord.ClampPosition(coord + notes[i].PositionCoord);
             }
             NoteLinkHelpers.CloneLinkInfos(_prototypes.AsSpan(), notes);
 

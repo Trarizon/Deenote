@@ -9,6 +9,7 @@ using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.Project;
 using Deenote.GamePlay;
 using Deenote.GameStage;
+using Deenote.GameStage.Grids;
 using Deenote.GameStage.Themes;
 using Deenote.Library.Components;
 using Deenote.ProjectManagement;
@@ -22,6 +23,7 @@ namespace Deenote
     public sealed partial class MainSystem : SingletonBehaviour<MainSystem>
     {
         [Required][SerializeField] GameMusicPlayer _gameMusicPlayer;
+        [Required][SerializeField] HitSoundPlayer _hitSoundPlayer;
         [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger = default!;
         [Header("System")]
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
@@ -39,7 +41,7 @@ namespace Deenote
         public static GlobalSettings GlobalSettings { get; private set; }
 
         public static PianoSoundSource PianoSoundSource => Instance._pianoSoundSource;
-        internal static MonoBehaviourHooks GlobalHook => Instance._hooks;
+        internal static MonoBehaviourHooks GlobalHooks => Instance._hooks;
 
         public static ProjectManager ProjectManager { get; private set; }
         public static GamePlayManager GamePlayManager => Instance._gamePlayManager;
@@ -56,15 +58,15 @@ namespace Deenote
             base.Awake();
             _unhandledExceptionHandler = new();
 
+            var stagePianoSoundPlayer = new StagePianoSoundPlayer(PianoSoundSource);
+
             SaveSystem = new();
             Contexts = new(SaveSystem);
             ProjectManagerB = new(Contexts.Project, Contexts.Environment);
             ProjectManager = new(Contexts.Project, Contexts.Environment);
-            GamePlayManagerB = new(Contexts.GamePlay, Contexts.Project, _gameMusicPlayer);
+            GamePlayManagerB = new(Contexts.GamePlay, Contexts.Project, _gameMusicPlayer, stagePianoSoundPlayer, _hitSoundPlayer);
             GameStageThemeManager = new(Contexts.GameStage.ThemeContext);
-            GameStageManager = new(Contexts.GameStage, Contexts.Project, GameStageThemeManager);
-
-
+            GameStageManager = new(Contexts.GameStage, Contexts.Editor, Contexts.GamePlay, GameStageThemeManager);
 
             GlobalSettings = new();
 
@@ -72,7 +74,7 @@ namespace Deenote
             GamePlayManager._stageContext = Contexts.GameStage;
             GamePlayManager._projectContext = Contexts.Project;
 
-            StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
+            StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager, Contexts.GameStage);
         }
 
         private void Start()

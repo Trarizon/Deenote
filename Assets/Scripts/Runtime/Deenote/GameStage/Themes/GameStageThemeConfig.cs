@@ -2,6 +2,7 @@
 
 using Deenote.Core.GameStage;
 using Deenote.Core.GameStage.Foreground;
+using Deenote.GameStage.Grids;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -16,6 +17,7 @@ namespace Deenote.GameStage.Themes
         public string Name = "";
 
         public GameStageConfig GameStageConfig;
+        public GridLineConfig GridLineConfig;
         [Header("Prefabs")]
         public AssetReference SceneReference;
         public ForegroundPerspectiveViewUI GameUIPrefab;

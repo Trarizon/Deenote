@@ -57,12 +57,12 @@ namespace Deenote.GameStage
         }
 
         private bool _distinguishPianoNotes_bf;
-        public bool IsDistinguishPianoNotes
+        public bool IsPianoNotesDistinguished
         {
             get => _distinguishPianoNotes_bf;
             set {
                 if (Utils.SetField(ref _distinguishPianoNotes_bf, value)) {
-                    PropertyChanged?.Invoke(this, new(nameof(IsDistinguishPianoNotes)));
+                    PropertyChanged?.Invoke(this, new(nameof(IsPianoNotesDistinguished)));
                 }
             }
         }
@@ -155,15 +155,41 @@ namespace Deenote.GameStage
 
         #endregion
 
+        #region Grid Properties
+
+        private bool _timeGridsVisible_bf;
+        public bool IsTimeGridsVisible
+        {
+            get => _timeGridsVisible_bf;
+            set {
+                if (Utils.SetField(ref _timeGridsVisible_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(IsTimeGridsVisible)));
+                }
+            }
+        }
+
+        private bool _positionGridsVisible_bf;
+        public bool IsPositionGridsVisible
+        {
+            get => _positionGridsVisible_bf;
+            set {
+                if (Utils.SetField(ref _positionGridsVisible_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(IsPositionGridsVisible)));
+                }
+            }
+        }
+
+        #endregion
+
         #region Customization Properties
 
         private Color? _customSubBeatLineColor_bf;
-        public Color? CustomSubBeatLineColor
+        public Color? CustomSubdivisionLineColor
         {
             get => _customSubBeatLineColor_bf;
             set {
                 if (Utils.SetField(ref _customSubBeatLineColor_bf, value)) {
-                    PropertyChanged?.Invoke(this, new(nameof(CustomSubBeatLineColor)));
+                    PropertyChanged?.Invoke(this, new(nameof(CustomSubdivisionLineColor)));
                 }
             }
         }
@@ -208,13 +234,16 @@ namespace Deenote.GameStage
 
                 configs.Set("stage/note_speed", NoteFallSpeed);
                 configs.Set("stage/show_link_lines", IsShowLinkLines);
-                configs.Set("stage/piano_note_distinguish", IsDistinguishPianoNotes);
+                configs.Set("stage/piano_note_distinguish", IsPianoNotesDistinguished);
                 configs.Set("stage/effect", IsStageEffectOn);
                 configs.Set("stage/sudden_plus", SuddenPlus);
                 configs.Set("stage/early_display_slow_notes", IsEarlyDisplaySlowNotes);
                 //configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
 
-                configs.Set("stage/line-color-subbeat", CustomSubBeatLineColor?.ToRgbaString());
+                configs.Set("stage/grids/pos_grid_visible", IsPositionGridsVisible);
+                configs.Set("stage/grids/time_grid_visible", IsTimeGridsVisible);
+
+                configs.Set("stage/line-color-subbeat", CustomSubdivisionLineColor?.ToRgbaString());
                 configs.Set("stage/line-color-beat", CustomBeatLineColor?.ToRgbaString());
                 configs.Set("stage/line-color-tempo", CustomTempoLineColor?.ToRgbaString());
             };
@@ -227,14 +256,18 @@ namespace Deenote.GameStage
 
                 NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
                 IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
-                IsDistinguishPianoNotes = configs.GetBoolean("stage/piano_note_distinguish", true);
+                IsPianoNotesDistinguished = configs.GetBoolean("stage/piano_note_distinguish", true);
                 IsStageEffectOn = configs.GetBoolean("stage/effect", true);
                 SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
                 IsEarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
                 //IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
 
+                IsPositionGridsVisible = configs.GetBoolean("stage/grids/pos_grid_visible", true);
+                IsTimeGridsVisible = configs.GetBoolean("stage/grids/time_grid_visible", true);
+
+
                 if (ColorUtils.TryParse(configs.GetString("stage/line-color-subbeat"), out var sbc)) {
-                    CustomSubBeatLineColor = sbc;
+                    CustomSubdivisionLineColor = sbc;
                 }
                 if (ColorUtils.TryParse(configs.GetString("stage/line-color-beat"), out var bc)) {
                     CustomBeatLineColor = bc;

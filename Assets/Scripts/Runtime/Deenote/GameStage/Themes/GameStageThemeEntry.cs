@@ -2,6 +2,7 @@
 
 using Deenote.Core.GameStage;
 using Deenote.Core.GameStage.Foreground;
+using Deenote.GameStage.Grids;
 using System;
 using UnityEngine;
 
@@ -15,6 +16,8 @@ namespace Deenote.GameStage.Themes
         internal IGameStageNoteFactory NoteFactory { get; private set; }
 
         internal IGameStageConfig Config { get; }
+
+        internal GridLineConfig GridLineConfig => ThemeConfig.GridLineConfig;
 
         [Obsolete("Temporary for GamePlayManager")]
         internal ForegroundPerspectiveViewUI PerspectiveViewForeground => ThemeConfig.GameUIPrefab;

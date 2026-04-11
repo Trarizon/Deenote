@@ -2,6 +2,7 @@
 
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels;
+using Deenote.GameStage;
 using Deenote.Library;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ namespace Deenote.Core.GameStage
     public abstract class PlacementNoteIndicatorController : MonoBehaviour
     {
         private const float NoteAlpha = 0.5f;
+
+        private GameStageContext _stageContext = default!;
 
         private PlacementNotePlaneController _plane = default!;
 
@@ -21,9 +24,10 @@ namespace Deenote.Core.GameStage
 
         public GameStageController GameStage => _plane.GameStage;
 
-        internal void OnInstantiate(PlacementNotePlaneController plane)
+        internal void OnInstantiate(PlacementNotePlaneController plane, GameStageContext stageContext)
         {
             _plane = plane;
+            _stageContext = stageContext;
 
             _note = new();
 
@@ -52,7 +56,7 @@ namespace Deenote.Core.GameStage
 
         private void _OnPerspectiveLineCollecting(PerspectiveLinesRenderer.LineCollector collector)
         {
-            var showLinkLine = GameStage.GamePlay.IsShowLinkLines;
+            var showLinkLine =_stageContext.IsShowLinkLines;
             if (showLinkLine && _linkLineEndOffset is { } offset) {
                 GameStage.GamePlay.AssertStageLoaded();
 

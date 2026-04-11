@@ -309,10 +309,10 @@ namespace Deenote.Core.Editing
         {
             switch (property) {
                 case GridsManager.CurveApplyProperty.Size:
-                    EditSelectedNotesSize(v => _game.Grids.GetCurveTransformedValue(v, GridsManager.CurveApplyProperty.Size) ?? v);
+                    EditSelectedNotesSize(v => _context.Grids.Curves.SizeCurve?.GetValue(v) ?? v);
                     break;
                 case GridsManager.CurveApplyProperty.Speed:
-                    EditSelectedNotesSpeed(v => _game.Grids.GetCurveTransformedValue(v, GridsManager.CurveApplyProperty.Speed) ?? v);
+                    EditSelectedNotesSpeed(v => _context.Grids.Curves.SpeedCurve?.GetValue(v) ?? v);
                     break;
                 default:
                     ThrowHelper.ThrowInvalidOperationException("Unknown curve apply property");

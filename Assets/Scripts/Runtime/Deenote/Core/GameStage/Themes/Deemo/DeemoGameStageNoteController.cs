@@ -100,7 +100,7 @@ namespace Deenote.Core.GameStage.Themes.Deemo
             var data = kind switch {
                 NoteHeadKind.Swipe => Config.SwipeNoteSpriteData,
                 NoteHeadKind.Slide => Config.SlideNoteSpriteData,
-                NoteHeadKind.NoSound => _game.IsPianoNotesDistinguished ? Config.NoSoundNoteSpriteData : Config.ClickNoteSpriteData,
+                NoteHeadKind.NoSound => _context.StageContext.IsPianoNotesDistinguished ? Config.NoSoundNoteSpriteData : Config.ClickNoteSpriteData,
                 NoteHeadKind.Click => Config.ClickNoteSpriteData,
                 _ => Config.ClickNoteSpriteData,
             };

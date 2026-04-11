@@ -5,6 +5,10 @@ using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Notification;
+using Deenote.Editing;
+using Deenote.Editing.Grids;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
@@ -17,6 +21,9 @@ namespace Deenote.UI.Views
     public sealed class EditorNavigationPageView : MonoBehaviour
     {
         private ProjectContext _projectContext;
+        private EditorContext _editorContext;
+        private GamePlayContext _gamePlayContext;
+        private GameStageContext _stageContext;
 
         [SerializeField] TextBox _highlightNoteSpeedInput = default!;
         [SerializeField] ToggleButton _applySpeedDiffToggle = default!;
@@ -55,7 +62,8 @@ namespace Deenote.UI.Views
         private const int MaxCurveFillAmount = 256;
         private static readonly int[] _predefinedHorizontalGridCount = { 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64 };
 
-        private GridsManager.CurveKind _currentCurveKind;
+        private GridsManager.CurveKind _currentCurveKind_old;
+        private CurveKind _curveKind;
         private int _curveFillAmount;
         private bool _curveAutoApplySize;
         private bool _curveAutoApplySpeed;
@@ -66,6 +74,9 @@ namespace Deenote.UI.Views
         private void Awake()
         {
             _projectContext = MainSystem.Contexts.Project;
+            _editorContext = MainSystem.Contexts.Editor;
+            _gamePlayContext = MainSystem.Contexts.GamePlay;
+            _stageContext = MainSystem.Contexts.GameStage;
         }
 
         private void Start()
@@ -81,78 +92,87 @@ namespace Deenote.UI.Views
                 _highlightNoteSpeedInput.EditSubmitted += text =>
                 {
                     if (float.TryParse(text, out var value))
-                        MainSystem.GamePlayManager.HighlightedNoteSpeed = value;
+                        _stageContext.HighlightedNoteSpeed = value;
                     else
-                        _highlightNoteSpeedInput.SetValueWithoutNotify(MainSystem.GamePlayManager.HighlightedNoteSpeed.ToString("F2"));
+                        _highlightNoteSpeedInput.SetValueWithoutNotify(_stageContext.HighlightedNoteSpeed.ToString("F2"));
                 };
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.HighlightedNoteSpeed,
-                    manager => _highlightNoteSpeedInput.SetValueWithoutNotify(MainSystem.GamePlayManager.HighlightedNoteSpeed.ToString("F2")));
-                _applySpeedDiffToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsApplySpeedDifference = val;
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.IsApplySpeedDifference,
-                    manager => _applySpeedDiffToggle.SetIsCheckedWithoutNotify(manager.IsApplySpeedDifference));
-                _filterNoteSpeedToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsFilterNoteSpeed = val;
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.IsFilterNoteSpeed,
-                    manager => _filterNoteSpeedToggle.SetIsCheckedWithoutNotify(manager.IsFilterNoteSpeed));
+                _applySpeedDiffToggle.IsCheckedChanged += val => _stageContext.IsApplySpeedDifference = val;
+                _filterNoteSpeedToggle.IsCheckedChanged += val => _stageContext.IsFilterNoteSpeed = val;
+                _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.HighlightedNoteSpeed))) {
+                        _highlightNoteSpeedInput.SetValueWithoutNotify(s.HighlightedNoteSpeed.ToString("F2"));
+                    }
+                    if (e.MatchProperty(nameof(s.IsApplySpeedDifference))) {
+                        _applySpeedDiffToggle.SetIsCheckedWithoutNotify(s.IsApplySpeedDifference);
+                    }
+                    if (e.MatchProperty(nameof(s.IsFilterNoteSpeed))) {
+                        _filterNoteSpeedToggle.SetIsCheckedWithoutNotify(s.IsFilterNoteSpeed);
+                    }
+                });
 
                 _musicSpeedNumericStepper.Initialize(GamePlayManager.MinMusicSpeed, GamePlayManager.MaxMusicSpeed);
                 _musicSpeedNumericStepper.SetInputParser(static input => float.TryParse(input, out var val) ? Mathf.RoundToInt(val * 10f) : null);
                 _musicSpeedNumericStepper.SetDisplayerTextSelector(static ival => $"{ival / 10}.{ival % 10}");
-                _musicSpeedNumericStepper.ValueChanged += val => MainSystem.GamePlayManager.MusicSpeed = val;
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.MusicSpeed,
-                    stage => _musicSpeedNumericStepper.SetValueWithoutNotify(stage.MusicSpeed));
+                _musicSpeedNumericStepper.ValueChanged += val => _gamePlayContext.MusicSpeed = val;
+                _gamePlayContext.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.MusicSpeed))) {
+                        _musicSpeedNumericStepper.SetValueWithoutNotify(s.MusicSpeed);
+                    }
+                });
             }
 
             // Grids
             {
-                void SyncHorizontal(GridsManager grids)
+                void SyncHorizontal(int subdivisionPerBeat)
                 {
-                    var value = grids.TimeGridSubBeatCount;
-                    _horizontalGridCountInput.SetValueWithoutNotify(value.ToString());
-                    _horizontalGridCountDecButton.gameObject.SetActive(value > _predefinedHorizontalGridCount[0]);
-                    _horizontalGridCountIncButton.gameObject.SetActive(value < _predefinedHorizontalGridCount[^1]);
+                    _horizontalGridCountInput.SetValueWithoutNotify(subdivisionPerBeat.ToString());
+                    _horizontalGridCountDecButton.gameObject.SetActive(subdivisionPerBeat > _predefinedHorizontalGridCount[0]);
+                    _horizontalGridCountIncButton.gameObject.SetActive(subdivisionPerBeat < _predefinedHorizontalGridCount[^1]);
                 }
 
-                void SyncVertical(GridsManager grids)
+                void SyncVertical(int gridCount)
                 {
-                    var value = grids.PositionGridCount;
-                    _verticalGridCountInput.SetValueWithoutNotify(value.ToString());
+                    _verticalGridCountInput.SetValueWithoutNotify(gridCount.ToString());
                 }
 
                 _horizontalGridCountInput.EditSubmitted += val =>
                 {
                     if (int.TryParse(val, out var ival))
-                        MainSystem.GamePlayManager.Grids.TimeGridSubBeatCount = ival;
-                    SyncHorizontal(MainSystem.GamePlayManager.Grids);
+                        _editorContext.Grids.TimeGrids.SubdivisionPerBeat = ival;
+                    SyncHorizontal(_editorContext.Grids.TimeGrids.SubdivisionPerBeat);
                 };
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.TimeGridSubBeatCountChanged,
-                    SyncHorizontal);
-
+                _editorContext.Grids.TimeGrids.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.SubdivisionPerBeat))) {
+                        SyncHorizontal(s.SubdivisionPerBeat);
+                    }
+                });
                 _verticalGridCountInput.EditSubmitted += val =>
                 {
                     if (int.TryParse(val, out var ival))
-                        MainSystem.GamePlayManager.Grids.PositionGridCount = ival;
-                    SyncVertical(MainSystem.GamePlayManager.Grids);
+                        _editorContext.Grids.PositionGrids.GridCount = ival;
+                    SyncVertical(_editorContext.Grids.PositionGrids.GridCount);
                 };
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.PositionGridChanged,
-                    SyncVertical);
+                _editorContext.Grids.PositionGrids.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.GridCount))) {
+                        SyncVertical(s.GridCount);
+                    }
+                });
 
                 _horizontalGridCountDecButton.Clicked += () =>
                 {
-                    var index = _predefinedHorizontalGridCount.AsSpan().FindLowerBoundIndex(MainSystem.GamePlayManager.Grids.TimeGridSubBeatCount);
+                    var index = _predefinedHorizontalGridCount.AsSpan().FindLowerBoundIndex(_editorContext.Grids.TimeGrids.SubdivisionPerBeat);
                     if (index == 0) return;
-                    MainSystem.GamePlayManager.Grids.TimeGridSubBeatCount = _predefinedHorizontalGridCount[index - 1];
+                    _editorContext.Grids.TimeGrids.SubdivisionPerBeat = _predefinedHorizontalGridCount[index - 1];
                 };
                 _horizontalGridCountIncButton.Clicked += () =>
                 {
-                    var index = _predefinedHorizontalGridCount.AsSpan().FindUpperBoundIndex(MainSystem.GamePlayManager.Grids.TimeGridSubBeatCount);
+                    var index = _predefinedHorizontalGridCount.AsSpan().FindUpperBoundIndex(_editorContext.Grids.TimeGrids.SubdivisionPerBeat);
                     if (index >= _predefinedHorizontalGridCount.Length) return;
-                    MainSystem.GamePlayManager.Grids.TimeGridSubBeatCount = _predefinedHorizontalGridCount[index];
+                    _editorContext.Grids.TimeGrids.SubdivisionPerBeat = _predefinedHorizontalGridCount[index];
                 };
 
                 _horizontalGridSnapToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.SnapToTimeGrid = val;
@@ -160,48 +180,51 @@ namespace Deenote.UI.Views
                     StageNotePlacer.NotificationFlag.SnapToTimeGrid,
                     placer => _horizontalGridSnapToggle.SetIsCheckedWithoutNotify(placer.SnapToTimeGrid));
 
-                _horizontalGridVisibleToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.Grids.TimeGridVisible = val;
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.TimeGridVisible,
-                    grids => _horizontalGridVisibleToggle.SetIsCheckedWithoutNotify(grids.TimeGridVisible));
-
                 _verticalGridSnapToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.SnapToPositionGrid = val;
                 MainSystem.StageChartEditor.Placer.RegisterNotificationAndInvoke(
                     StageNotePlacer.NotificationFlag.SnapToPositionGrid,
                     placer => _verticalGridSnapToggle.SetIsCheckedWithoutNotify(placer.SnapToPositionGrid));
 
-                _verticalGridVisibleToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.Grids.PositionGridVisible = val;
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.PositionGridVisible,
-                    grids => _verticalGridVisibleToggle.SetIsCheckedWithoutNotify(grids.PositionGridVisible));
+                _horizontalGridVisibleToggle.IsCheckedChanged += val => _stageContext.IsTimeGridsVisible = val;
+                _verticalGridVisibleToggle.IsCheckedChanged += val => _stageContext.IsPositionGridsVisible = val;
+                _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.IsTimeGridsVisible))) {
+                        _horizontalGridVisibleToggle.SetIsCheckedWithoutNotify(s.IsTimeGridsVisible);
+                    }
+                    if (e.MatchProperty(nameof(s.IsPositionGridsVisible))) {
+                        _verticalGridVisibleToggle.SetIsCheckedWithoutNotify(s.IsPositionGridsVisible);
+                    }
+                });
             }
 
             // Curves
             {
-                void SyncCurveFillAmount(GridsManager grids) => _fillCurveAmountInput.SetValueWithoutNotify(_curveFillAmount.ToString());
-
-                _linearCurveRadio.Checked += () => _currentCurveKind = GridsManager.CurveKind.Linear;
-                _cubicCurveRadio.Checked += () => _currentCurveKind = GridsManager.CurveKind.Cubic;
+                _linearCurveRadio.Checked += () => _currentCurveKind_old = GridsManager.CurveKind.Linear;
+                _cubicCurveRadio.Checked += () => _currentCurveKind_old = GridsManager.CurveKind.Cubic;
                 _generateCurveButton.Clicked += () =>
                 {
-                    MainSystem.GamePlayManager.Grids.InitializeCurve(MainSystem.StageChartEditor.Selector.SelectedNotes, _currentCurveKind);
+                    _editorContext.Grids.Curves.InitializeCurve(_editorContext.NoteSelection.SelectedNotes, _curveKind);
                     // Remove notes in between
                     MainSystem.StageChartEditor.RemoveNotes(MainSystem.StageChartEditor.Selector.SelectedNotes[1..^1]);
                 };
-                _disableCurveButton.Clicked += () => MainSystem.GamePlayManager.Grids.HideCurve();
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.IsCurveOnChanged,
-                    grids => _disableCurveButton.IsInteractable = grids.IsCurveOn);
+                _disableCurveButton.Clicked += _editorContext.Grids.Curves.DisableCurrentCurve;
+                _editorContext.Grids.Curves.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.IsCurveOn))) {
+                        _disableCurveButton.IsInteractable = s.IsCurveOn;
+                    }
+                });
 
                 _fillCurveAmountInput.EditSubmitted += val =>
                 {
                     if (int.TryParse(val, out var ival)) {
                         _curveFillAmount = Mathf.Clamp(ival, MinCurveFillAmount, MaxCurveFillAmount);
-                        if (MainSystem.GamePlayManager.Grids.IsCurveOn) {
+                        if (_editorContext.Grids.Curves.IsCurveOn) {
                             _fillCurveButton.IsInteractable = _curveFillAmount > 0;
                         }
                     }
-                    SyncCurveFillAmount(MainSystem.GamePlayManager.Grids);
+                    _fillCurveAmountInput.SetValueWithoutNotify(_curveFillAmount.ToString());
                 };
                 _fillCurveButton.Clicked += () =>
                 {
@@ -221,17 +244,12 @@ namespace Deenote.UI.Views
 
                 MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanged;
                 _OnSelectedNotesChanged(MainSystem.StageChartEditor.Selector);
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.IsCurveOnChanged,
-                    grids =>
-                    {
-                        if (grids.IsCurveOn) {
-                            _fillCurveButton.IsInteractable = _curveFillAmount > 0;
-                        }
-                        else {
-                            _fillCurveButton.IsInteractable = false;
-                        }
-                    });
+                _editorContext.Grids.Curves.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.IsCurveOn))) {
+                        _fillCurveButton.IsInteractable = s.IsCurveOn && _curveFillAmount > 0;
+                    }
+                });
 
                 void _OnSelectedNotesChanged(StageNoteSelector selector)
                 {

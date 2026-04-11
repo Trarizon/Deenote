@@ -32,9 +32,9 @@ namespace Deenote.Core.GamePlay
 
         public Color? CustomSubBeatLineColor
         {
-            get => _stageContext.CustomSubBeatLineColor;
+            get => _stageContext.CustomSubdivisionLineColor;
             set {
-                _stageContext.CustomSubBeatLineColor = value;
+                _stageContext.CustomSubdivisionLineColor = value;
                 NotifyFlag(NotificationFlag.CustomSubBeatLineColor);
             }
         }

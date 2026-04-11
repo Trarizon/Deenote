@@ -5,6 +5,8 @@ using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Notification;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
 using Deenote.Localization;
@@ -21,6 +23,8 @@ namespace Deenote.UI.Dialogs
     [RequireComponent(typeof(Dialog))]
     public sealed class PreferencesDialog : ModalDialog
     {
+        private GamePlayContext _gamePlayContext;
+        private GameStageContext _stageContext;
         private EnvironmentContext _environment;
 
         [SerializeField] Dialog _dialog = default!;
@@ -57,6 +61,9 @@ namespace Deenote.UI.Dialogs
         protected override void Awake()
         {
             base.Awake();
+
+            _gamePlayContext = MainSystem.Contexts.GamePlay;
+            _stageContext = MainSystem.Contexts.GameStage;
             _environment = MainSystem.Contexts.Environment;
         }
 
@@ -64,15 +71,21 @@ namespace Deenote.UI.Dialogs
         {
             _dialog.CloseButton.Clicked += base.CloseSelfModalDialog;
 
-            _stageEffectToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsStageEffectOn = val;
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.StageEffectOn,
-                manager => _stageEffectToggle.SetIsCheckedWithoutNotify(manager.IsStageEffectOn));
+            _stageEffectToggle.IsCheckedChanged += val => _stageContext.IsStageEffectOn = val;
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.IsStageEffectOn))) {
+                    _stageEffectToggle.SetIsCheckedWithoutNotify(s.IsStageEffectOn);
+                }
+            });
 
-            _pauseStageWhenLoseFocusToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.PauseWhenLoseFocus = val;
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.PauseWhenLoseFocus,
-                manager => _pauseStageWhenLoseFocusToggle.SetIsCheckedWithoutNotify(manager.PauseWhenLoseFocus));
+            _pauseStageWhenLoseFocusToggle.IsCheckedChanged += val => _gamePlayContext.PauseWhenLoseFocus = val;
+            _gamePlayContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.PauseWhenLoseFocus))) {
+                    _pauseStageWhenLoseFocusToggle.SetIsCheckedWithoutNotify(s.PauseWhenLoseFocus);
+                }
+            });
 
             _mouseSensitivityInput.EditSubmitted += val =>
             {
@@ -198,10 +211,14 @@ namespace Deenote.UI.Dialogs
                 GlobalSettings.NotificationFlag.IneffectivePropertiesVisible,
                 settings => _showIneffectivePropertiesToggle.IsChecked = settings.IsIneffectivePropertiesVisible);
 
-            _distinguishPianoNotesToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsPianoNotesDistinguished = val;
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.DistinguishPianoNotes,
-                manager => _distinguishPianoNotesToggle.IsChecked = manager.IsPianoNotesDistinguished);
+            _distinguishPianoNotesToggle.IsCheckedChanged += val => _stageContext.IsPianoNotesDistinguished = val;
+
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.IsPianoNotesDistinguished))) {
+                    _distinguishPianoNotesToggle.SetIsCheckedWithoutNotify(s.IsPianoNotesDistinguished);
+                }
+            });
 
             void SyncColorValue(TextBox textBox, Color? color)
             {

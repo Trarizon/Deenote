@@ -6,6 +6,7 @@ using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Notification;
+using Deenote.GameStage;
 using Deenote.Library.Components;
 using System;
 
@@ -14,14 +15,16 @@ namespace Deenote.Core.GamePlay
     public sealed partial class GridsManager : FlagNotifiable<GridsManager, GridsManager.NotificationFlag>, IDisposable
     {
         private readonly ProjectContext _projectContext;
+        private readonly GameStageContext _stageContext;
         private readonly GamePlayManager _game;
         private readonly StageChartEditor _editor;
 
-        public GridsManager(GamePlayManager manager, StageChartEditor editor, ProjectContext project)
+        public GridsManager(GamePlayManager manager, StageChartEditor editor, ProjectContext project, GameStageContext stageContext)
         {
             _game = manager;
             _editor = editor;
             _projectContext = project;
+            _stageContext = stageContext;
 
             _projectContext.RegisterNestedPropertyChangedAndInvokeNullable(s => s.CurrentProject, nameof(_projectContext.CurrentProject), (s, e) =>
             {
@@ -29,9 +32,13 @@ namespace Deenote.Core.GamePlay
                     UpdateTimeGrids();
                 }
             });
-            _game.RegisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
+
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.SuddenPlus))) {
+                    UpdatePositionGrids();
+                }
+            });
             _editor.Placer.RegisterNotification(
                 StageNotePlacer.NotificationFlag.PlacingNoteSpeed,
                 _OnPlacingNoteSpeedChanged);
@@ -44,28 +51,25 @@ namespace Deenote.Core.GamePlay
                 args.Stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
             };
 
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("stage/grids/pos_grid_count", PositionGridCount);
-                configs.Set("stage/grids/pos_grid_visible", PositionGridVisible);
-                configs.Set("stage/grids/time_grid_count", TimeGridSubBeatCount);
-                configs.Set("stage/grids/time_grid_visible", TimeGridVisible);
-            };
+            //MainSystem.SaveSystem.SavingConfigurations += configs =>
+            //{
+            //    configs.Set("stage/grids/pos_grid_count", PositionGridCount);
+            //    configs.Set("stage/grids/pos_grid_visible", PositionGridVisible);
+            //    configs.Set("stage/grids/time_grid_count", TimeGridSubBeatCount);
+            //    configs.Set("stage/grids/time_grid_visible", TimeGridVisible);
+            //};
 
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                PositionGridCount = configs.GetInt32("stage/grids/pos_grid_count", 9);
-                PositionGridVisible = configs.GetBoolean("stage/grids/pos_grid_visible", true);
-                TimeGridSubBeatCount = configs.GetInt32("stage/grids/time_grid_count", 1);
-                TimeGridVisible = configs.GetBoolean("stage/grids/time_grid_visible", true);
-            };
+            //MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            //{
+            //    PositionGridCount = configs.GetInt32("stage/grids/pos_grid_count", 9);
+            //    PositionGridVisible = configs.GetBoolean("stage/grids/pos_grid_visible", true);
+            //    TimeGridSubBeatCount = configs.GetInt32("stage/grids/time_grid_count", 1);
+            //    TimeGridVisible = configs.GetBoolean("stage/grids/time_grid_visible", true);
+            //};
         }
 
         public void Dispose()
         {
-            _game.UnregisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
             _game.MusicPlayer.TimeChanged -= _OnStageTimeChanged;
 
             if (_game.IsStageLoaded())
@@ -88,6 +92,7 @@ namespace Deenote.Core.GamePlay
         }
         private void _OnPerspectiveLineCollecting(PerspectiveLinesRenderer.LineCollector collector)
         {
+            return;
             SubmitTimeGridRender(collector);
             SubmitPositionGridsRender(collector);
             SubmitCurveRender(collector);
@@ -95,6 +100,7 @@ namespace Deenote.Core.GamePlay
 
         #endregion
 
+        [Obsolete]
         public NoteCoord Quantize(NoteCoord coord, bool snapPosition, bool snapTime)
         {
             float snappedTime = snapTime ? GetNearestTimeGridTime(coord.Time) ?? coord.Time : coord.Time;

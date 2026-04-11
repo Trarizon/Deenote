@@ -15,6 +15,7 @@ namespace Deenote.Core.GameStage
 {
     internal abstract class GameStageNoteController : MonoBehaviour
     {
+        protected GameStageNotesContext _context = default!;
         protected GamePlayManager _game = default!;
         protected GameStageNotePlaneController _plane = default!;
 
@@ -39,7 +40,7 @@ namespace Deenote.Core.GameStage
 
                 var suddenPlusAheadTime = _game.Stage.EvaluateNoteAppearAheadTime(NoteModel.Speed);
                 float aheadTime;
-                if (_game.EarlyDisplaySlowNotes) {
+                if (_context.StageContext.IsEarlyDisplaySlowNotes) {
                     aheadTime = suddenPlusAheadTime;
                 }
                 else {
@@ -49,11 +50,9 @@ namespace Deenote.Core.GameStage
             }
         }
 
-        private GameStageNotesContext _notesContext;
-
         internal void OnInstantiate(GameStageNotePlaneController plane)
         {
-            _notesContext = MainSystem.Contexts.GameStage.NotesContext;
+            _context = MainSystem.Contexts.GameStage.NotesContext;
             _plane = plane;
             _game = _plane.GameStage.GamePlay;
             _plane.GameStage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
@@ -141,9 +140,9 @@ namespace Deenote.Core.GameStage
                 if (_stageDeltaTime >= AppearAheadTime)
                     return true;
 
-                if (!_game.EarlyDisplaySlowNotes) {
+                if (!_context.StageContext.IsEarlyDisplaySlowNotes) {
                     // In TimeOrder mode, the note should display only after its previous note displayed
-                    if (_notesContext.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
+                    if (_context.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
                         if (ModelComparers.ViaTimeUnique.Compare(NoteModel, next) >= 0) {
                             return true;
                         }
@@ -215,9 +214,9 @@ namespace Deenote.Core.GameStage
             if (_stageDeltaTime > AppearAheadTime) {
                 goto Invisible;
             }
-            if (!_game.EarlyDisplaySlowNotes &&
+            if (!_context.StageContext.IsEarlyDisplaySlowNotes &&
                 // In TimeOrder mode, the note should display only after its previous note displayed
-                _notesContext.GetNextActiveNodeInTimeOrderDisplayMode() is { } next &&
+                _context.GetNextActiveNodeInTimeOrderDisplayMode() is { } next &&
                 ModelComparers.ViaTimeUnique.Compare(NoteModel, next) >= 0) {
                 goto Invisible;
             }
@@ -297,7 +296,7 @@ namespace Deenote.Core.GameStage
                 flags |= NoteHighlightFlags.Selected;
             if (NoteModel.IsCollided)
                 flags |= NoteHighlightFlags.Collided;
-            if (!_game.IsNoteHighlighted(NoteModel))
+            if (_context.StageContext.IsNoteDownplayed(NoteModel))
                 flags |= NoteHighlightFlags.Downplayed;
             OnNoteHighlightChanged(flags);
         }
@@ -364,7 +363,7 @@ namespace Deenote.Core.GameStage
         {
             _game.AssertStageLoaded();
 
-            if (_playState is NotePlayState.Fall && _game.IsShowLinkLines && NoteModel.NextLink is not null) {
+            if (_playState is NotePlayState.Fall && _context.StageContext.IsShowLinkLines && NoteModel.NextLink is not null) {
                 var currentTime = _game.MusicPlayer.Time;
 
                 var to = NoteModel.NextLink;

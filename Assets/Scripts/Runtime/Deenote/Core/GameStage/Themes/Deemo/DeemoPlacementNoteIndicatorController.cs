@@ -26,7 +26,7 @@ namespace Deenote.Core.GameStage.Themes.Deemo
                 { Kind: NoteKind.Swipe } => _config.SwipeNoteSpriteData,
                 { Kind: NoteKind.Slide } => _config.SlideNoteSpriteData,
                 { Sounds.Count: > 0 } => _config.ClickNoteSpriteData,
-                _ => game.IsDistinguishPianoNotes
+                _ => game.IsPianoNotesDistinguished
                     ? _config.NoSoundNoteSpriteData
                     : _config.ClickNoteSpriteData,
             };

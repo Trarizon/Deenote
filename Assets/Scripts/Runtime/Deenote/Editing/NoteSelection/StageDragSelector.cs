@@ -1,11 +1,10 @@
 #nullable enable
 
-using Deenote;
-using Deenote.Contexts;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels;
+using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
@@ -14,7 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace Deenote.Editing
+namespace Deenote.Editing.NoteSelection
 {
     internal enum StageDragSelectionMode
     {
@@ -24,6 +23,7 @@ namespace Deenote.Editing
 
     internal sealed class StageDragSelector
     {
+        private readonly GameStageContext _stageContext;
         private readonly NoteSelectionContext _context;
         private readonly GamePlayManager _gamePlay;
 
@@ -43,9 +43,10 @@ namespace Deenote.Editing
 
         private GameStageController? GameStage => _gamePlay.Stage;
 
-        public StageDragSelector(NoteSelectionContext context, GamePlayManager gamePlay)
+        public StageDragSelector(NoteSelectionContext context, GameStageContext stageContext, GamePlayManager gamePlay)
         {
             _context = context;
+            _stageContext = stageContext;
             _gamePlay = gamePlay;
         }
 
@@ -119,7 +120,7 @@ namespace Deenote.Editing
             using var po_rmv = ListPool<NoteEditorModel>.Get(out var notesRemove);
 
             foreach (var note in _context.ProjectContext.CurrentChart.Notes) {
-                bool inRange = !_gamePlay.IsNoteDownplayed(note) && IsInSelectionRange(note, start, end);
+                bool inRange = !_stageContext.IsNoteDownplayed(note) && IsInSelectionRange(note, start, end);
 
                 if (_inDragRangeNotes.Contains(note)) {
                     if (!inRange) {

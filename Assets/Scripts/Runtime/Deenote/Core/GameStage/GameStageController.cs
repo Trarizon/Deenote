@@ -98,21 +98,21 @@ namespace Deenote.Core.GameStage
         [Obsolete]
         protected internal virtual void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
         {
-            //GamePlay = gamePlayManager;
+            ////GamePlay = gamePlayManager;
+            ////GamePlay.RegisterNotification(
+            ////    GamePlayManager.NotificationFlag.StageEffectOn,
+            ////    _manager => IsStageEffectOn = _manager.IsStageEffectOn);
             //GamePlay.RegisterNotification(
-            //    GamePlayManager.NotificationFlag.StageEffectOn,
-            //    _manager => IsStageEffectOn = _manager.IsStageEffectOn);
-            GamePlay.RegisterNotification(
-                GamePlayManager.NotificationFlag.NoteSpeed,
-                manager => NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(manager.ActualNoteFallSpeed));
-            GamePlay.RegisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                manager => VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(manager.SuddenPlus));
-            //IsStageEffectOn = gamePlayManager.IsStageEffectOn;
-            NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
-            VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
+            //    GamePlayManager.NotificationFlag.NoteSpeed,
+            //    manager => NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(manager.ActualNoteFallSpeed));
+            //GamePlay.RegisterNotification(
+            //    GamePlayManager.NotificationFlag.SuddenPlus,
+            //    manager => VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(manager.SuddenPlus));
+            ////IsStageEffectOn = gamePlayManager.IsStageEffectOn;
+            //NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
+            //VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
 
-            //SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
+            ////SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
         }
 
         protected internal virtual void Initialize(GameStageContext context)

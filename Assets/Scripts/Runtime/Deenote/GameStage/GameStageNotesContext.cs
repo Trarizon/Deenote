@@ -20,10 +20,12 @@ namespace Deenote.GameStage
         private readonly GameStageContext _stage;
         private readonly ProjectContext _project;
 
+        public GameStageContext StageContext => _stage;
+
         private int _nextInactiveNoteIndex;
         private int _nextHitNoteIndex;
         private int _nextActiveNoteIndex;
-        private int _nextActiveNoteIndexInAppearOrder;
+        private int _nextActiveNoteIndexInActiveOrder;
         private int _currentCombo;
 
         public int CurrentCombo
@@ -195,7 +197,7 @@ namespace Deenote.GameStage
                     }
                 }
             }
-            _nextActiveNoteIndexInAppearOrder = indexInActiveOrder;
+            _nextActiveNoteIndexInActiveOrder = indexInActiveOrder;
 
             _trackingNotes.Sort(ModelComparers.ViaTimeUnique);
             _trackingNotesActiveOrder.Sort(_nodeActiveTimeComparer);

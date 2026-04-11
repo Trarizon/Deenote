@@ -4,6 +4,7 @@ using Deenote.Contexts;
 using Deenote.Core.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Notification;
+using Deenote.Systems;
 using System;
 
 namespace Deenote.GamePlay
@@ -13,6 +14,8 @@ namespace Deenote.GamePlay
         private readonly GamePlayContext _context;
         private readonly ProjectContext _project;
         private readonly GameMusicPlayer _musicPlayer;
+        // NEXT: 先把几个audio player迁过来吧，旧Manager的property里有额外的同步音量
+        // 的逻辑，这个需要补上先
 
         private readonly NoteSoundsPlayManager _noteSoundsPlay;
 
@@ -40,12 +43,12 @@ namespace Deenote.GamePlay
 
         public event Action<GamePlayManagerB, PropertyEventArgs>? PropertyChanged;
 
-        internal GamePlayManagerB(GamePlayContext context, ProjectContext project, GameMusicPlayer musicPlayer)
+        internal GamePlayManagerB(GamePlayContext context, ProjectContext project, GameMusicPlayer musicPlayer, StagePianoSoundPlayer pianoSoundPlayer, HitSoundPlayer hitSoundPlayer)
         {
             _project = project;
             _context = context;
             _musicPlayer = musicPlayer;
-            _noteSoundsPlay = new NoteSoundsPlayManager(_project, _context, new(), new(null!));
+            _noteSoundsPlay = new NoteSoundsPlayManager(_context, _project, hitSoundPlayer, pianoSoundPlayer);
 
             _musicPlayer.TimeChanged += (args) =>
             {
@@ -56,6 +59,12 @@ namespace Deenote.GamePlay
                 if (e.MatchProperty(nameof(s.CurrentTime))) {
                     _musicPlayer.Time = s.CurrentTime;
                     _noteSoundsPlay.UpdateTime(s.CurrentTime, true);
+                }
+                if (e.MatchProperty(nameof(s.MusicVolume))) {
+                    _musicPlayer.Volume = s.MusicVolume;
+                }
+                if (e.MatchProperty(nameof(s.ActualMusicSpeed))) {
+                    _musicPlayer.Pitch = s.ActualMusicSpeed;
                 }
             });
 
@@ -81,7 +90,13 @@ namespace Deenote.GamePlay
                     }
                 }
             });
-            MainSystem.GlobalHook.Tick += (delta) =>
+
+            RegisterHooks(MainSystem.GlobalHooks);
+        }
+
+        private void RegisterHooks(MonoBehaviourHooks hooks)
+        {
+            hooks.Tick += (delta) =>
             {
                 if (_project.CurrentChart is null)
                     return;
@@ -91,12 +106,17 @@ namespace Deenote.GamePlay
                 }
             };
 
-            MainSystem.GlobalHook.ApplicationFocusChanged += (focus) =>
+            hooks.ApplicationFocusChanged += (focus) =>
             {
                 if (!focus && _context.PauseWhenLoseFocus) {
                     _musicPlayer.Stop();
                 }
             };
+        }
+
+        private void Update_MusicPlayerPitch()
+        {
+
         }
     }
 }

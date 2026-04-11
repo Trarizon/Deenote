@@ -4,6 +4,7 @@ using CommunityToolkit.Diagnostics;
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models.Notes;
 using Deenote.Editing.EditorModels;
+using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Localization;
@@ -18,6 +19,8 @@ namespace Deenote.UI.Views
 {
     public sealed class NoteInfoNavigationPageView : MonoBehaviour
     {
+        private GameStageContext _stageContext;
+
         [SerializeField] TextBlock _noteHeaderText = default!;
         [SerializeField] TextBox _positionInput = default!;
         [SerializeField] TextBox _timeInput = default!;
@@ -56,6 +59,8 @@ namespace Deenote.UI.Views
 
         private void Awake()
         {
+            _stageContext = MainSystem.Contexts.GameStage;
+
             _interactableControls = new IInteractableControl[] {
                 _positionInput, _timeInput, _sizeInput, _durationInput,
                 _clickNoteKindToggle, _slideNoteKindToggle, _swipeNoteKindToggle,
@@ -168,7 +173,7 @@ namespace Deenote.UI.Views
             _speedToPlaceSpeedButton.Clicked += () =>
             {
                 if (_selectedNotesSpeed is { } speed)
-                    MainSystem.GamePlayManager.HighlightedNoteSpeed = speed;
+                    _stageContext.HighlightedNoteSpeed = speed;
             };
             MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
                 StageChartEditor.NotificationFlag.NoteSpeed,

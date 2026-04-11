@@ -1,17 +1,10 @@
 #nullable enable
 
 using Deenote.Contexts;
-using Deenote.Core.GamePlay;
-using Deenote.Core.Project;
 using Deenote.CoreB.Notification;
 using Deenote.GameStage;
-using Deenote.GameStage.Themes;
-using Deenote.Library.Components;
-using Newtonsoft.Json.Linq;
-using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace Deenote.Core.GameStage.Themes.Deemo
 {
@@ -25,22 +18,6 @@ namespace Deenote.Core.GameStage.Themes.Deemo
         [SerializeField] DeemoGameStageBackgroundAnimation _backgroundAnimation = default!;
         [SerializeField] TMP_Text _staveMusicNameText = default!;
         [SerializeField] Material _holdBodyCullMaterial = default!;
-
-        [Obsolete]
-        protected internal override void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
-        {
-            base.Initialize(gamePlayManager, projectContext);
-
-            gamePlayManager.RegisterNotification(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                _OnActiveNotesUpdated);
-            projectContext.RegisterNestedPropertyChangedAndInvoke(x => x.CurrentProject, nameof(ProjectContext.CurrentProject), (s, e) =>
-                {
-                    if (e.MatchProperty(nameof(s.MusicName))) {
-                        _staveMusicNameText.text = s.MusicName;
-                    }
-                });
-        }
 
         protected internal override void Initialize(GameStageContext context)
         {
@@ -79,40 +56,6 @@ namespace Deenote.Core.GameStage.Themes.Deemo
                     _staveMusicNameText.text = s.MusicName;
                 }
             });
-        }
-
-        private void OnDestroy()
-        {
-            GamePlay.UnregisterNotification(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                _OnActiveNotesUpdated);
-        }
-
-        [Obsolete]
-        private void _OnActiveNotesUpdated(GamePlayManager manager)
-        {
-            manager.AssertChartLoaded();
-
-            // Update judge line hit effect
-            var previousHitNode = GamePlay.NotesManager.GetPreviousHitNote();
-            if (previousHitNode is null) {
-                _judgeLineEffect.SetHitEffect(null);
-                return;
-            }
-
-            var hitTime = previousHitNode.Time;
-            var deltaTime = manager.MusicPlayer.Time - hitTime;
-            Debug.Assert(deltaTime >= 0);
-
-            _judgeLineEffect.SetHitEffect(deltaTime);
-        }
-
-        [Obsolete]
-        private void OnVisiblaRangeCullingRatioChanged(float value)
-        {
-            var time = NoteActiveAheadTime * value;
-            var z = GamePlay.Stage.EvaluateNoteWorldZ(time);
-            _holdBodyCullMaterial.SetFloat(HoldCullMaxZPropertyId, z);
         }
 
         public override void ApplyCameraTargetTexture(RenderTexture renderTexture)

@@ -21,6 +21,7 @@ namespace Deenote.Core.GamePlay
 {
     public sealed partial class GamePlayManager : FlagNotifiableMonoBehaviour<GamePlayManager, GamePlayManager.NotificationFlag>
     {
+        internal GamePlayManagerB _b;
         internal GamePlayContext _context;
         internal GameStageContext _stageContext;
         internal ProjectContext _projectContext;
@@ -54,11 +55,14 @@ namespace Deenote.Core.GamePlay
         public float StagePlaySpeed
             => _manualPlaySpeedMultiplier ?? MusicPlayer.Pitch;
 
+        [Obsolete]
         public void SetManualPlaySpeed(float? manualPlaySpeed)
         {
+            _b.SetManualPlaySpeed(manualPlaySpeed);
+            return;
             if (manualPlaySpeed is { } speed) {
                 if (speed == 0f) {
-                    MusicPlayer.Pitch = ActualMusicSpeed;
+                    //MusicPlayer.Pitch = ActualMusicSpeed;
                     MusicPlayer.Stop();
                 }
                 else {
@@ -67,15 +71,15 @@ namespace Deenote.Core.GamePlay
                 _manualPlaySpeedMultiplier = speed;
             }
             else {
-                _musicPlayer.Pitch = ActualMusicSpeed;
+                //_musicPlayer.Pitch = ActualMusicSpeed;
                 _manualPlaySpeedMultiplier = null;
             }
         }
 
         private void Awake()
         {
-            _gridsManager = new GridsManager(this, MainSystem.StageChartEditor, _projectContext);
-            _pianoSoundPlayer = new StagePianoSoundPlayer(MainSystem.PianoSoundSource);
+            //_gridsManager = new GridsManager(this, MainSystem.StageChartEditor, _projectContext, _stageContext);
+            // _pianoSoundPlayer = new StagePianoSoundPlayer(MainSystem.PianoSoundSource);
             _notesManager = new NotesManager(this);
 
             return;
@@ -231,12 +235,12 @@ namespace Deenote.Core.GamePlay
                 MusicPlayer.Nudge(Time.deltaTime * manuallPlaySpeed);
         }
 
-        private void OnApplicationFocus(bool focus)
-        {
-            if (!focus && PauseWhenLoseFocus) {
-                MusicPlayer.Stop();
-            }
-        }
+        //private void OnApplicationFocus(bool focus)
+        //{
+        //    if (!focus && PauseWhenLoseFocus) {
+        //        MusicPlayer.Stop();
+        //    }
+        //}
 
         public void UpdateNotes(bool noteCollectionChangedOrNoteTimeRelatedPropertyChanged, bool notesVisualDataChanged)
         {
@@ -274,7 +278,7 @@ namespace Deenote.Core.GamePlay
             NotifyFlag(NotificationFlag.CurrentChart);
         }
 
-        public void UnloadChart()
+        private void UnloadChart()
         {
             MusicPlayer.Stop();
             NotifyFlag(NotificationFlag.CurrentChart);

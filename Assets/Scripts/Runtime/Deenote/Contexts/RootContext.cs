@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core;
+using Deenote.Editing;
 using Deenote.GamePlay;
 using Deenote.GameStage;
 
@@ -9,7 +10,7 @@ namespace Deenote.Contexts
     public sealed class RootContext
     {
         public ProjectContext Project { get; }
-        internal EditorContext Editor { get; }
+        public EditorContext Editor { get; }
         public EnvironmentContext Environment { get; }
         public GamePlayContext GamePlay { get; }
         public GameStageContext GameStage { get; }
@@ -18,7 +19,7 @@ namespace Deenote.Contexts
         {
             Environment = new EnvironmentContext(storage);
             Project = new ProjectContext();
-            Editor = new EditorContext(Project);
+            Editor = new EditorContext(Project, storage);
             GamePlay = new GamePlayContext(Project, storage);
             GameStage = new GameStageContext(Project, GamePlay, storage);
         }

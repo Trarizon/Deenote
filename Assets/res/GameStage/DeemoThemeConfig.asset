@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: Deemo
   Name: Deemo
   GameStageConfig: {fileID: 11400000, guid: ed64e606f86dc004d986c5e0d42e23b2, type: 2}
+  GridLineConfig: {fileID: 11400000, guid: b8e1f79bee10f584098d3a67c3a07631, type: 2}
   SceneReference:
     m_AssetGUID: d4a89fd2d46a2b146a998daa8bc966c6
     m_SubObjectName: 

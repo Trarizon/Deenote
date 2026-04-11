@@ -3,6 +3,9 @@
 using CommunityToolkit.Diagnostics;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library.Components;
 using Deenote.UIFramework.Controls;
 using UnityEngine;
@@ -11,6 +14,9 @@ namespace Deenote.UI.Views
 {
     public sealed class PlayerNavigationPageView : MonoBehaviour
     {
+        private GamePlayContext _gamePlayContext;
+        private GameStageContext _stageContext;
+
         [SerializeField] Dropdown _aspectRatioDropdown = default!;
         [SerializeField] Button _fullScreenButton = default!;
         [SerializeField] NumericStepper _noteSpeedNumericStepper = default!;
@@ -25,6 +31,12 @@ namespace Deenote.UI.Views
         [SerializeField] ToggleSwitch _linksIndicatorToggle = default!;
         [SerializeField] ToggleSwitch _placementIndicatorToggle = default!;
         [SerializeField] ToggleSwitch _earlyDisplaySlowNotesToggle = default!;
+
+        private void Awake()
+        {
+            _gamePlayContext = MainSystem.Contexts.GamePlay;
+            _stageContext = MainSystem.Contexts.GameStage;
+        }
 
         private void Start()
         {
@@ -53,74 +65,83 @@ namespace Deenote.UI.Views
 
             _noteSpeedNumericStepper.SetInputParser(static input => float.TryParse(input, out var val) ? Mathf.RoundToInt(val * 10f) : null);
             _noteSpeedNumericStepper.SetDisplayerTextSelector(static ival => $"{ival / 10}.{ival % 10}");
-            _noteSpeedNumericStepper.ValueChanged += val => MainSystem.GamePlayManager.NoteFallSpeed = val;
-            _musicVolumeSlider.ValueChanged += val => MainSystem.GamePlayManager.MusicVolume = val;
+            _noteSpeedNumericStepper.ValueChanged += val => _stageContext.NoteFallSpeed = val;
+            _musicVolumeSlider.ValueChanged += val => _gamePlayContext.MusicVolume = val;
             _musicVolumeInput.EditSubmitted += input =>
             {
                 if (int.TryParse(input, out var ival))
-                    MainSystem.GamePlayManager.MusicVolume = Mathf.Clamp01(ival / 100f);
+                    _gamePlayContext.MusicVolume = Mathf.Clamp01(ival / 100f);
                 else
-                    Sync01Range(_musicVolumeInput, _musicVolumeSlider, MainSystem.GamePlayManager.MusicVolume);
+                    Sync01Range(_musicVolumeInput, _musicVolumeSlider, _gamePlayContext.MusicVolume);
             };
-            _effectVolumeSlider.ValueChanged += val => MainSystem.GamePlayManager.HitSoundVolume = val;
+            _effectVolumeSlider.ValueChanged += val => _gamePlayContext.HitSoundVolume = val;
             _effectVolumeInput.EditSubmitted += input =>
             {
                 if (int.TryParse(input, out var ival))
-                    MainSystem.GamePlayManager.HitSoundVolume = Mathf.Clamp01(ival / 100f);
+                    _gamePlayContext.HitSoundVolume = Mathf.Clamp01(ival / 100f);
                 else
-                    Sync01Range(_effectVolumeInput, _effectVolumeSlider, MainSystem.GamePlayManager.HitSoundVolume);
+                    Sync01Range(_effectVolumeInput, _effectVolumeSlider, _gamePlayContext.HitSoundVolume);
             };
-            _pianoVolumeSlider.ValueChanged += val => MainSystem.GamePlayManager.PianoVolume = val;
+            _pianoVolumeSlider.ValueChanged += val => _gamePlayContext.PianoVolume = val;
             _pianoVolumeInput.EditSubmitted += input =>
             {
                 if (int.TryParse(input, out var ival))
-                    MainSystem.GamePlayManager.PianoVolume = Mathf.Clamp01(ival / 100f);
+                    _gamePlayContext.PianoVolume = Mathf.Clamp01(ival / 100f);
                 else
-                    Sync01Range(_pianoVolumeInput, _pianoVolumeSlider, MainSystem.GamePlayManager.PianoVolume);
+                    Sync01Range(_pianoVolumeInput, _pianoVolumeSlider, _gamePlayContext.PianoVolume);
             };
-            _suddenPlusSlider.ValueChanged += val => MainSystem.GamePlayManager.SuddenPlus = val;
+            _suddenPlusSlider.ValueChanged += val => _stageContext.SuddenPlus = val;
             _suddenPlusInput.EditSubmitted += input =>
             {
                 if (int.TryParse(input, out var ival))
-                    MainSystem.GamePlayManager.SuddenPlus = Mathf.Clamp01(ival / 100f);
+                    _stageContext.SuddenPlus = Mathf.Clamp01(ival / 100f);
                 else
-                    Sync01Range(_suddenPlusInput, _suddenPlusSlider, MainSystem.GamePlayManager.SuddenPlus);
+                    Sync01Range(_suddenPlusInput, _suddenPlusSlider, _stageContext.SuddenPlus);
             };
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.NoteSpeed,
-                manager => _noteSpeedNumericStepper.Value = manager.NoteFallSpeed);
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.MusicVolume,
-                manager => Sync01Range(_musicVolumeInput, _musicVolumeSlider, manager.MusicVolume));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.HitSoundVolume,
-                manager => Sync01Range(_effectVolumeInput, _effectVolumeSlider, manager.HitSoundVolume));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.PianoVolume,
-                manager => Sync01Range(_pianoVolumeInput, _pianoVolumeSlider, manager.PianoVolume));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                manager => Sync01Range(_suddenPlusInput, _suddenPlusSlider, manager.SuddenPlus));
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.NoteFallSpeed))) {
+                    _noteSpeedNumericStepper.Value = s.NoteFallSpeed;
+                }
+                if (e.MatchProperty(nameof(s.SuddenPlus))) {
+                    Sync01Range(_suddenPlusInput, _suddenPlusSlider, s.SuddenPlus);
+                }
+            });
+            _gamePlayContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.MusicVolume))) {
+                    Sync01Range(_musicVolumeInput, _musicVolumeSlider, s.MusicVolume);
+                }
+                if (e.MatchProperty(nameof(s.HitSoundVolume))) {
+                    Sync01Range(_effectVolumeInput, _effectVolumeSlider, s.HitSoundVolume);
+                }
+                if (e.MatchProperty(nameof(s.PianoVolume))) {
+                    Sync01Range(_pianoVolumeInput, _pianoVolumeSlider, s.PianoVolume);
+                }
+            });
 
             #endregion
 
-            _linksIndicatorToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsShowLinkLines = val;
+            _linksIndicatorToggle.IsCheckedChanged += val => _stageContext.IsShowLinkLines = val;
             _placementIndicatorToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.IsIndicatorOn = val;
-            _earlyDisplaySlowNotesToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.EarlyDisplaySlowNotes = val;
+            _earlyDisplaySlowNotesToggle.IsCheckedChanged += val => _stageContext.IsEarlyDisplaySlowNotes = val;
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.IsShowLinkLines,
-                manager => _linksIndicatorToggle.SetIsCheckedWithoutNotify(manager.IsShowLinkLines));
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.IsShowLinkLines))) {
+                    _linksIndicatorToggle.SetIsCheckedWithoutNotify(s.IsShowLinkLines);
+                }
+                if (e.MatchProperty(nameof(s.IsEarlyDisplaySlowNotes))) {
+                    _earlyDisplaySlowNotesToggle.SetIsCheckedWithoutNotify(s.IsEarlyDisplaySlowNotes);
+                }
+            });
             MainSystem.StageChartEditor.Placer.RegisterNotificationAndInvoke(
                 StageNotePlacer.NotificationFlag.IsIndicatorOn,
                 placer => _placementIndicatorToggle.SetIsCheckedWithoutNotify(placer.IsIndicatorOn));
-            MainSystem.GamePlayManager.RegisterNotification(
-                GamePlayManager.NotificationFlag.EarlyDisplaySlowNotes,
-                manager => _earlyDisplaySlowNotesToggle.SetIsCheckedWithoutNotify(manager.EarlyDisplaySlowNotes));
         }
 
-        private static readonly string[] _predefinedAspectTexts = { "16:9","16:10", "4:3" };
+        private static readonly string[] _predefinedAspectTexts = { "16:9", "16:10", "4:3" };
 
         private static float GetAspectRatioDropdownOption(int optionIndex)
             => optionIndex switch {

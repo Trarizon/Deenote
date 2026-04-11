@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace Deenote.GameStage
 {
+    // REFACTOR: 感觉应该放在PlaneController或者哪里，不应该是singleton
     internal sealed class GameStageNotesManager
     {
         private readonly GameStageContext _stage;
@@ -32,7 +33,7 @@ namespace Deenote.GameStage
                         note.RefreshLinkLine();
                     }
                 }
-                if (e.MatchProperty(nameof(s.IsDistinguishPianoNotes))) {
+                if (e.MatchProperty(nameof(s.IsPianoNotesDistinguished))) {
                     foreach (var note in _notes) {
                         note.RefreshVisual();
                     }

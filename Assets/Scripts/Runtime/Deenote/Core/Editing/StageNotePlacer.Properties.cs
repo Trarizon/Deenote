@@ -77,7 +77,7 @@ namespace Deenote.Core.Editing
 
         public float PlacingNoteSpeed
         {
-            get => _placingNoteSpeed ?? _editor._game.HighlightedNoteSpeed;
+            get => _placingNoteSpeed ?? _stageContext.HighlightedNoteSpeed;
         }
 
         private void SetPlacingNoteSpeed(float? value, bool forceUpdateAndNotify)

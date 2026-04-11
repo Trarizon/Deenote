@@ -5,7 +5,7 @@ using Deenote.Core;
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
 using Deenote.Core.Project;
-using Deenote.Editing;
+using Deenote.Editing.NoteSelection;
 using Deenote.Library.Components;
 using System.Collections.Immutable;
 using UnityEngine;

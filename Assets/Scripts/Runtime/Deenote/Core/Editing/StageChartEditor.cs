@@ -9,9 +9,11 @@ using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Models.Notes.Comparers;
 using Deenote.CoreB.Notification;
+using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Assertions;
 using Deenote.Editing.Operations;
+using Deenote.GameStage;
 using Deenote.Library.Components;
 using Deenote.ProjectManagement;
 using System;
@@ -24,6 +26,7 @@ namespace Deenote.Core.Editing
     public sealed partial class StageChartEditor : FlagNotifiableMonoBehaviour<StageChartEditor, StageChartEditor.NotificationFlag>
     {
         private ProjectContext _projectContext = default!;
+        internal EditorContext _context = default!;
 
         internal ProjectManager _project = default!;
         internal GamePlayManager _game = default!;
@@ -37,6 +40,7 @@ namespace Deenote.Core.Editing
         private void Awake()
         {
             _projectContext = MainSystem.Contexts.Project;
+            _context = MainSystem.Contexts.Editor;
             _operations = new();
 
             Awake_ClipBoard();
@@ -66,12 +70,12 @@ namespace Deenote.Core.Editing
             });
         }
 
-        internal void OnInstantiate(ProjectManager project, GamePlayManager game)
+        internal void OnInstantiate(ProjectManager project, GamePlayManager game, GameStageContext stageContext)
         {
             _project = project;
             _game = game;
 
-            Placer = new StageNotePlacer(this);
+            Placer = new StageNotePlacer(this, stageContext);
             Selector = new StageNoteSelector(game);
 
             //_project.RegisterNotification(
@@ -178,8 +182,11 @@ namespace Deenote.Core.Editing
         {
             if (!_game.IsChartLoaded())
                 return;
-            if (_game.Grids.CurveTimeInterval is not (var start, var end))
+            var curves = _context.Grids.Curves;
+            if (!curves.IsCurveOn)
                 return;
+            //if (_game.Grids.CurveTimeInterval is not (var start, var end))
+            //    return;
 
             bool applySize = false, applySpeed = false;
             foreach (var apply in applyProperties) {
@@ -192,14 +199,14 @@ namespace Deenote.Core.Editing
             using var so_notes = SpanOwner<NoteData>.Allocate(count);
             var notes = so_notes.Span;
             for (int i = 0; i < count; i++) {
-                var time = Mathf.Lerp(start, end, (float)(i + 1) / (count + 1));
-                var pos = _game.Grids.GetCurveTransformedPosition(time)!.Value; // Wont be null as CurveTimeInterval is not null
+                var time = Mathf.Lerp(curves.StartTime, curves.EndTime, (float)(i + 1) / (count + 1));
+                var pos = curves.PositionCurve.GetValue(time)!.Value; // Wont be null as CurveTimeInterval is not null
                 var note = notes[i] = Placer.ClonePlaceNotePrototype();
                 note.PositionCoord = new(pos, time);
                 if (applySize)
-                    note.Size = _game.Grids.GetCurveTransformedValue(time, GridsManager.CurveApplyProperty.Size)!.Value;
+                    note.Size = curves.SizeCurve.GetValue(time)!.Value;
                 if (applySpeed)
-                    note.Speed = _game.Grids.GetCurveTransformedValue(time, GridsManager.CurveApplyProperty.Speed)!.Value;
+                    note.Speed = curves.SpeedCurve.GetValue(time)!.Value;
             }
             AddMultipleNotes(notes);
         }

@@ -1,10 +1,6 @@
 #nullable enable
 
-using Deenote.Core.GameStage;
-using Deenote.CoreB.Models.Notes;
-using Deenote.GamePlay;
-using Deenote.Library;
-using UnityEngine;
+using System;
 
 namespace Deenote.Core.GamePlay
 {
@@ -61,6 +57,7 @@ namespace Deenote.Core.GamePlay
         /// <br/>
         /// The value is also the default value when place note by editor
         /// </summary>
+        [Obsolete]
         public float HighlightedNoteSpeed
         {
             get => _stageContext.HighlightedNoteSpeed;
@@ -70,6 +67,7 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete("剩余引用应该可以直接删")]
         public bool IsApplySpeedDifference
         {
             get => _stageContext.IsApplySpeedDifference;
@@ -79,6 +77,7 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete()]
         public bool IsFilterNoteSpeed
         {
             get => _stageContext.IsFilterNoteSpeed;
@@ -86,16 +85,6 @@ namespace Deenote.Core.GamePlay
                 _stageContext.IsApplySpeedDifference = value;
                 NotifyFlag(NotificationFlag.IsFilterNoteSpeed);
             }
-        }
-
-        public bool IsNoteHighlighted(INoteSpeed note)
-        {
-            return !IsFilterNoteSpeed || Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
-        }
-
-        public bool IsNoteDownplayed(INoteSpeed note)
-        {
-            return IsFilterNoteSpeed && !Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
         }
 
         #region Stage
@@ -106,6 +95,7 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [5, 95], display [0.5, 9.5]
         /// </summary>
+        [Obsolete]
         public int NoteFallSpeed
         {
             get => _stageContext.NoteFallSpeed;
@@ -115,8 +105,7 @@ namespace Deenote.Core.GamePlay
             }
         }
 
-        public float ActualNoteFallSpeed => ConvertToActualNoteSpeed(NoteFallSpeed);
-
+        [Obsolete]
         public bool IsShowLinkLines
         {
             get => _stageContext.IsShowLinkLines;
@@ -126,15 +115,17 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete]
         public bool IsPianoNotesDistinguished
         {
-            get => _stageContext.IsDistinguishPianoNotes;
+            get => _stageContext.IsPianoNotesDistinguished;
             set {
-                _stageContext.IsDistinguishPianoNotes = value;
+                _stageContext.IsPianoNotesDistinguished = value;
                 NotifyFlag(NotificationFlag.DistinguishPianoNotes);
             }
         }
 
+        [Obsolete]
         public bool IsStageEffectOn
         {
             get => _stageContext.IsStageEffectOn;
@@ -147,6 +138,7 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [0, 1]
         /// </summary>
+        [Obsolete]
         public float SuddenPlus
         {
             get => _stageContext.SuddenPlus;
@@ -163,6 +155,7 @@ namespace Deenote.Core.GamePlay
         /// <br/>
         /// 
         /// </remarks>
+        [Obsolete]
         public bool EarlyDisplaySlowNotes
         {
             get => _stageContext.IsEarlyDisplaySlowNotes;
@@ -172,6 +165,7 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete]
         public bool PauseWhenLoseFocus
         {
             get => _context.PauseWhenLoseFocus;
@@ -191,6 +185,7 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [1, 30], representing [0.1, 3.0]
         /// </summary>
+        [Obsolete]
         public int MusicSpeed
         {
             get => _context.MusicSpeed;
@@ -203,11 +198,10 @@ namespace Deenote.Core.GamePlay
             }
         }
 
-        public float ActualMusicSpeed => ConvertToActualMusicSpeed(MusicSpeed);
-
         /// <summary>
         /// Range [0,1]
         /// </summary>
+        [Obsolete]
         public float HitSoundVolume
         {
             get => _context.HitSoundVolume;
@@ -221,6 +215,7 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [0,1]
         /// </summary>
+        [Obsolete]
         public float MusicVolume
         {
             get => _context.MusicVolume;
@@ -234,6 +229,7 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [0,1]
         /// </summary>
+        [Obsolete]
         public float PianoVolume
         {
             get => _context.PianoVolume;

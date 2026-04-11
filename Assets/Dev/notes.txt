@@ -1,9 +1,12 @@
-# NOTES
+# NOTES of refactoring
 
 - MenuNavigationPageView.MenuCreateNewProjectAsync
   - 因为音频加载挪到ProjectEditorModel里了，现在新建后会直接关掉新建窗口，然后才开始加载音频
 - Undo的设计打算改，不只撤销当前谱面了，改成撤销其他谱面加提醒
   - 现在InputManager里的chart传的是null，这个不对
+
+- 更新：限制纵格线最小值为2
+- 更新：在bpm为0（即未定义bpm）的范围内，不吸附横格线
 
 # Code comments
 // Note

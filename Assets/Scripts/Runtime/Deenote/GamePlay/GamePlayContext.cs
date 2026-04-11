@@ -2,11 +2,9 @@
 
 using Deenote.Contexts;
 using Deenote.Core;
-using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
 using Deenote.Library;
 using System;
-using UnityEngine;
 
 namespace Deenote.GamePlay
 {

@@ -116,7 +116,7 @@ namespace Deenote.Core.GamePlay
                         _timeGridLines.Add(new TimeGridLineData(beatTime - currentTime, kind));
                     }
                     for (int i = 1; i < TimeGridSubBeatCount; i++) {
-                        var subBeatTime = tempo.GetSubBeatTime(beatIndex + (float)i / TimeGridSubBeatCount);
+                        var subBeatTime = tempo.GetSubdivisionTime(beatIndex + (float)i / TimeGridSubBeatCount);
                         if (subBeatTime <= currentTime)
                             continue;
                         if (subBeatTime >= nextTime - minSubBeatInterval)
@@ -161,10 +161,10 @@ namespace Deenote.Core.GamePlay
 
             float GetPrevSubBeatTime()
             {
-                float prevSubBeatTime = tempo.GetSubBeatTime(beatIndex + (float)subBeatIndex / TimeGridSubBeatCount);
+                float prevSubBeatTime = tempo.GetSubdivisionTime(beatIndex + (float)subBeatIndex / TimeGridSubBeatCount);
                 if (prevSubBeatTime > nextTempoTime - (Tempo.MinBeatLineInterval / TimeGridSubBeatCount)) {
                     subBeatIndex--;
-                    return tempo.GetSubBeatTime(beatIndex + (float)subBeatIndex / TimeGridSubBeatCount);
+                    return tempo.GetSubdivisionTime(beatIndex + (float)subBeatIndex / TimeGridSubBeatCount);
                 }
                 return prevSubBeatTime;
             }
@@ -172,7 +172,7 @@ namespace Deenote.Core.GamePlay
             float GetNextSubBeatTime()
             {
                 float nextSubBeatTime =
-                    tempo.GetSubBeatTime(beatIndex + (float)(subBeatIndex + 1) / TimeGridSubBeatCount);
+                    tempo.GetSubdivisionTime(beatIndex + (float)(subBeatIndex + 1) / TimeGridSubBeatCount);
                 if (nextSubBeatTime > nextTempoTime - (Tempo.MinBeatLineInterval / TimeGridSubBeatCount)) {
                     // Here next subBeatTime not rendered, so we use nextTempoTime
                     return nextTempoTime;
@@ -223,12 +223,12 @@ namespace Deenote.Core.GamePlay
 
             float prevBeatDelta = time - prevBeatTime;
             int prevSubBeatIndex = Mathf.CeilToInt(prevBeatDelta * TimeGridSubBeatCount / tempo.BeatInterval) - 1;
-            float prevSubBeatTime = tempo.GetSubBeatTime(prevBeatIndex + (float)prevSubBeatIndex / TimeGridSubBeatCount);
+            float prevSubBeatTime = tempo.GetSubdivisionTime(prevBeatIndex + (float)prevSubBeatIndex / TimeGridSubBeatCount);
 
             // Floating-point error handling
             if (Mathf.Approximately(prevSubBeatTime, time)) {
                 prevSubBeatIndex--;
-                prevSubBeatTime = tempo.GetSubBeatTime(prevBeatIndex + (float)prevSubBeatIndex / TimeGridSubBeatCount);
+                prevSubBeatTime = tempo.GetSubdivisionTime(prevBeatIndex + (float)prevSubBeatIndex / TimeGridSubBeatCount);
             }
 
             if (time - prevSubBeatTime <= TimeGridMinEqualityThreshold)
@@ -238,7 +238,7 @@ namespace Deenote.Core.GamePlay
                 // the diff of old and new prevSubBeatIndex should be minSubBeatLineInterval,
                 // so here we needn't while, maybe.
                 prevSubBeatIndex--;
-                prevSubBeatTime = tempo.GetSubBeatTime(prevBeatIndex + (float)prevSubBeatIndex / TimeGridSubBeatCount);
+                prevSubBeatTime = tempo.GetSubdivisionTime(prevBeatIndex + (float)prevSubBeatIndex / TimeGridSubBeatCount);
             }
 
             return prevSubBeatTime;
@@ -283,12 +283,12 @@ namespace Deenote.Core.GamePlay
 
             float prevBeatDelta = time - prevBeatTime;
             int nextSubBeatIndex = Mathf.FloorToInt(prevBeatDelta * TimeGridSubBeatCount / tempo.BeatInterval) + 1;
-            float nextSubBeatTime = tempo.GetSubBeatTime(prevBeatIndex + (float)nextSubBeatIndex / TimeGridSubBeatCount);
+            float nextSubBeatTime = tempo.GetSubdivisionTime(prevBeatIndex + (float)nextSubBeatIndex / TimeGridSubBeatCount);
 
             // Floating-point error handling
             if (Mathf.Approximately(nextSubBeatTime, time)) {
                 nextSubBeatIndex++;
-                nextSubBeatTime = tempo.GetSubBeatTime(prevBeatIndex + (float)nextSubBeatIndex / TimeGridSubBeatCount);
+                nextSubBeatTime = tempo.GetSubdivisionTime(prevBeatIndex + (float)nextSubBeatIndex / TimeGridSubBeatCount);
             }
 
             if (time >= nextSubBeatTime - TimeGridMinEqualityThreshold)

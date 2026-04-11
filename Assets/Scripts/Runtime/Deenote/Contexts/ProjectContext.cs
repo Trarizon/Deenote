@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.CoreB.Notification;
+using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using System;
 using System.Linq;
@@ -42,14 +43,12 @@ namespace Deenote.Contexts
                 PropertyChanged?.Invoke(this, new(nameof(CurrentChart)));
             }
         }
-        internal EditorContext EditorContext { get; }
 
         public event Action<ProjectContext, PropertyEventArgs>? PropertyChanged;
         public event Action<ProjectContext, PropertyEventArgs>? PropertyChanging;
 
         public ProjectContext()
         {
-            EditorContext = new EditorContext(this);
         }
 
         private void NotifyChanged_Project(ProjectEditorModel? s, PropertyEventArgs e)

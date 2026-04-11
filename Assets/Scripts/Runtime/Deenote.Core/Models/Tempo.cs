@@ -58,7 +58,7 @@ namespace Deenote.CoreB.Models
             return StartTime + beatIndex * 60 / Bpm;
         }
 
-        public readonly float GetSubBeatTime(float beatIndex)
+        public readonly float GetSubdivisionTime(float beatIndex)
         {
             if (Bpm == 0f) {
                 return beatIndex switch {
