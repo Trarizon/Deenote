@@ -53,6 +53,7 @@ NavPanel_ChartRemapVolume_Label=重映射音量
 Nav_Player=播放器
 NavPanel_Player_Header=播放器
 NavPanel_View_Label=预览视图
+NavPanel_Scale_Label=渲染倍率
 NavPanel_PlayerNoteFallSpeed_Label=音符下落速度
 NavPanel_MusicVolume_Label=音乐音量
 NavPanel_EffectVolume_Label=音效音量
@@ -605,9 +606,13 @@ Dialog_AboutTurorials_Page_UpgradeGuide_Content="""
 
 AboutDialog_Versions_Dnt_1_0=Deenote 1.0
 AboutDialog_Versions_Dnt_1_0_Content="""
+    <b>Deenote 1.0.8</b>
+    - 修复播放时谱面音符移动不连续、看起来卡顿的问题。 @芋圆
+    - 修复高 DPI / Canvas 缩放下 RenderTexture 分辨率偏低的问题。添加渲染倍率设置项。 @芋圆
+
     <b>Deenote 1.0.7</b>
     - 修复格线渲染引起的内存泄漏
-
+    
     <b>Deenote 1.0.6</b>
 
     - 修复了删除最后一张谱面时，预览界面未更新的bug

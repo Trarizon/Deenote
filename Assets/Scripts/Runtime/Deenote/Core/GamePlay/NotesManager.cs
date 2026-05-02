@@ -468,5 +468,11 @@ namespace Deenote.Core.GamePlay
             public int CompareTo(IGameStageNoteNode other)
                 => Comparer<float>.Default.Compare(_time, _manager._game.Stage!.EvaluateNoteActiveTime(other));
         }
+        internal void RefreshStageNoteTimeDisplay()
+        {
+            foreach (var note in _trackingNotesInTimeOrder) {
+                note.RefreshStageDeltaTime();
+            }
+        }
     }
 }

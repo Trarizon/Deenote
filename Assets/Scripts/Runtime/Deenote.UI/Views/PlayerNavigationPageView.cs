@@ -18,6 +18,7 @@ namespace Deenote.UI.Views
         private GameStageContext _stageContext;
 
         [SerializeField] Dropdown _aspectRatioDropdown = default!;
+        [SerializeField] Dropdown _renderScaleDropdown = default!;
         [SerializeField] Button _fullScreenButton = default!;
         [SerializeField] NumericStepper _noteSpeedNumericStepper = default!;
         [SerializeField] Slider _musicVolumeSlider = default!;
@@ -53,6 +54,19 @@ namespace Deenote.UI.Views
 
             _fullScreenButton.Clicked += () => MainWindow.Views.PerspectiveViewPanelView.SetIsFullScreen(true);
 
+            _renderScaleDropdown.ResetOptions(_predefinedRenderScaleTexts);
+            _renderScaleDropdown.SelectedIndexChanged += val =>
+            {
+                if (val >= 0)
+                    MainWindow.Views.PerspectiveViewPanelView.RenderScale =
+                        GetRenderScaleDropdownOption(val);
+            };
+
+            MainWindow.Views.PerspectiveViewPanelView.RenderScaleChanged += val =>
+                _renderScaleDropdown.SetValueWithoutNotify(GetRenderScaleDropdownIndex(val));
+
+            _renderScaleDropdown.SetValueWithoutNotify(
+                GetRenderScaleDropdownIndex(MainWindow.Views.PerspectiveViewPanelView.RenderScale));
             #endregion
 
             #region NoteSpeed Volumes Sudden+
@@ -158,5 +172,43 @@ namespace Deenote.UI.Views
                 4f / 3f => 2,
                 _ => -1,
             };
+
+        private static readonly string[] _predefinedRenderScaleTexts =
+        {
+            "0.5x",
+            "0.75x",
+            "1.0x",
+            "1.25x",
+            "1.5x",
+            "2.0x",
+        };
+
+        private static readonly float[] _predefinedRenderScales =
+        {
+            0.5f,
+            0.75f,
+            1.0f,
+            1.25f,
+            1.5f,
+            2.0f,
+        };
+
+        private static float GetRenderScaleDropdownOption(int optionIndex)
+        {
+            if ((uint)optionIndex >= (uint)_predefinedRenderScales.Length)
+                return ThrowHelper.ThrowInvalidOperationException<float>();
+
+            return _predefinedRenderScales[optionIndex];
+        }
+
+        private static int GetRenderScaleDropdownIndex(float option)
+        {
+            for (int i = 0; i < _predefinedRenderScales.Length; i++) {
+                if (Mathf.Approximately(option, _predefinedRenderScales[i]))
+                    return i;
+            }
+
+            return -1;
+        }
     }
 }
