@@ -223,7 +223,7 @@ namespace Deenote.Inputting
         private void RegisterNoteEdit()
         {
             var actions = _inputActions.NoteEdit;
-            actions.SelectAllNotes.started += _ => _ceditor.Selector.SelectAll();
+            // actions.SelectAllNotes.started += _ => _ceditor.Selector.SelectAll();
             actions.RemoveSelectedNotes.started += _ => _editor.RemoveSelectedNotes();
             actions.Copy.started += _ => _ceditor.CopySelectedNotes();
             actions.Cut.started += _ => _ceditor.CutSelectedNotes();
@@ -265,11 +265,11 @@ namespace Deenote.Inputting
             actions.DurationIncByGrid.started += _ => _editor.EditNotesEndTime(_selection.SelectedNotes, t => _grids.TimeGrids.CeilToNearestNextGrid(t).Value ?? t);
             actions.CreateHoldBetween.started += _ =>
             {
-                if (_ceditor.Selector.SelectedNotes.Length != 2)
+                if (_selection.SelectedNotes.Length != 2)
                     return;
 
-                var prev = _ceditor.Selector.SelectedNotes[0];
-                var next = _ceditor.Selector.SelectedNotes[1];
+                var prev = _selection.SelectedNotes[0];
+                var next = _selection.SelectedNotes[1];
 
                 _editor.CreateHoldBetween(prev, next);
             };

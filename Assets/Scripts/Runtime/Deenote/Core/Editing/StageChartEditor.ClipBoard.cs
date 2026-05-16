@@ -19,16 +19,16 @@ namespace Deenote.Core.Editing
 
         public void CopySelectedNotes()
         {
-            if (Selector.SelectedNotes.IsEmpty)
+            if (_context.NoteSelection.SelectedNotes.IsEmpty)
                 return;
 
             Placer.CancelPlaceNote();
-            using var so_notes = SpanOwner<NoteData>.Allocate(Selector.SelectedNotes.Length);
+            using var so_notes = SpanOwner<NoteData>.Allocate(_context.NoteSelection.SelectedNotes.Length);
             var notes = so_notes.Span;
             for (int i = 0; i < notes.Length; i++) {
-                notes[i] = Selector.SelectedNotes[i].ToDataNonLinkInfo();
+                notes[i] = _context.NoteSelection.SelectedNotes[i].ToDataNonLinkInfo();
             }
-            NoteLinkHelpers.CloneLinkInfos(Selector.SelectedNotes, notes);
+            NoteLinkHelpers.CloneLinkInfos(_context.NoteSelection.SelectedNotes, notes);
         }
 
         public void CutSelectedNotes()

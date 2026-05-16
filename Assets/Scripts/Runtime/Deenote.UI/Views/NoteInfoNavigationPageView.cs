@@ -3,6 +3,7 @@
 using CommunityToolkit.Diagnostics;
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using Deenote.GameStage;
@@ -253,12 +254,9 @@ namespace Deenote.UI.Views
 
             #endregion
 
-            MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanged;
-            _OnSelectedNotesChanged(MainSystem.StageChartEditor.Selector);
-
-            void _OnSelectedNotesChanged(StageNoteSelector selector)
+            _editorContext.NoteSelection.RegisterPropertyChangedAndInvoke((s, e) =>
             {
-                var notes = selector.SelectedNotes;
+                var notes = s.SelectedNotes;
 
                 _linkAsHoldButton.IsInteractable = notes.Length == 2;
 
@@ -315,7 +313,7 @@ namespace Deenote.UI.Views
                         NotifyMultiBoolValueChanged(_vibrateCheckBox, notes, n => n.Vibrate);
                         break;
                 }
-            }
+            });
 
             void SetControlsActive(bool active)
             {

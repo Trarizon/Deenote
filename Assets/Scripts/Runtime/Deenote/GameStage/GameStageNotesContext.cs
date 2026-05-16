@@ -3,12 +3,14 @@
 using Deenote.Contexts;
 using Deenote.CoreB;
 using Deenote.CoreB.Notification;
+using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Comparing;
 using Deenote.GamePlay;
 using Deenote.GameStage.Models;
 using Deenote.Library;
 using Deenote.Library.Collections;
+using Deenote.Library.Components;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -67,7 +69,7 @@ namespace Deenote.GameStage
 
         public ReadOnlySpan<NoteEditorModel> ActiveNotes => _trackingNotes.AsSpan();
 
-        public GameStageNotesContext(GameStageContext stage, ProjectContext project, GamePlayContext gamePlay)
+        public GameStageNotesContext(GameStageContext stage, ProjectContext project, GamePlayContext gamePlay, EditorContext editor)
         {
             _stage = stage;
             _project = project;
@@ -96,6 +98,11 @@ namespace Deenote.GameStage
                     RefreshActiveVisibleNotes();
                 }
             });
+
+            editor.NoteSelection.SelectedNotesChanged += (s, e) =>
+            {
+                RefreshActiveVisibleNotes();
+            };
         }
 
         /// <returns>

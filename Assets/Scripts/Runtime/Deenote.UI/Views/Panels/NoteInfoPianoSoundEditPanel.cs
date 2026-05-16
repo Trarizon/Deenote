@@ -2,6 +2,7 @@
 
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using Deenote.Library;
@@ -91,45 +92,41 @@ namespace Deenote.UI.Views.Panels
         {
             MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
                 StageChartEditor.NotificationFlag.NoteSounds, _OnSelectedNotesSoundsChanged);
-            MainSystem.StageChartEditor.Selector.SelectedNotesChanging += _OnSelectedNotesChanging;
-            MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanged;
-
-            _OnSelectedNotesChanged(MainSystem.StageChartEditor.Selector);
+            _editorContext.NoteSelection.RegisterPropertyChangingAndInvoke((s, e) =>
+            {
+                if (e.PropertyName == nameof(s.SelectedNotes)) {
+                    SaveSoundDatas();
+                }
+            }).UnregisterWhenGameObjectDisabled(gameObject);
+            _editorContext.NoteSelection.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.PropertyName == nameof(s.SelectedNotes)) {
+                    ResetEditingNotesAndLoad(s.SelectedNotes);
+                    if (s.SelectedNotes.IsEmpty) {
+                        _playSoundButton.IsInteractable = false;
+                        _revertButton.IsInteractable = false;
+                    }
+                    else {
+                        _playSoundButton.IsInteractable = true;
+                        _revertButton.IsInteractable = true;
+                    }
+                }
+            }).UnregisterWhenGameObjectDisabled(gameObject);
         }
 
         private void OnDisable()
         {
             MainSystem.StageChartEditor.UnregisterNotification(
                 StageChartEditor.NotificationFlag.NoteSounds, _OnSelectedNotesSoundsChanged);
-            MainSystem.StageChartEditor.Selector.SelectedNotesChanging -= _OnSelectedNotesChanging;
-            MainSystem.StageChartEditor.Selector.SelectedNotesChanged -= _OnSelectedNotesChanged;
 
             SaveSoundDatas();
         }
 
         #region Event Handlers
 
-        private void _OnSelectedNotesChanging(StageNoteSelector selector)
-        {
-            SaveSoundDatas();
-        }
-
         private void _OnSelectedNotesSoundsChanged(StageChartEditor editor)
         {
             ResetEditingNotesAndLoad(editor.Selector.SelectedNotes);
-        }
-
-        private void _OnSelectedNotesChanged(StageNoteSelector selector)
-        {
-            ResetEditingNotesAndLoad(selector.SelectedNotes);
-            if (selector.SelectedNotes.IsEmpty) {
-                _playSoundButton.IsInteractable = false;
-                _revertButton.IsInteractable = false;
-            }
-            else {
-                _playSoundButton.IsInteractable = true;
-                _revertButton.IsInteractable = true;
-            }
         }
 
         #endregion

@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels;
@@ -25,9 +26,11 @@ namespace Deenote.Editing.NoteSelection
 
     internal sealed class StageDragSelector
     {
+        private readonly ProjectContext _project;
         private readonly GameStageContext _stageContext;
         private readonly NoteSelectionContext _context;
         private readonly GamePlayContext _gamePlay;
+        private readonly InputInterpreter _inputInterpreter;
 
         private NoteCoord _startCoord;
         private NoteCoord _endCoord;
@@ -55,11 +58,23 @@ namespace Deenote.Editing.NoteSelection
             }
         }
 
-        public StageDragSelector(NoteSelectionContext context, GameStageContext stageContext, GamePlayContext gamePlay)
+        internal StageDragSelector(NoteSelectionContext selection, GameStageContext stageContext, GamePlayContext gamePlay, ProjectContext project, InputInterpreter inputInterpreter)
         {
-            _context = context;
+            _context = selection;
             _stageContext = stageContext;
             _gamePlay = gamePlay;
+            _project = project;
+            _inputInterpreter = inputInterpreter;
+        }
+
+        internal void OnStart()
+        {
+            _inputInterpreter.InputActions.NoteEdit.SelectAllNotes.started += (_) =>
+            {
+                if (_project.CurrentChart is not null) {
+                    _context.ReselectNotes(_project.CurrentChart.Notes.AsSpan());
+                }
+            };
         }
 
         public event Action<StageDragSelector, SelectionAreaChangedEventArgs>? SelectionAreaChanged;

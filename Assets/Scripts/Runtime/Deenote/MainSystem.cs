@@ -27,7 +27,8 @@ namespace Deenote
     {
         [Required][SerializeField] GameMusicPlayer _gameMusicPlayer;
         [Required][SerializeField] GameHitSoundPlayer _hitSoundPlayer;
-        [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger = default!;
+        [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger;
+        [Required][SerializeField] InputInterpreter _inputInterpreter;
         [Header("System")]
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
         [SerializeField] MonoBehaviourHooks _hooks = default!;
@@ -82,7 +83,7 @@ namespace Deenote
             ChartEditor = new(Contexts.Editor, Contexts.Project);
 
             StageNotePlacer = new(Contexts.GamePlay, Contexts.Editor.Grids, Contexts.Editor.NotePlacement, ChartEditor);
-            StageDragSelector = new StageDragSelector(Contexts.Editor.NoteSelection, Contexts.GameStage, Contexts.GamePlay);
+            StageDragSelector = new StageDragSelector(Contexts.Editor.NoteSelection, Contexts.GameStage, Contexts.GamePlay, Contexts.Project, _inputInterpreter);
             MouseEditingCoordinator = new(StageNotePlacer, StageDragSelector, Contexts.GameStage, Contexts.GamePlay, Contexts.Editor);
 
             GlobalSettings = new();
@@ -95,6 +96,8 @@ namespace Deenote
 
         private void Start()
         {
+            StageDragSelector.OnStart();
+
             SaveSystem.LoadConfigurations();
             //_ = GameStageSceneLoader.LoadAsync("DeemoStage");
         }

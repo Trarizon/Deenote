@@ -19540,6 +19540,7 @@ MonoBehaviour:
   _gameMusicPlayer: {fileID: 1285348179}
   _hitSoundPlayer: {fileID: 1655424729}
   _autoSaveTrigger: {fileID: 1553883185}
+  _inputInterpreter: {fileID: 1035033957}
   _pianoSoundSource: {fileID: 295354312}
   _hooks: {fileID: 1240012013}
   _gamePlayManager: {fileID: 1074414938}

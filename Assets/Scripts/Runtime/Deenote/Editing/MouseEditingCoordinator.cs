@@ -33,6 +33,8 @@ namespace Deenote.Editing
             _editor = editor;
 
             RegisterEvents();
+
+            State = FsmState.EntryIdle;
         }
 
         private bool IsInNoteSelectionArea(NoteCoord coord)

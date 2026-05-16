@@ -9,6 +9,7 @@ using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.Grids;
+using Deenote.Editing.NoteSelection;
 using Deenote.GamePlay;
 using Deenote.GameStage;
 using Deenote.Library.Collections;
@@ -212,7 +213,7 @@ namespace Deenote.UI.Views
                 {
                     _editorContext.Grids.Curves.InitializeCurve(_editorContext.NoteSelection.SelectedNotes, _curveKind);
                     // Remove notes in between
-                    _editor.RemoveNotes(MainSystem.StageChartEditor.Selector.SelectedNotes[1..^1].ToImmutableArray());
+                    _editor.RemoveNotes(_editorContext.NoteSelection.SelectedNotes[1..^1].ToImmutableArray());
                 };
                 _disableCurveButton.Clicked += _editorContext.Grids.Curves.DisableCurrentCurve;
                 _editorContext.Grids.Curves.RegisterPropertyChangedAndInvoke((s, e) =>
@@ -248,23 +249,23 @@ namespace Deenote.UI.Views
                     _editor.EditNotesSpeed(_editorContext.NoteSelection.SelectedNotes, v => curve.GetValue(v) ?? v);
                 };
 
-                MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanged;
-                _OnSelectedNotesChanged(MainSystem.StageChartEditor.Selector);
+                _editorContext.NoteSelection.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.SelectedNotes))) {
+                        var generatable = s.SelectedNotes.Length >= 2;
+                        _generateCurveButton.IsInteractable = generatable;
+                        var appliable = s.SelectedNotes.Length > 2;
+                        _curveApplySizeButton.IsInteractable = appliable;
+                        _curveApplySpeedButton.IsInteractable = appliable;
+                    }
+                });
+
                 _editorContext.Grids.Curves.RegisterPropertyChangedAndInvoke((s, e) =>
                 {
                     if (e.MatchProperty(nameof(s.IsCurveOn))) {
                         _fillCurveButton.IsInteractable = s.IsCurveOn && _curveFillAmount > 0;
                     }
                 });
-
-                void _OnSelectedNotesChanged(StageNoteSelector selector)
-                {
-                    var generatable = selector.SelectedNotes.Length >= 2;
-                    _generateCurveButton.IsInteractable = generatable;
-                    var appliable = selector.SelectedNotes.Length > 2;
-                    _curveApplySizeButton.IsInteractable = appliable;
-                    _curveApplySpeedButton.IsInteractable = appliable;
-                }
             }
 
             // BPM
@@ -300,8 +301,30 @@ namespace Deenote.UI.Views
                     _editor.InsertTempo(new TempoRange(_bpmValue, _bpmStartTime, endTime));
                 };
 
-                MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanaged;
-                _OnSelectedNotesChanaged(MainSystem.StageChartEditor.Selector);
+                _editorContext.NoteSelection.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.SelectedNotes))) {
+                        var selectedNotes = s.SelectedNotes;
+                        if (selectedNotes.IsEmpty)
+                            return;
+
+                        float start = selectedNotes[0].Time;
+                        float end = selectedNotes[^1].Time;
+                        _bpmStartTime = start;
+                        _bpmEndTime = end;
+                        SyncFloatInput(_bpmStartTimeInput, _bpmStartTime);
+                        SyncFloatInput(_bpmEndTimeInput, _bpmEndTime);
+
+                        if (selectedNotes.Length == 1)
+                            return;
+
+                        float interval = end - start;
+                        if (interval < Tempo.MinBeatLineInterval)
+                            return;
+                        _bpmValue = 60f / interval;
+                        SyncFloatInput(_bpmValueInput, _bpmValue);
+                    }
+                });
 
                 _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
                 {
@@ -310,29 +333,6 @@ namespace Deenote.UI.Views
                         _bpmFillButton.IsInteractable = chartLoaded;
                     }
                 });
-
-                void _OnSelectedNotesChanaged(StageNoteSelector selector)
-                {
-                    var selectedNotes = selector.SelectedNotes;
-                    if (selectedNotes.IsEmpty)
-                        return;
-
-                    float start = selectedNotes[0].Time;
-                    float end = selectedNotes[^1].Time;
-                    _bpmStartTime = start;
-                    _bpmEndTime = end;
-                    SyncFloatInput(_bpmStartTimeInput, _bpmStartTime);
-                    SyncFloatInput(_bpmEndTimeInput, _bpmEndTime);
-
-                    if (selectedNotes.Length == 1)
-                        return;
-
-                    float interval = end - start;
-                    if (interval < Tempo.MinBeatLineInterval)
-                        return;
-                    _bpmValue = 60f / interval;
-                    SyncFloatInput(_bpmValueInput, _bpmValue);
-                }
             }
         }
 

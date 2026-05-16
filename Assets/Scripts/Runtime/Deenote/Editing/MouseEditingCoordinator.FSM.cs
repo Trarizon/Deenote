@@ -236,23 +236,9 @@ namespace Deenote.Editing
             }
         }
 
-        private enum StateFlag
-        {
-            /// <summary>
-            /// When the indicator is forced to be hidden, and all placement will be disabled
-            /// </summary>
-            Disabled,
-            /// <summary>
-            /// When both mouse key pressed
-            /// </summary>
-            Cancelling,
-            Idle,
-            Placing,
-            Selecting,
-        }
-
         private enum FsmState
         {
+            Invalid = 0,
             EntryIdle = 0x10,
             IdleSingle,
             IdleSlides,

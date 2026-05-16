@@ -12,6 +12,7 @@ using Deenote.Library.Mathematics;
 using Deenote.GamePlay;
 using Deenote.GameStage.Stage;
 using Deenote.GameStage.UI;
+using Deenote.Editing;
 
 namespace Deenote.GameStage
 {
@@ -223,11 +224,11 @@ namespace Deenote.GameStage
 
         public event Action<GameStageContext, PropertyEventArgs>? PropertyChanged;
 
-        public GameStageContext(ProjectContext project, GamePlayContext gamePlay, IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
+        public GameStageContext(ProjectContext project, GamePlayContext gamePlay, EditorContext editorContext, IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
         {
             ProjectContext = project;
             ThemeContext = new GameStageThemeContext();
-            NotesContext = new GameStageNotesContext(this, project, gamePlay);
+            NotesContext = new GameStageNotesContext(this, project, gamePlay, editorContext);   
             PerspectiveViewPanelInfo = perspectiveViewPanelInfo;
 
             storage.SavingConfigurations += configs =>

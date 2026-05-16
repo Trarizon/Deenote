@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using UnityEngine;
 
 namespace Deenote.CoreB.Notification
 {
@@ -30,10 +31,14 @@ namespace Deenote.CoreB.Notification
         private readonly T _self;
         private readonly Action<T, PropertyEventArgs> _handler;
 
-        public PropertyChangedRegistration(T self, Action<T, PropertyEventArgs> handler)
+        internal PropertyChangedRegistration(T self, Action<T, PropertyEventArgs> handler)
         {
             _self = self;
             _handler = handler;
+        }
+
+        public void UnregisterWhenGameObjectDisabled(GameObject go)
+        {
         }
     }
 
@@ -42,10 +47,14 @@ namespace Deenote.CoreB.Notification
         private readonly T _self;
         private readonly Action<T, PropertyEventArgs> _handler;
 
-        public PropertyChangingRegistration(T self, Action<T, PropertyEventArgs> handler)
+        internal PropertyChangingRegistration(T self, Action<T, PropertyEventArgs> handler)
         {
             _self = self;
             _handler = handler;
+        }
+
+        public void UnregisterWhenGameObjectDisabled(GameObject go)
+        {
         }
     }
 
@@ -94,11 +103,12 @@ namespace Deenote.CoreB.Notification
             });
         }
 
-        public static void RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyEventArgs> action)
+        public static PropertyChangedRegistration<T> RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyEventArgs> action)
             where T : INotifyPropertyChanged<T>
         {
             self.PropertyChanged += action;
             action(self, PropertyEventArgs.AllProperties);
+            return new PropertyChangedRegistration<T>(self, action);
         }
 
         public static PropertyChangingRegistration<T> RegisterPropertyChangingAndInvoke<T>(this T self, Action<T, PropertyEventArgs> action)

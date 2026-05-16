@@ -116,7 +116,7 @@ namespace Deenote.Core.Editing
             _operations.Do(_projectContext.CurrentChart!.GetAddNoteOperation(new NoteEditorModel(note))
                 .OnRedone(note =>
                 {
-                    this.Selector.Clear();
+                    // this.Selector.Clear();
                     OnNoteCollectionChanged();
                     ModelAsserts.AssertChartEditorModel(_projectContext.CurrentChart!);
                 })

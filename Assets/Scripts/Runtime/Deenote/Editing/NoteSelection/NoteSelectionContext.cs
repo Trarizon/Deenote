@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Deenote.Editing.NoteSelection
 {
-    public sealed class NoteSelectionContext
+    public sealed class NoteSelectionContext : INotifyPropertyChanging<NoteSelectionContext>, INotifyPropertyChanged<NoteSelectionContext>
     {
         public ProjectContext ProjectContext => EditorContext.ProjectContext;
         public EditorContext EditorContext { get; }
@@ -71,7 +71,7 @@ namespace Deenote.Editing.NoteSelection
             RaiseSelectedNotesChanged();
         }
 
-        public void ReplaceNotes(ReadOnlySpan<NoteEditorModel> remove,  ReadOnlySpan<NoteEditorModel> add)
+        public void ReplaceNotes(ReadOnlySpan<NoteEditorModel> remove, ReadOnlySpan<NoteEditorModel> add)
         {
             RaiseSelectedNotesChanging();
             DeselectNotesNonNotify(remove);
@@ -119,15 +119,19 @@ namespace Deenote.Editing.NoteSelection
 
         public event Action<NoteSelectionContext, SelectedNotesChangingEventArgs>? SelectedNotesChanging;
         public event Action<NoteSelectionContext, SelectedNotesChangedEventArgs>? SelectedNotesChanged;
+        public event Action<NoteSelectionContext, PropertyEventArgs>? PropertyChanging;
+        public event Action<NoteSelectionContext, PropertyEventArgs>? PropertyChanged;
 
         internal void RaiseSelectedNotesChanging()
         {
             SelectedNotesChanging?.Invoke(this, new SelectedNotesChangingEventArgs(_selectedNotes));
+            PropertyChanging?.Invoke(this, new PropertyEventArgs(nameof(SelectedNotes)));
         }
 
         internal void RaiseSelectedNotesChanged()
         {
             SelectedNotesChanged?.Invoke(this, new SelectedNotesChangedEventArgs(_selectedNotes));
+            PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(SelectedNotes)));
         }
 
         #endregion

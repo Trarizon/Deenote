@@ -22,7 +22,7 @@ namespace Deenote.Contexts
             Project = new ProjectContext();
             Editor = new EditorContext(Project, storage);
             GamePlay = new GamePlayContext(Project, storage);
-            GameStage = new GameStageContext(Project, GamePlay, perspectiveViewPanelInfo, storage);
+            GameStage = new GameStageContext(Project, GamePlay, Editor, perspectiveViewPanelInfo, storage);
         }
     }
 }
