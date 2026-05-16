@@ -43,10 +43,10 @@ namespace Deenote.Runtime.Plugins
                 ImmutableArray.Create<IDeenotePlugin>(new DelegatePlugin("Export As Deemo I Chart", new[] { ("zh", "导出为Deemo1谱面") }, async (context, args) =>
                 {
                     var texts = _texts[args.CurrentLanguage.LanguageCode];
-                    if (!context.GameManager.IsChartLoaded()) {
-                        context.UI.ToastManager.ShowRawTextToastAsync(texts["nochartload"], 2f).Forget();
-                        return;
-                    }
+                    //if (!context.GameManager.IsChartLoaded()) {
+                    //    context.UI.ToastManager.ShowRawTextToastAsync(texts["nochartload"], 2f).Forget();
+                    //    return;
+                    //}
                     context.ProjectManager.AssertProjectLoaded();
 
                     var res = await context.UI.DialogManager.OpenFileExplorerInputFileAsync(
@@ -57,8 +57,8 @@ namespace Deenote.Runtime.Plugins
                         return;
 
                     context.UI.StatusBar.SetRawTextStatusMessage(texts["exporting"]);
-                    await File.WriteAllTextAsync(res.Path,
-                        context.GameManager.CurrentChart.ToData().ToJsonString(ChartVersion.DeemoV2));
+                    //await File.WriteAllTextAsync(res.Path,
+                    //    context.GameManager.CurrentChart.ToData().ToJsonString(ChartVersion.DeemoV2));
                     context.UI.StatusBar.SetRawTextStatusMessage(texts["exported"]);
                 })));
         }

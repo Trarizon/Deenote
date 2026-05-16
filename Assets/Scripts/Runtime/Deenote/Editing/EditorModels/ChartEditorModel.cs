@@ -1,45 +1,97 @@
 #nullable enable
 
-using CommunityToolkit.Mvvm.ComponentModel;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Charts;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Models.Notes.Comparers;
-using Deenote.Editing.EditorModels.Comparing;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels.Helpers;
-using Deenote.Library.Collections;
+using Deenote.Library;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Trarizon.Library.Linq;
 using UnityEngine.Pool;
 
 namespace Deenote.Editing.EditorModels
 {
-    public sealed partial class ChartEditorModel : ObservableObject
+    public sealed partial class ChartEditorModel : INotifyPropertyChanged<ChartEditorModel>
     {
-        [ObservableProperty] string _name = "";
-        [ObservableProperty] Difficulty _difficulty;
-        [ObservableProperty] string _level = "";
+        private string _name_bf = "";
+        public string Name
+        {
+            get => _name_bf;
+            set {
+                if (Utils.SetField(ref _name_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(Name)));
+                }
+            }
+        }
 
-        [ObservableProperty] float _speed;
-        [ObservableProperty] int _remapMinVolume;
-        [ObservableProperty] int _remapMaxVolume;
+        private Difficulty _difficulty_bf;
+        public Difficulty Difficulty
+        {
+            get => _difficulty_bf;
+            set {
+                if (Utils.SetField(ref _difficulty_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(Difficulty)));
+                }
+            }
+        }
 
-        public List<NoteEditorModel> Notes { get; private set; }
-        internal List<IGameStageNoteNode> NoteNodes { get; private set; }
-        internal List<BackgroundNoteEditorModel> BackgroundNotes { get; private set; }
-        internal List<WarningNoteEditorModel> WarningNotes { get; private set; }
+        private string _level_bf = "";
+        public string Level
+        {
+            get => _level_bf;
+            set {
+                if (Utils.SetField(ref _level_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(Level)));
+                }
+            }
+        }
 
-        //internal Dictionary<ICollidableNote, List<ICollidableNote>> Collisions { get; } = new();
+        private float _speed_bf;
+        public float Speed
+        {
+            get => _speed_bf;
+            set {
+                if (Utils.SetField(ref _speed_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(Speed)));
+                }
+            }
+        }
+
+        private int _remapMinVolume_bf;
+        public int RemapMinVolume
+        {
+            get => _remapMinVolume_bf;
+            set {
+                if (Utils.SetField(ref _remapMinVolume_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(RemapMinVolume)));
+                }
+            }
+        }
+
+        private int _remapMaxVolume_bf;
+        public int RemapMaxVolume
+        {
+            get => _remapMaxVolume_bf;
+            set {
+                if (Utils.SetField(ref _remapMaxVolume_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(RemapMaxVolume)));
+                }
+            }
+        }
+
+        public event Action<ChartEditorModel, PropertyEventArgs>? PropertyChanged;
 
         public ChartEditorModel(ChartModel model)
         {
-            _name = model.Name;
-            _difficulty = model.Difficulty;
-            _level = model.Level;
-            _speed = model.Speed;
-            _remapMinVolume = model.RemapMinVolume;
-            _remapMaxVolume = model.RemapMaxVolume;
+            Name = model.Name;
+            Difficulty = model.Difficulty;
+            Level = model.Level;
+            Speed = model.Speed;
+            RemapMinVolume = model.RemapMinVolume;
+            RemapMaxVolume = model.RemapMaxVolume;
             CloneNotes(model);
 
             NoteCollisionHelpers.InitializeCollision(this);
@@ -47,10 +99,10 @@ namespace Deenote.Editing.EditorModels
 
         public ChartEditorModel()
         {
-            _difficulty = Difficulty.Hard;
-            _speed = 6;
-            _remapMinVolume = 10;
-            _remapMaxVolume = 70;
+            Difficulty = Difficulty.Hard;
+            Speed = 6;
+            RemapMinVolume = 10;
+            RemapMaxVolume = 70;
             Notes = new List<NoteEditorModel>();
             NoteNodes = new List<IGameStageNoteNode>();
             BackgroundNotes = new List<BackgroundNoteEditorModel>();
@@ -163,77 +215,6 @@ namespace Deenote.Editing.EditorModels
             chart.SpeedLines.AddRange(SpeedLineRangeData.Marshal.FromNotes(chart.Notes));
 
             return chart;
-        }
-
-        [MemberNotNull(nameof(Notes), nameof(NoteNodes), nameof(BackgroundNotes), nameof(WarningNotes))]
-        private void CloneNotes(ChartModel model)
-        {
-            using var dp_linkLookup = DictionaryPool<NoteData, INoteLink>.Get(out var linkLookup);
-
-            var notes = new List<NoteEditorModel>();
-            notes.EnsureCapacity(model.Notes.Count);
-            foreach (var note in model.Notes) {
-                var editorModel = new NoteEditorModel(note);
-                linkLookup.Add(note, editorModel);
-                notes.Add(editorModel);
-            }
-
-            var backgrounds = new List<BackgroundNoteEditorModel>();
-            backgrounds.EnsureCapacity(model.BackgroundNotes.Count);
-            foreach (var note in model.BackgroundNotes) {
-                var editorModel = new BackgroundNoteEditorModel(note);
-                linkLookup.Add(note.GetUnderlyingData(), editorModel);
-                backgrounds.Add(editorModel);
-            }
-
-            var warnings = new List<WarningNoteEditorModel>();
-            warnings.EnsureCapacity(model.WarningNotes.Count);
-            foreach (var note in model.WarningNotes) {
-                var editorModel = new WarningNoteEditorModel(note);
-                linkLookup.Add(note.GetUnderlyingData(), editorModel);
-                warnings.Add(editorModel);
-            }
-
-            foreach (var note in model.Notes) {
-                if (note.NextLink is null)
-                    continue;
-                var linkNode = linkLookup[note];
-                var nextLink = linkLookup[note.NextLink];
-                linkNode.NextLink = nextLink;
-                nextLink.PrevLink = linkNode;
-            }
-            foreach (var note in model.BackgroundNotes) {
-                var data = note.GetUnderlyingData();
-                if (data.NextLink is null)
-                    continue;
-                var linkNode = linkLookup[data];
-                var nextLink = linkLookup[data.NextLink];
-                linkNode.NextLink = nextLink;
-                nextLink.PrevLink = linkNode;
-            }
-            foreach (var note in model.WarningNotes) {
-                var data = note.GetUnderlyingData();
-                if (data.NextLink is null)
-                    continue;
-                var linkNode = linkLookup[data];
-                var nextLink = linkLookup[data.NextLink];
-                linkNode.NextLink = nextLink;
-                nextLink.PrevLink = linkNode;
-            }
-
-            var nodes = new List<IGameStageNoteNode>();
-            foreach (var note in notes) {
-                nodes.Add(note);
-                if (note.Tail is { } tail) {
-                    nodes.Add(tail);
-                }
-            }
-            nodes.Sort(ModelComparers.ViaTimeUnique);
-
-            Notes = notes;
-            NoteNodes = nodes;
-            BackgroundNotes = backgrounds;
-            WarningNotes = warnings;
         }
     }
 }

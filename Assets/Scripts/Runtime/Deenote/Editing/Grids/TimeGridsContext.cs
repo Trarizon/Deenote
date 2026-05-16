@@ -37,7 +37,7 @@ namespace Deenote.Editing.Grids
 
         public event Action<TimeGridsContext, PropertyEventArgs>? PropertyChanged;
 
-        public TimeGridsContext(ProjectContext project,SaveSystem storage)
+        public TimeGridsContext(ProjectContext project, SaveSystem storage)
         {
             _projectContext = project;
 
@@ -202,7 +202,7 @@ namespace Deenote.Editing.Grids
         /// <remarks>
         /// Get the nearest grid after given time, if time is on grid, return the next grid
         /// </remarks>
-        public GridHitResult CeilToNearestNextTimeGridTime(float time)
+        public GridHitResult CeilToNearestNextGrid(float time)
         {
             if (SubdivisionPerBeat < MinSubdivision) {
                 return GridHitResult.NoGrid();
@@ -230,7 +230,7 @@ namespace Deenote.Editing.Grids
                 float nextTempoTime = tempos[tempoIndex + 1].StartTime;
                 // time is really near next tempo, we should ignore the next tempo time and ceil to the first subbeatline of next tempo
                 if (time >= nextTempoTime - TimeGridMinEqualityThreshold)
-                    return CeilToNearestNextTimeGridTime(nextTempoTime);
+                    return CeilToNearestNextGrid(nextTempoTime);
             }
 
             int prevBeatIndex = tempo.GetBeatIndex(time);
@@ -244,7 +244,7 @@ namespace Deenote.Editing.Grids
 
             // time is really near
             if (time >= nextBeatTime - TimeGridMinEqualityThreshold)
-                return CeilToNearestNextTimeGridTime(nextBeatTime);
+                return CeilToNearestNextGrid(nextBeatTime);
 
             float prevBeatTime = tempo.GetBeatTime(prevBeatIndex);
             float prevBeatDelta = time - prevBeatTime;
@@ -258,7 +258,7 @@ namespace Deenote.Editing.Grids
             }
 
             if (time >= nextSubdivisionTime - TimeGridMinEqualityThreshold)
-                return CeilToNearestNextTimeGridTime(nextSubdivisionTime);
+                return CeilToNearestNextGrid(nextSubdivisionTime);
 
             if (tempoIndex < tempos.Length - 1) {
                 var nextTempoTime = tempos[tempoIndex + 1].StartTime;
@@ -292,6 +292,19 @@ namespace Deenote.Editing.Grids
                 var beatTimeDelta = startTime - beatTime;
                 var subdivisionInterval = tempo.BeatInterval / SubdivisionPerBeat;
                 var subdivisionIndex = Mathf.Clamp(Mathf.FloorToInt(beatTimeDelta / subdivisionInterval), 0, SubdivisionPerBeat - 1);
+
+                // Here we get the last grid before startTime, then we translate it to next line
+
+                subdivisionIndex++;
+                if (subdivisionIndex >= SubdivisionPerBeat) {
+                    subdivisionIndex = 0;
+                    beatIndex++;
+                }
+                var newBeatTime = tempo.GetBeatTime(beatIndex);
+                if (newBeatTime >= tempos.GetSafeTempo(tempoIndex + 1).StartTime) {
+                    beatIndex = 0;
+                    tempoIndex++;
+                }
 
                 return new(tempos, (tempoIndex, beatIndex, subdivisionIndex), endTime, SubdivisionPerBeat);
             }
@@ -435,6 +448,8 @@ namespace Deenote.Editing.Grids
             public readonly GridStatus Status;
 
             public float? Value => Status is GridStatus.Normal ? Time : null;
+
+            public bool HasValue => Status is GridStatus.Normal or GridStatus.ZeroBpm;
 
             private GridHitResult(float time, GridStatus status)
             {

@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Contexts;
+using Deenote.CoreB;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Comparing;
@@ -202,7 +203,7 @@ namespace Deenote.GameStage
             _trackingNotes.Sort(ModelComparers.ViaTimeUnique);
             _trackingNotesActiveOrder.Sort(_nodeActiveTimeComparer);
 
-            Debug.Log($"Refresh notes: {_trackingNotes.Count}");
+            // Debug.Log($"Refresh notes: {_trackingNotes.Count}");
             ActiveNotesChanged?.Invoke(this, new(_trackingNotes));
             Updated?.Invoke(this);
 

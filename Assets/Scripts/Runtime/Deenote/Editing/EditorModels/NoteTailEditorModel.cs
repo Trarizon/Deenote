@@ -25,7 +25,7 @@ namespace Deenote.Editing.EditorModels
         public NoteTailEditorModel(NoteEditorModel head)
         {
             Uid = INoteUnique.GetUid();
-            head.PropertyChanged += Head_PropertyChanged;
+            //head.PropertyChanged += Head_PropertyChanged;
             _head = head;
         }
 

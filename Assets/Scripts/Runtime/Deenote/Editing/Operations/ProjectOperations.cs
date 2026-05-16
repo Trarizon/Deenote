@@ -2,6 +2,7 @@
 
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels;
+using Deenote.Editing.Operations.Components;
 using Deenote.Library.Collections;
 using UnityEngine;
 

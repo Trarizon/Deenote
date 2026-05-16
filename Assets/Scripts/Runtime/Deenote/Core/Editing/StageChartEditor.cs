@@ -18,6 +18,7 @@ using Deenote.Library.Components;
 using Deenote.ProjectManagement;
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ namespace Deenote.Core.Editing
     {
         private ProjectContext _projectContext = default!;
         internal EditorContext _context = default!;
+        internal ChartNotesEditor _editor;
 
         internal ProjectManager _project = default!;
         internal GamePlayManager _game = default!;
@@ -42,6 +44,7 @@ namespace Deenote.Core.Editing
             _projectContext = MainSystem.Contexts.Project;
             _context = MainSystem.Contexts.Editor;
             _operations = new();
+            _editor = MainSystem.ChartEditor;
 
             Awake_ClipBoard();
 
@@ -99,22 +102,23 @@ namespace Deenote.Core.Editing
 
         private void OnNoteCollectionChanged()
         {
-            _game.AssertChartLoaded();
-            NoteComparers.AssertInOrderViaTime(_game.CurrentChart.Notes);
+            //_game.AssertChartLoaded();
+            NoteComparers.AssertInOrderViaTime(_projectContext.CurrentChart!.Notes);
             _game.UpdateNotes(true, false);
         }
 
-        public void AddNote(NoteData note)
+        [Obsolete]
+        private void AddNote(NoteData note)
         {
-            if (!_game.IsChartLoaded())
-                return;
+            //if (!_game.IsChartLoaded())
+            //    return;
 
-            _operations.Do(_game.CurrentChart.GetAddNoteOperation(note)
+            _operations.Do(_projectContext.CurrentChart!.GetAddNoteOperation(new NoteEditorModel(note))
                 .OnRedone(note =>
                 {
                     this.Selector.Clear();
                     OnNoteCollectionChanged();
-                    ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
+                    ModelAsserts.AssertChartEditorModel(_projectContext.CurrentChart!);
                 })
                 .OnUndone(note => OnNoteCollectionChanged()));
         }
@@ -124,92 +128,96 @@ namespace Deenote.Core.Editing
         /// </summary>
         /// <param name="notes"></param>
         /// <param name="baseCoord">The coord that first note will be created</param>
-        public void AddMultipleNotes(ReadOnlySpan<NoteData> notes)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (notes.IsEmpty)
-                return;
-            if (notes.Length == 1) {
-                AddNote(notes[0]);
-                return;
-            }
+        //[Obsolete]
+        //private void AddMultipleNotes(ReadOnlySpan<NoteData> notes)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (notes.IsEmpty)
+        //        return;
+        //    if (notes.Length == 1) {
+        //        AddNote(notes[0]);
+        //        return;
+        //    }
 
-            _operations.Do(_game.CurrentChart.GetAddNotesOperation(notes)
-                .OnRedone(notes =>
-                {
-                    this.Selector.Reselect(notes);
-                    OnNoteCollectionChanged();
-                })
-                .OnUndone(notes =>
-                {
-                    this.Selector.DeselectMultiple(notes);
-                    OnNoteCollectionChanged();
-                    ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
-                }));
-        }
+        //    _operations.Do(_projectContext.CurrentChart!.GetAddNotesOperation(notes.ToArray().Select(x=>new NoteEditorModel(x)).ToImmutableArray())
+        //        .OnRedone(notes =>
+        //        {
+        //            this.Selector.Reselect(notes);
+        //            OnNoteCollectionChanged();
+        //        })
+        //        .OnUndone(notes =>
+        //        {
+        //            this.Selector.DeselectMultiple(notes);
+        //            OnNoteCollectionChanged();
+        //            ModelAsserts.AssertChartEditorModel(_projectContext.CurrentChart!);
+        //        }));
+        //}
 
-        public void RemoveNotes(ReadOnlySpan<NoteEditorModel> notes)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (notes.IsEmpty)
-                return;
+        //[Obsolete]
+        //private void RemoveNotes(ReadOnlySpan<NoteEditorModel> notes)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (notes.IsEmpty)
+        //        return;
 
-            _operations.Do(GetRemoveNotesOperation(notes));
-        }
+        //    _operations.Do(GetRemoveNotesOperation(notes));
+        //}
 
-        public IOperation GetRemoveNotesOperation(ReadOnlySpan<NoteEditorModel> notes)
-        {
-            _game.AssertChartLoaded();
+        //private IOperation GetRemoveNotesOperation(ReadOnlySpan<NoteEditorModel> notes)
+        //{
+        //    //_game.AssertChartLoaded();
 
-            return _game.CurrentChart.GetRemoveNotesOperation(notes.ToImmutableArray())
-                .OnRedone(notes =>
-                {
-                    this.Selector.Clear();
-                    OnNoteCollectionChanged();
-                })
-                .OnUndone(notes =>
-                {
-                    this.Selector.AddSelectMultiple(notes);
-                    OnNoteCollectionChanged();
-                });
-        }
+        //    return _projectContext.CurrentChart!.GetRemoveNotesOperation(notes.ToImmutableArray())
+        //        .OnRedone(notes =>
+        //        {
+        //            this.Selector.Clear();
+        //            OnNoteCollectionChanged();
+        //        })
+        //        .OnUndone(notes =>
+        //        {
+        //            this.Selector.AddSelectMultiple(notes);
+        //            OnNoteCollectionChanged();
+        //        });
+        //}
 
-        public void RemoveSelectedNotes() => RemoveNotes(Selector.SelectedNotes);
+        //[Obsolete]
+        //public void RemoveSelectedNotes() => _editor.RemoveSelectedNotes();
 
-        public void AddNotesSnappingToCurve(int count, ReadOnlySpan<GridsManager.CurveApplyProperty> applyProperties = default)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            var curves = _context.Grids.Curves;
-            if (!curves.IsCurveOn)
-                return;
-            //if (_game.Grids.CurveTimeInterval is not (var start, var end))
-            //    return;
+        //[Obsolete]
+        //private void AddNotesSnappingToCurve(int count, ReadOnlySpan<GridsManager.CurveApplyProperty> applyProperties = default)
+        //{
+        //    //if (!_game.IsChartLoaded())
+        //    //    return;
+        //    //var curves = _context.Grids.Curves;
+        //    //if (!curves.IsCurveOn)
+        //    //    return;
+        //    ////if (_game.Grids.CurveTimeInterval is not (var start, var end))
+        //    ////    return;
 
-            bool applySize = false, applySpeed = false;
-            foreach (var apply in applyProperties) {
-                if (apply is GridsManager.CurveApplyProperty.Size)
-                    applySize = true;
-                if (apply is GridsManager.CurveApplyProperty.Speed)
-                    applySpeed = true;
-            }
+        //    //bool applySize = false, applySpeed = false;
+        //    //foreach (var apply in applyProperties) {
+        //    //    if (apply is GridsManager.CurveApplyProperty.Size)
+        //    //        applySize = true;
+        //    //    if (apply is GridsManager.CurveApplyProperty.Speed)
+        //    //        applySpeed = true;
+        //    //}
 
-            using var so_notes = SpanOwner<NoteData>.Allocate(count);
-            var notes = so_notes.Span;
-            for (int i = 0; i < count; i++) {
-                var time = Mathf.Lerp(curves.StartTime, curves.EndTime, (float)(i + 1) / (count + 1));
-                var pos = curves.PositionCurve.GetValue(time)!.Value; // Wont be null as CurveTimeInterval is not null
-                var note = notes[i] = Placer.ClonePlaceNotePrototype();
-                note.PositionCoord = new(pos, time);
-                if (applySize)
-                    note.Size = curves.SizeCurve.GetValue(time)!.Value;
-                if (applySpeed)
-                    note.Speed = curves.SpeedCurve.GetValue(time)!.Value;
-            }
-            AddMultipleNotes(notes);
-        }
+        //    //using var so_notes = SpanOwner<NoteData>.Allocate(count);
+        //    //var notes = so_notes.Span;
+        //    //for (int i = 0; i < count; i++) {
+        //    //    var time = Mathf.Lerp(curves.StartTime, curves.EndTime, (float)(i + 1) / (count + 1));
+        //    //    var pos = curves.PositionCurve.GetValue(time)!.Value; // Wont be null as CurveTimeInterval is not null
+        //    //    var note = notes[i] = Placer.ClonePlaceNotePrototype();
+        //    //    note.PositionCoord = new(pos, time);
+        //    //    if (applySize)
+        //    //        note.Size = curves.SizeCurve.GetValue(time)!.Value;
+        //    //    if (applySpeed)
+        //    //        note.Speed = curves.SpeedCurve.GetValue(time)!.Value;
+        //    //}
+        //    //AddMultipleNotes(notes);
+        //}
 
         #endregion
 

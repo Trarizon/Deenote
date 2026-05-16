@@ -1,8 +1,8 @@
 #nullable enable
 
-using Deenote.Api;
 using Deenote.Contexts;
 using Deenote.Core;
+using Deenote.CoreB.Models;
 
 namespace Deenote.Editing.Grids
 {

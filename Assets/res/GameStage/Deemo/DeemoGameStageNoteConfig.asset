@@ -50,7 +50,7 @@ MonoBehaviour:
   ExplosionAnimationDuration: 0.45
   ExplosionScale: 0.9815952
   ShockwaveScale: 0.4907976
-  CirclewaveScale: 0.6
+  CirclewaveScale: 0.5
   GlowScale: {x: 7.975461, y: 15.95092}
   SelectedHighlightColor: {r: 0.33333334, g: 0.75294125, b: 1, a: 1}
   CollidedHighlightColor: {r: 1, g: 0.33333334, b: 0.33333334, a: 1}

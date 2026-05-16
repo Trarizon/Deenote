@@ -5,12 +5,15 @@ using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
-using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.Project;
+using Deenote.Editing;
+using Deenote.Editing.NotePlacement;
+using Deenote.Editing.NoteSelection;
 using Deenote.GamePlay;
+using Deenote.GamePlay.Audio;
 using Deenote.GameStage;
-using Deenote.GameStage.Grids;
 using Deenote.GameStage.Themes;
+using Deenote.GameStage.UI;
 using Deenote.Library.Components;
 using Deenote.ProjectManagement;
 using Deenote.Systems;
@@ -23,7 +26,7 @@ namespace Deenote
     public sealed partial class MainSystem : SingletonBehaviour<MainSystem>
     {
         [Required][SerializeField] GameMusicPlayer _gameMusicPlayer;
-        [Required][SerializeField] HitSoundPlayer _hitSoundPlayer;
+        [Required][SerializeField] GameHitSoundPlayer _hitSoundPlayer;
         [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger = default!;
         [Header("System")]
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
@@ -53,24 +56,37 @@ namespace Deenote
         internal static GameStageManager GameStageManager { get; private set; }
         public static GameStageThemeManager GameStageThemeManager { get; private set; }
 
+        public static ChartNotesEditor ChartEditor { get; private set; }
+
+        public static StageNotePlacer2 StageNotePlacer { get; private set; }
+        internal static StageDragSelector StageDragSelector { get; private set; }
+        public static MouseEditingCoordinator MouseEditingCoordinator { get; private set; }
+
+        public static IPerspectiveViewPanelInfoProvider PerspectiveViewPanelInfo { get; set; } = default!;
+
         protected override void Awake()
         {
             base.Awake();
             _unhandledExceptionHandler = new();
 
-            var stagePianoSoundPlayer = new StagePianoSoundPlayer(PianoSoundSource);
+            var stagePianoSoundPlayer = new GamePianoSoundPlayer(PianoSoundSource);
 
             SaveSystem = new();
-            Contexts = new(SaveSystem);
+            Contexts = new(PerspectiveViewPanelInfo, SaveSystem);
             ProjectManagerB = new(Contexts.Project, Contexts.Environment);
             ProjectManager = new(Contexts.Project, Contexts.Environment);
             GamePlayManagerB = new(Contexts.GamePlay, Contexts.Project, _gameMusicPlayer, stagePianoSoundPlayer, _hitSoundPlayer);
             GameStageThemeManager = new(Contexts.GameStage.ThemeContext);
             GameStageManager = new(Contexts.GameStage, Contexts.Editor, Contexts.GamePlay, GameStageThemeManager);
 
+            ChartEditor = new(Contexts.Editor, Contexts.Project);
+
+            StageNotePlacer = new(Contexts.GamePlay, Contexts.Editor.Grids, Contexts.Editor.NotePlacement, ChartEditor);
+            StageDragSelector = new StageDragSelector(Contexts.Editor.NoteSelection, Contexts.GameStage, Contexts.GamePlay);
+            MouseEditingCoordinator = new(StageNotePlacer, StageDragSelector, Contexts.GameStage, Contexts.GamePlay, Contexts.Editor);
+
             GlobalSettings = new();
 
-            GamePlayManager._context = Contexts.GamePlay;
             GamePlayManager._stageContext = Contexts.GameStage;
             GamePlayManager._projectContext = Contexts.Project;
 

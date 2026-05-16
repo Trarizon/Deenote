@@ -2,6 +2,7 @@
 
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models.Notes;
+using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Collections;
@@ -11,12 +12,16 @@ using Deenote.UI.Views.Elements;
 using Deenote.UIFramework.Controls;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Deenote.UI.Views.Panels
 {
     public sealed class NoteInfoPianoSoundEditPanel : MonoBehaviour
     {
+        private EditorContext _editorContext;
+        private ChartNotesEditor _editor;
+
         [SerializeField] Button _playSoundButton = default!;
         [SerializeField] Button _revertButton = default!;
         [SerializeField] NoteInfoPianoKeysPanel _pianoKeysPanel = default!;
@@ -55,6 +60,9 @@ namespace Deenote.UI.Views.Panels
 
         private void Awake()
         {
+            _editorContext = MainSystem.Contexts.Editor;
+            _editor = MainSystem.ChartEditor;
+
             _soundItems = new(UnityUtils.CreateObjectPool(_soundItemPrefab, _soundListContentTransform,
                 item => item.OnInstantiate(this), defaultCapacity: 0));
         }
@@ -140,14 +148,12 @@ namespace Deenote.UI.Views.Panels
             if (_editingNotes.Count == 0)
                 return;
 
-            var sounds = _soundItems.Count > 512
-                ? new PianoSoundData[_soundItems.Count]
-                : (stackalloc PianoSoundData[_soundItems.Count]);
+            var sounds = new PianoSoundData[_soundItems.Count];
 
             for (int i = 0; i < sounds.Length; i++) {
                 sounds[i] = _soundItems[i].Sound;
             }
-            MainSystem.StageChartEditor.EditSelectedNoteSounds(sounds);
+            _editor.EditNotesSounds(_editingNotes.AsSpan(), ImmutableCollectionsMarshal.AsImmutableArray(sounds));
             SetDirty(false);
         }
 

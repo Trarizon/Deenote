@@ -4,6 +4,7 @@ using Deenote.Core;
 using Deenote.Editing;
 using Deenote.GamePlay;
 using Deenote.GameStage;
+using Deenote.GameStage.UI;
 
 namespace Deenote.Contexts
 {
@@ -15,13 +16,13 @@ namespace Deenote.Contexts
         public GamePlayContext GamePlay { get; }
         public GameStageContext GameStage { get; }
 
-        internal RootContext(SaveSystem storage)
+        internal RootContext(IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
         {
             Environment = new EnvironmentContext(storage);
             Project = new ProjectContext();
             Editor = new EditorContext(Project, storage);
             GamePlay = new GamePlayContext(Project, storage);
-            GameStage = new GameStageContext(Project, GamePlay, storage);
+            GameStage = new GameStageContext(Project, GamePlay, perspectiveViewPanelInfo, storage);
         }
     }
 }

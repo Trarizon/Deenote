@@ -5,6 +5,7 @@ using Deenote.Core;
 using Deenote.Localization;
 using Deenote.UI;
 using Deenote.UI.Dialogs.Elements;
+using Deenote.UI.Views;
 using System;
 using System.IO;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace Deenote
 {
     public sealed class StartupController : MonoBehaviour
     {
+        [SerializeField] PerspectiveViewPanelView _perspectiveViewPanelView;
+
         private static readonly MessageBoxArgs _verUpdMsgBoxArgs = new(
             LocalizableText.Localized("NewVersion_MsgBox_Title"),
             LocalizableText.Localized("NewVersion_MsgBox_Content"),
@@ -28,6 +31,11 @@ namespace Deenote
 
         private const string OpenProjectLoadingStatusKey = "OpenProject_Status_Loading";
         private const string OpenProjectLoadedStatusKey = "OpenProject_Status_Loaded";
+
+        private void Awake()
+        {
+            MainSystem.PerspectiveViewPanelInfo = _perspectiveViewPanelView;
+        }
 
         private void Start()
         {

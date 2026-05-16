@@ -2,6 +2,7 @@
 
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels.Helpers;
+using System;
 using UnityEngine;
 
 namespace Deenote.Core.Editing
@@ -14,6 +15,7 @@ namespace Deenote.Core.Editing
 
         public bool IsPlacing => _currentState is StateFlag.PlacingSingleNote or StateFlag.PlacingSlides or StateFlag.PlacingPastedNotes;
 
+        [Obsolete]
         public void BeginPlaceNote(NoteCoord coord, Vector2 mousePosition)
         {
             if (!IsInPlacementArea(coord)) {
@@ -35,6 +37,7 @@ namespace Deenote.Core.Editing
             RefreshIndicatorVisibility();
         }
 
+        [Obsolete]
         public void UpdatePlaceNote(NoteCoord coord, Vector2 mousePosition, bool remainIndicatorVisibility = false)
         {
             _updateNoteCoord = coord;
@@ -59,6 +62,7 @@ namespace Deenote.Core.Editing
             }
         }
 
+        [Obsolete]
         public void EndPlaceNote(NoteCoord coord, Vector2 mousePosition)
         {
             switch (_currentState) {

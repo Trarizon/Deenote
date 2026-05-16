@@ -2,7 +2,6 @@
 
 using Deenote.Contexts;
 using Deenote.Core;
-using Deenote.Core.GameStage;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
 using Deenote.GameStage.Themes;
@@ -11,6 +10,8 @@ using System;
 using UnityEngine;
 using Deenote.Library.Mathematics;
 using Deenote.GamePlay;
+using Deenote.GameStage.Stage;
+using Deenote.GameStage.UI;
 
 namespace Deenote.GameStage
 {
@@ -19,6 +20,8 @@ namespace Deenote.GameStage
         public ProjectContext ProjectContext { get; }
         public GameStageThemeContext ThemeContext { get; }
         internal GameStageNotesContext NotesContext { get; }
+
+        public IPerspectiveViewPanelInfoProvider PerspectiveViewPanelInfo { get; }
 
         public GameStageController? GameStage => ThemeContext.CurrentTheme?.Stage;
 
@@ -220,11 +223,12 @@ namespace Deenote.GameStage
 
         public event Action<GameStageContext, PropertyEventArgs>? PropertyChanged;
 
-        public GameStageContext(ProjectContext project, GamePlayContext gamePlay, SaveSystem storage)
+        public GameStageContext(ProjectContext project, GamePlayContext gamePlay, IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
         {
             ProjectContext = project;
             ThemeContext = new GameStageThemeContext();
             NotesContext = new GameStageNotesContext(this, project, gamePlay);
+            PerspectiveViewPanelInfo = perspectiveViewPanelInfo;
 
             storage.SavingConfigurations += configs =>
             {

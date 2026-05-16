@@ -1,7 +1,6 @@
 #nullable enable
 
 using CommunityToolkit.HighPerformance.Buffers;
-using Deenote.Core.GameStage;
 using Deenote.CoreB.Models;
 using Deenote.Editing.Grids;
 using Deenote.GamePlay;
@@ -75,7 +74,6 @@ namespace Deenote.GameStage.Grids
                 var z = theme.NoteCoordStrategy.TimeToZ(grid.Time - startTime, _stage.ActualNoteFallSpeed, _stage.HighlightedNoteSpeed);
                 collector.AddLine(new Vector2(minx, z), new Vector2(maxx, z), color, width);
             }
-            Debug.Log($"{startTime} {endTime} {counter}");
         }
 
         private void SubmitPositionLines(PerspectiveLinesRenderer.LineCollector collector)
@@ -88,7 +86,8 @@ namespace Deenote.GameStage.Grids
             var minz = theme.NoteCoordStrategy.TimeToZ(0f, _stage.ActualNoteFallSpeed, _stage.HighlightedNoteSpeed);
             var maxz = theme.NoteCoordStrategy.TimeToZ(theme.Config.GetMaxWorldZ(), _stage.ActualNoteFallSpeed, _stage.HighlightedNoteSpeed);
             for (int i = 0; i < _context.PositionGrids.GridCount; i++) {
-                var x = theme.NoteCoordStrategy.PositionToWorldX(i);
+                var pos = _context.PositionGrids.GetGridPosition(i);
+                var x = theme.NoteCoordStrategy.PositionToWorldX(pos);
                 var color = _stage.CustomSubdivisionLineColor ?? gridConfig.PositionGridLineColor;
                 var width = i == 0 || i == _context.PositionGrids.GridCount - 1
                     ? gridConfig.PositionGridBorderWidth

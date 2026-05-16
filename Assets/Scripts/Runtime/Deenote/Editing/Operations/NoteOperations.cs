@@ -17,69 +17,69 @@ namespace Deenote.Editing.Operations
         /// <remarks>
         /// DO NOT use this method edit note Time / Position / Duration / Kind / Sounds
         /// </remarks>
-        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, T value,
+        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, T value,
             Func<NoteEditorModel, T> getter, Action<NoteEditorModel, T> setter)
-            => new SimpleEditNotesPropertyOperation<T>(chart, notes.ToImmutableArray(), getter, setter, value);
+            => new SimpleEditNotesPropertyOperation<T>(chart, notes, getter, setter, value);
 
         /// <remarks>
         /// DO NOT use this method edit note Time / Position / Duration / Kind / Sounds
         /// </remarks>
-        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<T, T> valueSelector,
+        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<T, T> valueSelector,
             Func<NoteEditorModel, T> valueGetter, Action<NoteEditorModel, T> valueSetter)
-            => new SimpleEditNotesPropertyOperation<T>(chart, notes.ToImmutableArray(), valueGetter, valueSetter, valueSelector);
+            => new SimpleEditNotesPropertyOperation<T>(chart, notes, valueGetter, valueSetter, valueSelector);
 
         // Time
 
-        public static EditNotesPropertyOperation<float> GetEditNotesTimeOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, float value)
-            => new EditNotesTimePropertyOperation(chart, notes.ToImmutableArray(), value);
+        public static EditNotesPropertyOperation<float> GetEditNotesTimeOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, float value)
+            => new EditNotesTimePropertyOperation(chart, notes, value);
 
-        public static EditNotesPropertyOperation<float> GetEditNotesTimeOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<float, float> valueSelector)
-            => new EditNotesTimePropertyOperation(chart, notes.ToImmutableArray(), valueSelector);
+        public static EditNotesPropertyOperation<float> GetEditNotesTimeOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<float, float> valueSelector)
+            => new EditNotesTimePropertyOperation(chart, notes, valueSelector);
 
         // Position
 
-        public static EditNotesPropertyOperation<float> GetEditNotesPositionOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, float value)
-            => new EditNotesPositionPropertyOperation(chart, notes.ToImmutableArray(), value);
+        public static EditNotesPropertyOperation<float> GetEditNotesPositionOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, float value)
+            => new EditNotesPositionPropertyOperation(chart, notes, value);
 
-        public static EditNotesPropertyOperation<float> GetEditNotesPositionOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<float, float> valueSelector)
-            => new EditNotesPositionPropertyOperation(chart, notes.ToImmutableArray(), valueSelector);
+        public static EditNotesPropertyOperation<float> GetEditNotesPositionOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<float, float> valueSelector)
+            => new EditNotesPositionPropertyOperation(chart, notes, valueSelector);
 
         // Coord
 
-        public static EditNotesPropertyOperation<NoteCoord> GetEditNotesCoordOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, NoteCoord value)
-            => new EditNotesCoordPropertyOperation(chart, notes.ToImmutableArray(), value);
+        public static EditNotesPropertyOperation<NoteCoord> GetEditNotesCoordOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, NoteCoord value)
+            => new EditNotesCoordPropertyOperation(chart, notes, value);
 
-        public static EditNotesPropertyOperation<NoteCoord> GetEditNotesCoordOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<NoteCoord, NoteCoord> valueSelector)
-            => new EditNotesCoordPropertyOperation(chart, notes.ToImmutableArray(), valueSelector);
+        public static EditNotesPropertyOperation<NoteCoord> GetEditNotesCoordOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<NoteCoord, NoteCoord> valueSelector)
+            => new EditNotesCoordPropertyOperation(chart, notes, valueSelector);
 
         // Duration
 
-        public static EditNotesPropertyOperation<float> GetEditNotesDurationOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, float value)
-            => new EditNotesDurationPropertyOperation(chart, notes.ToImmutableArray(), value);
+        public static EditNotesPropertyOperation<float> GetEditNotesDurationOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, float value)
+            => new EditNotesDurationPropertyOperation(chart, notes, value);
 
-        public static EditNotesPropertyOperation<float> GetEditNotesDurationOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<float, float> valueSelector)
-            => new EditNotesDurationPropertyOperation(chart, notes.ToImmutableArray(), valueSelector);
+        public static EditNotesPropertyOperation<float> GetEditNotesDurationOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<float, float> valueSelector)
+            => new EditNotesDurationPropertyOperation(chart, notes, valueSelector);
 
         // EndTime
 
-        public static EditNotesPropertyOperation<float> GetEditNotesEndTimeOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, float value)
-            => new EditNotesEndTimePropertyOperation(chart, notes.ToImmutableArray(), value);
+        public static EditNotesPropertyOperation<float> GetEditNotesEndTimeOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, float value)
+            => new EditNotesEndTimePropertyOperation(chart, notes, value);
 
-        public static EditNotesPropertyOperation<float> GetEditNotesEndTimeOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<float, float> valueSelector)
-            => new EditNotesEndTimePropertyOperation(chart, notes.ToImmutableArray(), valueSelector);
+        public static EditNotesPropertyOperation<float> GetEditNotesEndTimeOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<float, float> valueSelector)
+            => new EditNotesEndTimePropertyOperation(chart, notes, valueSelector);
 
         // NoteKind
 
-        public static EditNotesPropertyOperation<NoteKind> GetEditNotesKindOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, NoteKind value)
-            => new EditNotesKindPropertyOperation(chart, notes.ToImmutableArray(), value);
+        public static EditNotesPropertyOperation<NoteKind> GetEditNotesKindOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, NoteKind value)
+            => new EditNotesKindPropertyOperation(chart, notes, value);
 
-        public static EditNotesPropertyOperation<NoteKind> GetEditNotesKindOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, Func<NoteKind, NoteKind> valueSelector)
-            => new EditNotesKindPropertyOperation(chart, notes.ToImmutableArray(), valueSelector);
+        public static EditNotesPropertyOperation<NoteKind> GetEditNotesKindOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<NoteKind, NoteKind> valueSelector)
+            => new EditNotesKindPropertyOperation(chart, notes, valueSelector);
 
         // Sounds
 
-        public static EditNotesPropertyOperation<ImmutableArray<PianoSoundData>> GetEditNotesSoundsOperation(this ChartEditorModel chart, ReadOnlySpan<NoteEditorModel> notes, ReadOnlySpan<PianoSoundData> value)
-            => new EditNotesSoundsProperyOperation(chart, notes.ToImmutableArray(), value.ToImmutableArray());
+        public static EditNotesPropertyOperation<ImmutableArray<PianoSoundData>> GetEditNotesSoundsOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, ImmutableArray<PianoSoundData> value)
+            => new EditNotesSoundsProperyOperation(chart, notes, value);
 
 
         public abstract class EditNotesPropertyOperation<TProperty> : NotifiableChartOperation<ImmutableArray<NoteEditorModel>>
@@ -270,6 +270,7 @@ namespace Deenote.Editing.Operations
                 : base(chart, notes, x => x.EndTime, valueProvider)
             { }
 
+            // TODO: Move this clamp call to editor
             protected override float GetDuration(NoteEditorModel note, float value) => Mathf.Max(0f, value - note.Time);
         }
 

@@ -1,16 +1,13 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage;
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Assertions;
-using Deenote.Editing.EditorModels.Comparing;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -40,25 +37,25 @@ namespace Deenote.Core.Editing
         internal StageNoteSelector(GamePlayManager game)
         {
             _game = game;
-            _game.RegisterNotification(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager => Clear());
-            _game.MusicPlayer.TimeChanged += args =>
-            {
-                if (!IsDragSelecting)
-                    return;
+            //_game.RegisterNotification(
+            //    GamePlayManager.NotificationFlag.CurrentChart,
+            //    manager => Clear());
+            //_game.MusicPlayer.TimeChanged += args =>
+            //{
+            //    if (!IsDragSelecting)
+            //        return;
 
-                var delta = args.NewTime - args.OldTime;
-                _dragEndCoord.Time += delta;
-                UpdateDragSelection(_dragStartCoord, _dragEndCoord);
-            };
+            //    var delta = args.NewTime - args.OldTime;
+            //    _dragEndCoord.Time += delta;
+            //    UpdateDragSelection(_dragStartCoord, _dragEndCoord);
+            //};
         }
 
         #region Select Collection Modification
 
         public void AddSelect(NoteEditorModel note)
         {
-            _game.AssertChartLoaded();
+            //_game.AssertChartLoaded();
             //Debug.Assert(_game.CurrentChart.NoteNodes.Contains(note));
 
             if (note.IsSelected)
@@ -77,7 +74,7 @@ namespace Deenote.Core.Editing
 
         public void AddSelectMultiple(IEnumerable<NoteEditorModel> notes)
         {
-            _game.AssertChartLoaded();
+            //_game.AssertChartLoaded();
             //Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             OnSelectedNotesChanging();
@@ -87,7 +84,7 @@ namespace Deenote.Core.Editing
 
         private void AddSelectMultipleNonNotify(IEnumerable<NoteEditorModel> notes)
         {
-            _game.AssertChartLoaded();
+            //_game.AssertChartLoaded();
             //Debug.Assert(notes.All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             var prevCount = _selectedNotes.Count;
@@ -99,7 +96,7 @@ namespace Deenote.Core.Editing
 
         private void AddSelectMultipleNonNotify(ReadOnlySpan<NoteEditorModel> notes)
         {
-            _game.AssertChartLoaded();
+            //_game.AssertChartLoaded();
             //Debug.Assert(notes.ToArray().All(note => _game.CurrentChart.NoteNodes.Contains(note)));
 
             var prevCount = _selectedNotes.Count;
@@ -131,7 +128,7 @@ namespace Deenote.Core.Editing
 
         public void SelectAll()
         {
-            _game.AssertChartLoaded();
+            //_game.AssertChartLoaded();
 
             OnSelectedNotesChanging();
 
@@ -242,22 +239,22 @@ namespace Deenote.Core.Editing
             if (_state is DraggingSelectionState.Idle)
                 return;
 
-            _game.AssertStageLoaded();
-            _game.Stage.SelectionAreaRect.HideSelectionArea();
+            //_game.AssertStageLoaded();
+            // _game.Stage.SelectionAreaRect.HideSelectionArea();
 
-            _state = DraggingSelectionState.Idle;
-            if (_dragStartCoord == _dragEndCoord) {
-                if (_game.Stage.TryRaycastPerspectiveViewportPointToNote(viewportPoint, out var noteController)) {
-                    var note = noteController.NoteModel;
-                    Reselect(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
-                }
-            }
-            else {
-                foreach (var note in _inDragRangeNotes) {
-                    //note.ApplySelection();
-                }
-                _inDragRangeNotes.Clear();
-            }
+            // _state = DraggingSelectionState.Idle;
+            // if (_dragStartCoord == _dragEndCoord) {
+            //     if (_game.Stage.TryRaycastPerspectiveViewportPointToNote(viewportPoint, out var noteController)) {
+            //         var note = noteController.NoteModel;
+            //         Reselect(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
+            //     }
+            // }
+            // else {
+            //     foreach (var note in _inDragRangeNotes) {
+            //         //note.ApplySelection();
+            //     }
+            //     _inDragRangeNotes.Clear();
+            // }
         }
 
         private bool IsInDragSelectArea(NoteCoord coord)
@@ -269,12 +266,12 @@ namespace Deenote.Core.Editing
 
         private void UpdateDragSelection(NoteCoord startCoord, NoteCoord endCoord)
         {
-            _game.AssertChartLoaded();
-            _game.AssertStageLoaded();
+            //_game.AssertChartLoaded();
+            //_game.AssertStageLoaded();
             NumberUtils.SortAsc(ref startCoord.Position, ref endCoord.Position);
             NumberUtils.SortAsc(ref startCoord.Time, ref endCoord.Time);
 
-            _game.Stage.SelectionAreaRect.SetSelectionArea(startCoord, endCoord);
+            // _game.Stage.SelectionAreaRect.SetSelectionArea(startCoord, endCoord);
 
             // Optimize:现在是全遍历
             // TODO: should consider note sprite size
@@ -296,48 +293,48 @@ namespace Deenote.Core.Editing
 
             ModelAsserts.AssertInOrderViaTimeUnique(_selectedNotes);
 
-            bool IsInSelectionRange(NoteEditorModel note)
-            {
-                float pos = note.Position;
-                float halfSize = note.Size / 2f;
-                float time = note.Time;
-                float speed = note.Speed;
-                float currentTime = _game.MusicPlayer.Time;
+            // bool IsInSelectionRange(NoteEditorModel note)
+            // {
+            //     float pos = note.Position;
+            //     float halfSize = note.Size / 2f;
+            //     float time = note.Time;
+            //     float speed = note.Speed;
+            //     float currentTime = 0;//_game.MusicPlayer.Time;
 
-                if (time < currentTime) {
-                    return time >= startCoord.Time
-                        && time <= endCoord.Time
-                        && pos + halfSize >= startCoord.Position
-                        && pos - halfSize <= endCoord.Position;
-                }
+            //     if (time < currentTime) {
+            //         return time >= startCoord.Time
+            //             && time <= endCoord.Time
+            //             && pos + halfSize >= startCoord.Position
+            //             && pos - halfSize <= endCoord.Position;
+            //     }
 
-                // TODO: Currently, select by drag down, and play stage backward, may make some note in EarlyDisplay mode have strange selection state
-                // Theoretically I should judge if _game.EarlyDisplaySlowNotes, but its weird selecting in TimeOrder mode,
-                // still considering how to implement t
+            //     // TODO: Currently, select by drag down, and play stage backward, may make some note in EarlyDisplay mode have strange selection state
+            //     // Theoretically I should judge if _game.EarlyDisplaySlowNotes, but its weird selecting in TimeOrder mode,
+            //     // still considering how to implement t
 
-                // The note is on stage
-                if (time < currentTime + _game.Stage.EvaluateNoteAppearAheadTime(speed)) {
-                    var pseudoTime = ToPseudoTime(time);
-                    return pseudoTime >= startCoord.Time
-                        && pseudoTime <= endCoord.Time
-                        && pos + halfSize >= startCoord.Position
-                        && pos - halfSize <= endCoord.Position;
-                }
-                // The note is not on stage
-                else {
-                    var pseudoTime = ToAboveStagePseudoTime(time, speed);
-                    return pseudoTime >= startCoord.Time
-                        && pseudoTime <= endCoord.Time
-                        && pos + halfSize >= startCoord.Position
-                        && pos - halfSize <= endCoord.Position;
-                }
+            //     // The note is on stage
+            //     if (time < currentTime + _game.Stage.EvaluateNoteAppearAheadTime(speed)) {
+            //         var pseudoTime = ToPseudoTime(time);
+            //         return pseudoTime >= startCoord.Time
+            //             && pseudoTime <= endCoord.Time
+            //             && pos + halfSize >= startCoord.Position
+            //             && pos - halfSize <= endCoord.Position;
+            //     }
+            //     // The note is not on stage
+            //     else {
+            //         var pseudoTime = ToAboveStagePseudoTime(time, speed);
+            //         return pseudoTime >= startCoord.Time
+            //             && pseudoTime <= endCoord.Time
+            //             && pos + halfSize >= startCoord.Position
+            //             && pos - halfSize <= endCoord.Position;
+            //     }
 
-                float ToPseudoTime(float time)
-                    => currentTime + (time - currentTime) * _game.GetDisplayNoteSpeed(speed);
+            //     float ToPseudoTime(float time)
+            //         => currentTime + (time - currentTime) * 1;//_game.GetDisplayNoteSpeed(speed);
 
-                float ToAboveStagePseudoTime(float time, float speed)
-                    => time + (_game.Stage.NoteAppearAheadTime - _game.Stage.EvaluateNoteAppearAheadTime(speed));
-            }
+            //     float ToAboveStagePseudoTime(float time, float speed)
+            //         => time + (_game.Stage.NoteAppearAheadTime - _game.Stage.EvaluateNoteAppearAheadTime(speed));
+            // }
         }
 
         #endregion
@@ -345,8 +342,8 @@ namespace Deenote.Core.Editing
         private void OnSelectedNotesChanging() => SelectedNotesChanging?.Invoke(this);
         private void OnSelectedNotesChanged()
         {
-            foreach (var note in _game.NotesManager.OnStageNotes)
-                note.RefreshHighlightState();
+            //foreach (var note in _game.NotesManager.OnStageNotes)
+            //    note.RefreshHighlightState();
             SelectedNotesChanged?.Invoke(this);
         }
 

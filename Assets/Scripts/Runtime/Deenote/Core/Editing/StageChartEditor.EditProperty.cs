@@ -1,21 +1,10 @@
 #nullable enable
 
-using CommunityToolkit.Diagnostics;
-using CommunityToolkit.HighPerformance.Buffers;
-using Deenote.Api.Operations;
-using Deenote.Core.Editing.Operations;
-using Deenote.Core.GamePlay;
-using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Charts;
 using Deenote.CoreB.Models.Notes;
-using Deenote.CoreB.Models.Notes.Comparers;
-using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Assertions;
 using Deenote.Editing.Operations;
-using Deenote.Library.Collections;
 using System;
-using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace Deenote.Core.Editing
 {
@@ -26,321 +15,344 @@ namespace Deenote.Core.Editing
         internal static readonly PianoSoundData[] _defaultNoteSounds
             = new[] { new PianoSoundData(0f, 0f, 72, 0) };
 
-        private void OnNotePropertyEdited(bool notesVerticalPositionChanged, bool notesVisualDataChanged, NotificationFlag flag)
-        {
-            _game.AssertChartLoaded();
-            ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
-            NotifyFlag(flag);
-            _game.UpdateNotes(notesVerticalPositionChanged, notesVisualDataChanged);
-        }
+        //private void OnNotePropertyEdited(bool notesVerticalPositionChanged, bool notesVisualDataChanged, NotificationFlag flag)
+        //{
+        //    _game.AssertChartLoaded();
+        //    ModelAsserts.AssertChartEditorModel(_game.CurrentChart);
+        //    NotifyFlag(flag);
+        //    _game.UpdateNotes(notesVerticalPositionChanged, notesVisualDataChanged);
+        //}
 
         [Obsolete("Builtin for chart concatenation, this may be changed removed in the future")]
         public void ConcatNotes(ChartData other, float offset, float multiplier)
         {
-            if (!_game.IsChartLoaded())
+            if (_projectContext.CurrentChart is  null)
                 return;
-            _operations.Do(_game.CurrentChart
+            _operations.Do(_projectContext.CurrentChart!
                 .GetConcatChartOperation(other, offset, multiplier)
                 .OnRedone(_ => _game.UpdateNotes(true, true))
                 .OnUndone(_ => _game.UpdateNotes(true, true)));
         }
 
-        public void EditSelectedNotesPositionCoord(Func<NoteCoord, NoteCoord> valueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesPositionCoord(Func<NoteCoord, NoteCoord> valueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            float clipLength = _game.MusicPlayer.ClipLength;
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesCoordOperation(Selector.SelectedNotes, v => NoteCoord.Clamp(valueSelector(v), clipLength))
-                .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NotePositionCoord)));
-        }
+        //    float clipLength = _game.MusicPlayer.ClipLength;
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesCoordOperation(Selector.SelectedNotes.ToImmutableArray(), v => NoteCoord.Clamp(valueSelector(v), clipLength))
+        //        .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NotePositionCoord)));
+        //}
 
-        public void EditSelectedNotesTime(Func<float, float> valueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesTime(Func<float, float> valueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            float clipLength = _game.MusicPlayer.ClipLength;
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesTimeOperation(Selector.SelectedNotes, v => NoteConstraints.ClampTime(valueSelector(v), clipLength))
-                .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteTime)));
-        }
+        //    float clipLength = _game.MusicPlayer.ClipLength;
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesTimeOperation(Selector.SelectedNotes.ToImmutableArray(), v => NoteConstraints.ClampTime(valueSelector(v), clipLength))
+        //        .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteTime)));
+        //}
 
-        public void EditSelectedNotesTime(float newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesTime(float newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            float clipLength = _game.MusicPlayer.ClipLength;
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesTimeOperation(Selector.SelectedNotes, NoteConstraints.ClampTime(newValue, clipLength))
-                .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteTime)));
-        }
+        //    float clipLength = _game.MusicPlayer.ClipLength;
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesTimeOperation(Selector.SelectedNotes.ToImmutableArray()    , NoteConstraints.ClampTime(newValue, clipLength))
+        //        .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteTime)));
+        //}
 
-        public void EditSelectedNotesPosition(Func<float, float> valueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesPosition(Func<float, float> valueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesPositionOperation(Selector.SelectedNotes, v => NoteConstraints.ClampPosition(valueSelector(v)))
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NotePosition)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesPositionOperation(Selector.SelectedNotes.ToImmutableArray(), v => NoteConstraints.ClampPosition(valueSelector(v)))
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NotePosition)));
+        //}
 
-        public void EditSelectedNotesPosition(float newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesPosition(float newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesPositionOperation(Selector.SelectedNotes, NoteConstraints.ClampPosition(newValue))
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NotePosition)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesPositionOperation(Selector.SelectedNotes.ToImmutableArray(), NoteConstraints.ClampPosition(newValue))
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NotePosition)));
+        //}
 
-        public void EditSelectedNotesSize(Func<float, float> valueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesSize(Func<float, float> valueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, v => NoteConstraints.ClampSize(valueSelector(v)),
-                    n => n.Size, (n, v) => n.Size = v)
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSize)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), v => NoteConstraints.ClampSize(valueSelector(v)),
+        //            n => n.Size, (n, v) => n.Size = v)
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSize)));
+        //}
 
-        public void EditSelectedNotesSize(float newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesSize(float newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, NoteConstraints.ClampSize(newValue),
-                    n => n.Size, (n, v) => n.Size = v)
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSize)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), NoteConstraints.ClampSize(newValue),
+        //            n => n.Size, (n, v) => n.Size = v)
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSize)));
+        //}
 
-        public void EditSelectedNotesShift(float newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesShift(float newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
-                    n => n.Shift, (n, v) => n.Shift = v)
-                .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteShift)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), newValue,
+        //            n => n.Shift, (n, v) => n.Shift = v)
+        //        .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteShift)));
+        //}
 
-        public void EditSelectedNotesSpeed(Func<float, float> valueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesSpeed(Func<float, float> valueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, v => NoteConstraints.ClampSpeed(valueSelector(v)),
-                    n => n.Speed, (n, v) => n.Speed = v)
-                .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteSpeed)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), v => NoteConstraints.ClampSpeed(valueSelector(v)),
+        //            n => n.Speed, (n, v) => n.Speed = v)
+        //        .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteSpeed)));
+        //}
 
-        public void EditSelectedNotesSpeed(float newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesSpeed(float newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, NoteConstraints.ClampSpeed(newValue),
-                    n => n.Speed, (n, v) => n.Speed = v)
-                .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteSpeed)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), NoteConstraints.ClampSpeed(newValue),
+        //            n => n.Speed, (n, v) => n.Speed = v)
+        //        .OnDone(notes => OnNotePropertyEdited(true, false, NotificationFlag.NoteSpeed)));
+        //}
 
-        public void EditSelectedNotesDuration(Func<float, float> valueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesDuration(Func<float, float> valueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesDurationOperation(Selector.SelectedNotes, v => Mathf.Max(0, valueSelector(v)))
-                .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesDurationOperation(Selector.SelectedNotes.ToImmutableArray(), v => Mathf.Max(0, valueSelector(v)))
+        //        .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration)));
+        //}
 
-        public void EditSelectedNotesEndTime(Func<float, float> newValueSelector)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesEndTime(Func<float, float> newValueSelector)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesEndTimeOperation(Selector.SelectedNotes, v => Mathf.Max(0, newValueSelector(v)))
-                .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesEndTimeOperation(Selector.SelectedNotes.ToImmutableArray(), v => Mathf.Max(0, newValueSelector(v)))
+        //        .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration)));
+        //}
 
-        public void EditSelectedNotesDuration(float newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesDuration(float newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(GetEditNotesDurationOperation(Selector.SelectedNotes, newValue));
-        }
+        //    _operations.Do(GetEditNotesDurationOperation(Selector.SelectedNotes, newValue));
+        //}
 
-        public IOperation GetEditNotesDurationOperation(ReadOnlySpan<NoteEditorModel> notes, float newValue)
-        {
-            _game.AssertChartLoaded();
+        //[Obsolete]
+        //private IOperation GetEditNotesDurationOperation(ReadOnlySpan<NoteEditorModel> notes, float newValue)
+        //{
+        //    _game.AssertChartLoaded();
 
-            return _game.CurrentChart
-                .GetEditNotesDurationOperation(notes, newValue)
-                .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration));
-        }
+        //    return _game.CurrentChart
+        //        .GetEditNotesDurationOperation(notes.ToImmutableArray(), newValue)
+        //        .OnDone(notes => OnNotePropertyEdited(true, true, NotificationFlag.NoteDuration));
+        //}
 
-        public void EditSelectedNotesVibrate(bool newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesVibrate(bool newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
-                    n => n.Vibrate, (n, v) => n.Vibrate = v)
-                .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteVibrate)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), newValue,
+        //            n => n.Vibrate, (n, v) => n.Vibrate = v)
+        //        .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteVibrate)));
+        //}
 
-        public void EditSelectedNotesKind(NoteKind newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesKind(NoteKind newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesKindOperation(Selector.SelectedNotes, newValue)
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteKind)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesKindOperation(Selector.SelectedNotes.ToImmutableArray(), newValue)
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteKind)));
+        //}
 
-        public void EditSelectedNotesWarningType(WarningType newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //private void EditSelectedNotesWarningType(WarningType newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
-                    n => n.WarningType, (n, v) => n.WarningType = v)
-                .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteWarningType)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), newValue,
+        //            n => n.WarningType, (n, v) => n.WarningType = v)
+        //        .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteWarningType)));
+        //}
 
-        public void EditSelectedNotesEventId(string newValue)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNotesEventId(string newValue)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesOperation(Selector.SelectedNotes, newValue,
-                    n => n.EventId, (n, v) => n.EventId = v)
-                .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteEventId)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesOperation(Selector.SelectedNotes.ToImmutableArray(), newValue,
+        //            n => n.EventId, (n, v) => n.EventId = v)
+        //        .OnDone(notes => OnNotePropertyEdited(false, false, NotificationFlag.NoteEventId)));
+        //}
 
-        public void EditSelectedNoteSounds(ReadOnlySpan<PianoSoundData> values)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        //[Obsolete]
+        //public void EditSelectedNoteSounds(ReadOnlySpan<PianoSoundData> values)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesSoundsOperation(Selector.SelectedNotes, values)
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSounds)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesSoundsOperation(Selector.SelectedNotes.ToImmutableArray(), values.ToImmutableArray())
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSounds)));
+        //}
 
-        /// <summary>
-        /// Quick add or remove sound, if <paramref name="hasSound"/> but note already has sounds,
-        /// do nothing.
-        /// </summary>
-        public void EditSelectedNoteSounds(bool hasSound)
-        {
-            if (!_game.IsChartLoaded())
-                return;
-            if (Selector.SelectedNotes.IsEmpty)
-                return;
+        ///// <summary>
+        ///// Quick add or remove sound, if <paramref name="hasSound"/> but note already has sounds,
+        ///// do nothing.
+        ///// </summary>
+        //[Obsolete]
+        //public void EditSelectedNoteSounds(bool hasSound)
+        //{
+        //    if (!_game.IsChartLoaded())
+        //        return;
+        //    if (Selector.SelectedNotes.IsEmpty)
+        //        return;
 
-            using var so_editNotes = SpanOwner<NoteEditorModel>.Allocate(Selector.SelectedNotes.Length);
-            var editNotes = so_editNotes.Span;
-            int index = 0;
-            foreach (var note in Selector.SelectedNotes) {
-                if (note.HasSounds != hasSound)
-                    editNotes[index++] = note;
-            }
+        //    using var so_editNotes = SpanOwner<NoteEditorModel>.Allocate(Selector.SelectedNotes.Length);
+        //    var editNotes = so_editNotes.Span;
+        //    int index = 0;
+        //    foreach (var note in Selector.SelectedNotes) {
+        //        if (note.HasSounds != hasSound)
+        //            editNotes[index++] = note;
+        //    }
 
-            _operations.Do(_game.CurrentChart
-                .GetEditNotesSoundsOperation(editNotes[..index], hasSound ? _defaultNoteSounds.AsSpan() : default)
-                .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSounds)));
-        }
+        //    _operations.Do(_game.CurrentChart
+        //        .GetEditNotesSoundsOperation(editNotes[..index].ToImmutableArray(), hasSound ? _defaultNoteSounds.ToImmutableArray() : default)
+        //        .OnDone(notes => OnNotePropertyEdited(false, true, NotificationFlag.NoteSounds)));
+        //}
 
         #endregion
 
-        public void ApplySelectedNotesWithCurveTranform(GridsManager.CurveApplyProperty property)
-        {
-            switch (property) {
-                case GridsManager.CurveApplyProperty.Size:
-                    EditSelectedNotesSize(v => _context.Grids.Curves.SizeCurve?.GetValue(v) ?? v);
-                    break;
-                case GridsManager.CurveApplyProperty.Speed:
-                    EditSelectedNotesSpeed(v => _context.Grids.Curves.SpeedCurve?.GetValue(v) ?? v);
-                    break;
-                default:
-                    ThrowHelper.ThrowInvalidOperationException("Unknown curve apply property");
-                    break;
-            }
-        }
+        //[Obsolete]
+        //private void ApplySelectedNotesWithCurveTranform(GridsManager.CurveApplyProperty property)
+        //{
+        //    //switch (property) {
+        //    //    case GridsManager.CurveApplyProperty.Size:
+        //    //        EditSelectedNotesSize(v => _context.Grids.Curves.SizeCurve?.GetValue(v) ?? v);
+        //    //        break;
+        //    //    case GridsManager.CurveApplyProperty.Speed:
+        //    //        EditSelectedNotesSpeed(v => _context.Grids.Curves.SpeedCurve?.GetValue(v) ?? v);
+        //    //        break;
+        //    //    default:
+        //    //        ThrowHelper.ThrowInvalidOperationException("Unknown curve apply property");
+        //    //        break;
+        //    //}
+        //}
 
-        public void CreateHoldBetween(NoteEditorModel head, NoteEditorModel tail)
-        {
-            if (tail.Time == head.Time)
-                return;
+        //[Obsolete]
+        //public void CreateHoldBetween(NoteEditorModel head, NoteEditorModel tail)
+        //{
+        //    if (tail.Time == head.Time)
+        //        return;
 
-            if (tail.Time < head.Time)
-                (head, tail) = (tail, head);
+        //    if (tail.Time < head.Time)
+        //        (head, tail) = (tail, head);
 
-            var duration = tail.Time - head.Time;
-            var rmv = GetRemoveNotesOperation(MemoryMarshal.CreateReadOnlySpan(ref tail, 1));
-            var duredit = GetEditNotesDurationOperation(MemoryMarshal.CreateReadOnlySpan(ref head, 1), duration);
-            OperationMemento.Do(new CombinedPairOperation(rmv, duredit));
-        }
+        //    var duration = tail.Time - head.Time;
+        //    var rmv = GetRemoveNotesOperation(MemoryMarshal.CreateReadOnlySpan(ref tail, 1));
+        //    var duredit = GetEditNotesDurationOperation(MemoryMarshal.CreateReadOnlySpan(ref head, 1), duration);
+        //    OperationMemento.Do(new CombinedPairOperation(rmv, duredit));
+        //}
 
-        public void InsertTempo(TempoRange range)
-        {
-            if (!_project.IsProjectLoaded())
-                return;
+        //[Obsolete]
+        //public void InsertTempo(TempoRange range)
+        //{
+        //    if (!_project.IsProjectLoaded())
+        //        return;
 
-            _operations.Do(_project.CurrentProject.InsertTempo(range)
-                .OnDone(() => NotifyFlag(NotificationFlag.ProjectTempo)));
-        }
+        //    _operations.Do(_project.CurrentProject.InsertTempo(range)
+        //        .OnDone(() => NotifyFlag(NotificationFlag.ProjectTempo)));
+        //}
     }
 }

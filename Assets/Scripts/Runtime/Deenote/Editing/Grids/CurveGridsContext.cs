@@ -25,10 +25,10 @@ namespace Deenote.Editing.Grids
         public float EndTime => _interpolationNotes[^1].Time;
 
         private SplineCurve? _positionCurveData;
-        internal SplineCurve? PositionCurve => _positionCurveData;
+        public SplineCurve? PositionCurve => _positionCurveData;
 
         private SplineCurve? _sizeCurveData;
-        internal SplineCurve? SizeCurve
+        public SplineCurve? SizeCurve
         {
             get {
                 if (!IsCurveOn) return null;
@@ -41,7 +41,7 @@ namespace Deenote.Editing.Grids
         }
 
         private SplineCurve? _speedCurveData;
-        internal SplineCurve? SpeedCurve
+        public SplineCurve? SpeedCurve
         {
             get {
                 if (!IsCurveOn) return null;
@@ -73,6 +73,9 @@ namespace Deenote.Editing.Grids
                 _ => throw new SwitchExpressionException(kind),
             };
             _curveKind = kind;
+            _sizeCurveData = null;
+            _speedCurveData = null;
+            PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IsCurveOn)));
         }
 
         public void DisableCurrentCurve()
@@ -80,7 +83,7 @@ namespace Deenote.Editing.Grids
             if (_curveKind is not null) {
                 _curveKind = null;
                 _positionCurveData = null;
-                _positionCurveData = null;
+                _sizeCurveData = null;
                 _speedCurveData = null;
                 PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IsCurveOn)));
             }

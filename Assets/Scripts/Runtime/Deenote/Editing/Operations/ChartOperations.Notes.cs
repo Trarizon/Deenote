@@ -13,26 +13,26 @@ namespace Deenote.Editing.Operations
 {
     partial class ChartOperations
     {
-        public static AddNoteOperation GetAddNoteOperation(this ChartEditorModel chart, NoteData note)
+        public static AddNoteOperation GetAddNoteOperation(this ChartEditorModel chart, NoteEditorModel note)
             => new AddNoteOperation(chart, note);
 
-        public static AddNotesOperation GetAddNotesOperation(this ChartEditorModel chart, ReadOnlySpan<NoteData> notes)
-            => new AddNotesOperation(chart, notes.ToImmutableArray());
+        public static AddNotesOperation GetAddNotesOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes)
+            => new AddNotesOperation(chart, notes);
 
         public static RemoveNotesOperation GetRemoveNotesOperation(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes)
             => new RemoveNotesOperation(chart, notes);
 
         [Obsolete("Builtin for chart concatenation, this may be changed or removed in the future")]
-        public static ConcatNotesOperation GetConcatChartOperation(this ChartEditorModel chart, ChartData newChart, float offset, float multiplier) 
+        public static ConcatNotesOperation GetConcatChartOperation(this ChartEditorModel chart, ChartData newChart, float offset, float multiplier)
             => new ConcatNotesOperation(chart, newChart, offset, multiplier);
 
         public sealed class AddNoteOperation : NotifiableChartOperation<NoteEditorModel>
         {
             private readonly NoteEditorModel _model;
 
-            internal AddNoteOperation(ChartEditorModel chart, NoteData note)
+            internal AddNoteOperation(ChartEditorModel chart, NoteEditorModel note)
                 : base(chart)
-                => _model = new NoteEditorModel(note);
+                => _model = note;
 
             protected override NoteEditorModel Redo()
             {
@@ -50,32 +50,22 @@ namespace Deenote.Editing.Operations
 
         public sealed class AddNotesOperation : NotifiableChartOperation<ImmutableArray<NoteEditorModel>>
         {
-            private readonly ImmutableArray<NoteData> _notes;
+            private NoteEditorModel[] _notes;
 
-            private NoteEditorModel[]? _editorModels;
-
-            internal AddNotesOperation(ChartEditorModel chart, ImmutableArray<NoteData> notes) : base(chart)
+            internal AddNotesOperation(ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes) : base(chart)
             {
-                _notes = notes;
+                _notes = ImmutableCollectionsMarshal.AsArray(notes) ?? Array.Empty<NoteEditorModel>();
             }
 
             protected override ImmutableArray<NoteEditorModel> Redo()
             {
-                if (_editorModels is null) {
-                    _editorModels = new NoteEditorModel[_notes.Length];
-                    for (int i = 0; i < _notes.Length; i++) {
-                        _editorModels[i] = new NoteEditorModel(_notes[i]);
-                    }
-                }
-
-                Chart.AddNoteEditorModels(_editorModels);
-                return ImmutableCollectionsMarshal.AsImmutableArray(_editorModels);
+                Chart.AddNoteEditorModels(_notes);
+                return ImmutableCollectionsMarshal.AsImmutableArray(_notes);
             }
 
             protected override ImmutableArray<NoteEditorModel> Undo()
             {
-                Debug.Assert(_editorModels is not null);
-                var models = _editorModels!;
+                var models = _notes;
                 Chart.RemoveNoteEditorModels(models);
                 return ImmutableCollectionsMarshal.AsImmutableArray(models);
             }

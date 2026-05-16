@@ -17,10 +17,17 @@ namespace Deenote.GamePlay
         {
             get => _currentTime_bf;
             set {
-                if (Utils.SetField(ref _currentTime_bf, value)) {
+                if (Utils.SetField(ref _currentTime_bf, value, out var old)) {
+
+                    TimeChanged?.Invoke(this, (old, value));
                     PropertyChanged?.Invoke(this, new(nameof(CurrentTime)));
                 }
             }
+        }
+
+        public float MusicLength
+        {
+            get => _project.CurrentProject?.AudioLength ?? 0f;
         }
 
         #region Properties
@@ -36,8 +43,8 @@ namespace Deenote.GamePlay
             }
         }
 
-        private const int MinMusicSpeed = 1;
-        private const int MaxMusicSpeed = 30;
+        public const int MinMusicSpeed = 1;
+        public const int MaxMusicSpeed = 30;
         private int _musicSpeed_bf;
         /// <summary>
         /// Range [1, 30], representing [0.1, 3.0]
@@ -104,6 +111,7 @@ namespace Deenote.GamePlay
         #endregion
 
         public event Action<GamePlayContext, PropertyEventArgs>? PropertyChanged;
+        public event Action<GamePlayContext, (float OldTime, float NewTime)>? TimeChanged;
 
         public GamePlayContext(ProjectContext project, SaveSystem storage)
         {
@@ -127,6 +135,13 @@ namespace Deenote.GamePlay
                 MusicVolume = configs.GetSingle("stage/music_volume", 100f);
                 PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
             };
+
+            project.RegisterNestedPropertyChangedAndInvokeNullable(s => s.CurrentProject, nameof(project.CurrentProject), (s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.AudioClip))) {
+                    PropertyChanged?.Invoke(this, new(nameof(MusicLength)));
+                }
+            });
         }
 
         private static float ConvertToActualMusicSpeed(int musicSpeed) => musicSpeed / 10f;

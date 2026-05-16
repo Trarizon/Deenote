@@ -1,5 +1,6 @@
 #nullable enable
 
+using CommunityToolkit.Diagnostics;
 using Deenote.Core;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Notification;
@@ -45,6 +46,14 @@ namespace Deenote.Editing.Grids
             };
         }
 
+        public float GetGridPosition(int index)
+        {
+            var grid = GetLinePosition(index, GridCount, out var inRange);
+            if (!inRange)
+                ThrowHelper.ThrowArgumentOutOfRangeException(nameof(index));
+            return grid;
+        }
+
         public float GetNearestGrid(float position)
         {
             // Guard
@@ -65,7 +74,7 @@ namespace Deenote.Editing.Grids
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        public float? FloorToNearestNextGridPosition(float position)
+        public float? FloorToNearestNextGrid(float position)
         {
             if (GridCount < MinGridCount) {
                 Debug.LogAssertion("PositionGridCount < MinGridCount");
@@ -87,7 +96,7 @@ namespace Deenote.Editing.Grids
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        public float? CeilToNearestNextGridPosition(float position)
+        public float? CeilToNearestNextGrid(float position)
         {
             if (GridCount < MinGridCount) {
                 Debug.LogAssertion("PositionGridCount < MinGridCount");

@@ -1,9 +1,11 @@
 #nullable enable
 
+using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.Contexts;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Models;
+using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.Grids;
@@ -14,6 +16,7 @@ using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
 using Deenote.UIFramework.Controls;
 using System;
+using System.Collections.Immutable;
 using UnityEngine;
 
 namespace Deenote.UI.Views
@@ -24,6 +27,8 @@ namespace Deenote.UI.Views
         private EditorContext _editorContext;
         private GamePlayContext _gamePlayContext;
         private GameStageContext _stageContext;
+
+        private ChartNotesEditor _editor;
 
         [SerializeField] TextBox _highlightNoteSpeedInput = default!;
         [SerializeField] ToggleButton _applySpeedDiffToggle = default!;
@@ -62,7 +67,6 @@ namespace Deenote.UI.Views
         private const int MaxCurveFillAmount = 256;
         private static readonly int[] _predefinedHorizontalGridCount = { 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64 };
 
-        private GridsManager.CurveKind _currentCurveKind_old;
         private CurveKind _curveKind;
         private int _curveFillAmount;
         private bool _curveAutoApplySize;
@@ -77,6 +81,8 @@ namespace Deenote.UI.Views
             _editorContext = MainSystem.Contexts.Editor;
             _gamePlayContext = MainSystem.Contexts.GamePlay;
             _stageContext = MainSystem.Contexts.GameStage;
+
+            _editor = MainSystem.ChartEditor;
         }
 
         private void Start()
@@ -111,7 +117,7 @@ namespace Deenote.UI.Views
                     }
                 });
 
-                _musicSpeedNumericStepper.Initialize(GamePlayManager.MinMusicSpeed, GamePlayManager.MaxMusicSpeed);
+                _musicSpeedNumericStepper.Initialize(GamePlayContext.MinMusicSpeed, GamePlayContext.MaxMusicSpeed);
                 _musicSpeedNumericStepper.SetInputParser(static input => float.TryParse(input, out var val) ? Mathf.RoundToInt(val * 10f) : null);
                 _musicSpeedNumericStepper.SetDisplayerTextSelector(static ival => $"{ival / 10}.{ival % 10}");
                 _musicSpeedNumericStepper.ValueChanged += val => _gamePlayContext.MusicSpeed = val;
@@ -200,13 +206,13 @@ namespace Deenote.UI.Views
 
             // Curves
             {
-                _linearCurveRadio.Checked += () => _currentCurveKind_old = GridsManager.CurveKind.Linear;
-                _cubicCurveRadio.Checked += () => _currentCurveKind_old = GridsManager.CurveKind.Cubic;
+                _linearCurveRadio.Checked += () => _curveKind = CurveKind.Linear;
+                _cubicCurveRadio.Checked += () => _curveKind = CurveKind.Cubic;
                 _generateCurveButton.Clicked += () =>
                 {
                     _editorContext.Grids.Curves.InitializeCurve(_editorContext.NoteSelection.SelectedNotes, _curveKind);
                     // Remove notes in between
-                    MainSystem.StageChartEditor.RemoveNotes(MainSystem.StageChartEditor.Selector.SelectedNotes[1..^1]);
+                    _editor.RemoveNotes(MainSystem.StageChartEditor.Selector.SelectedNotes[1..^1].ToImmutableArray());
                 };
                 _disableCurveButton.Clicked += _editorContext.Grids.Curves.DisableCurrentCurve;
                 _editorContext.Grids.Curves.RegisterPropertyChangedAndInvoke((s, e) =>
@@ -226,21 +232,21 @@ namespace Deenote.UI.Views
                     }
                     _fillCurveAmountInput.SetValueWithoutNotify(_curveFillAmount.ToString());
                 };
-                _fillCurveButton.Clicked += () =>
-                {
-                    Span<GridsManager.CurveApplyProperty> applyProps = stackalloc GridsManager.CurveApplyProperty[2];
-                    int index = 0;
-                    if (_curveAutoApplySize)
-                        applyProps[index++] = GridsManager.CurveApplyProperty.Size;
-                    if (_curveAutoApplySpeed)
-                        applyProps[index++] = GridsManager.CurveApplyProperty.Speed;
-
-                    MainSystem.StageChartEditor.AddNotesSnappingToCurve(_curveFillAmount, applyProps[..index]);
-                };
+                _fillCurveButton.Clicked += FillCurve;
                 _curveAutoApplySizeToggle.IsCheckedChanged += val => _curveAutoApplySize = val;
                 _curveAutoApplySpeedToggle.IsCheckedChanged += val => _curveAutoApplySpeed = val;
-                _curveApplySizeButton.Clicked += () => MainSystem.StageChartEditor.ApplySelectedNotesWithCurveTranform(GridsManager.CurveApplyProperty.Size);
-                _curveApplySpeedButton.Clicked += () => MainSystem.StageChartEditor.ApplySelectedNotesWithCurveTranform(GridsManager.CurveApplyProperty.Speed);
+                _curveApplySizeButton.Clicked += () =>
+                {
+                    var curve = _editorContext.Grids.Curves.SizeCurve;
+                    if (curve == null) return;
+                    _editor.EditNotesSize(_editorContext.NoteSelection.SelectedNotes, v => curve.GetValue(v) ?? v);
+                };
+                _curveApplySpeedButton.Clicked += () =>
+                {
+                    var curve = _editorContext.Grids.Curves.SpeedCurve;
+                    if (curve == null) return;
+                    _editor.EditNotesSpeed(_editorContext.NoteSelection.SelectedNotes, v => curve.GetValue(v) ?? v);
+                };
 
                 MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanged;
                 _OnSelectedNotesChanged(MainSystem.StageChartEditor.Selector);
@@ -275,7 +281,7 @@ namespace Deenote.UI.Views
                 {
                     if (float.TryParse(val, out var fval)) {
                         if (MainSystem.ProjectManager.IsProjectLoaded())
-                            _bpmEndTime = Mathf.Min(fval, MainSystem.GamePlayManager.MusicPlayer.ClipLength);
+                            _bpmEndTime = Mathf.Min(fval, _gamePlayContext.MusicLength);
                         else
                             _bpmEndTime = fval;
                     }
@@ -290,8 +296,8 @@ namespace Deenote.UI.Views
                 _bpmFillButton.Clicked += () =>
                 {
                     MainSystem.ProjectManager.AssertProjectLoaded();
-                    var endTime = Mathf.Min(_bpmEndTime, MainSystem.GamePlayManager.MusicPlayer.ClipLength);
-                    MainSystem.StageChartEditor.InsertTempo(new TempoRange(_bpmValue, _bpmStartTime, _bpmEndTime));
+                    var endTime = Mathf.Min(_bpmEndTime, _gamePlayContext.MusicLength);
+                    _editor.InsertTempo(new TempoRange(_bpmValue, _bpmStartTime, endTime));
                 };
 
                 MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanaged;
@@ -328,6 +334,29 @@ namespace Deenote.UI.Views
                     SyncFloatInput(_bpmValueInput, _bpmValue);
                 }
             }
+        }
+
+        private void FillCurve()
+        {
+            var curves = _editorContext.Grids.Curves;
+            if (!curves.IsCurveOn)
+                return;
+
+            using var so_notes = SpanOwner<NoteData>.Allocate(_curveFillAmount);
+            var notes = so_notes.Span;
+
+            for (int i = 0; i < _curveFillAmount; i++) {
+                var time = Mathf.Lerp(curves.StartTime, curves.EndTime, (float)(i + 1) / (_curveFillAmount + 1));
+                var pos = curves.PositionCurve.GetValue(time)!.Value;
+                var note = _editorContext.NotePlacement.ClonePrototypeData();
+                note.PositionCoord = new(pos, time);
+                if (_curveAutoApplySize)
+                    note.Size = curves.SizeCurve.GetValue(time)!.Value;
+                if (_curveAutoApplySpeed)
+                    note.Speed = curves.SpeedCurve.GetValue(time)!.Value;
+            }
+
+            _editor.AddNotes(notes);
         }
     }
 }

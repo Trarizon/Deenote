@@ -36,5 +36,19 @@ namespace Deenote.Editing.EditorModels.Helpers
         public static Tempo GetActualTempo(this ReadOnlySpan<Tempo> tempos, int index)
             => index < 0 ? new Tempo(0f, 0f) : tempos[index];
 
+        /// <summary>
+        /// Get a tempo at index, allows you to pass 0 or tempos.Length, and returns a valid tempo
+        /// </summary>
+        /// <param name="tempos"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static Tempo GetSafeTempo(this ReadOnlySpan<Tempo> tempos, int index)
+        {
+            if (index < 0)
+                return new Tempo(0f, 0f);
+            if (index >= tempos.Length)
+                return Tempo.PositiveInfinity;
+            return tempos[index];
+        }
     }
 }

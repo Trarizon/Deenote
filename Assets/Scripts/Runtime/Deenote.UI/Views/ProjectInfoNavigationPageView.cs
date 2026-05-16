@@ -226,99 +226,91 @@ namespace Deenote.UI.Views
 
             #region Chart
             {
-                _chartNameInput.EditSubmitted += MainSystem.GamePlayManager.EditChartName;
+                _chartNameInput.EditSubmitted += (text) =>
+                {
+                    if (_projectContext.CurrentChart is { } chart) {
+                        chart.Name = text;
+                    }
+                };
                 _chartDifficultyDropdown.ResetOptions(DifficultyDropdownOptions);
                 _chartDifficultyDropdown.SelectedIndexChanged += val =>
                 {
                     var diff = DropdownIndexToDifficulty(val);
-                    MainSystem.GamePlayManager.EditChartDifficulty(diff);
+                    if (_projectContext.CurrentChart is { } chart) {
+                        chart.Difficulty = diff;
+                    }
                     _chartNameInput.SetPlaceHolderText(LocalizableText.Raw(diff.ToCapitalizedString(_environment.GameVersion)));
                 };
-                _chartLevelInput.EditSubmitted += MainSystem.GamePlayManager.EditChartLevel;
+                _chartLevelInput.EditSubmitted += text =>
+                {
+                    if (_projectContext.CurrentChart is { } chart) {
+                        chart.Level = text;
+                    }
+                };
                 _chartSpeedInput.EditSubmitted += val =>
                 {
-                    if (float.TryParse(val, out var speed))
-                        MainSystem.GamePlayManager.EditChartSpeed(speed);
-                    else
-                        _chartSpeedInput.SetValueWithoutNotify(MainSystem.GamePlayManager.CurrentChart?.Speed.ToString("F3"));
+                    if (float.TryParse(val, out var speed)) {
+                        if (_projectContext.CurrentChart is { } chart) {
+                            chart.Speed = speed;
+                        }
+                    }
+                    _chartSpeedInput.SetValueWithoutNotify(_projectContext.CurrentChart?.Speed.ToString("F3"));
                 };
                 _chartRemapMinVolumeInput.EditSubmitted += val =>
                 {
-                    if (int.TryParse(val, out var vol))
-                        MainSystem.GamePlayManager.EditChartRemapMinVolume(vol);
-                    else
-                        _chartRemapMinVolumeInput.SetValueWithoutNotify(MainSystem.GamePlayManager.CurrentChart?.RemapMinVolume.ToString());
+                    if (int.TryParse(val, out var vol)) {
+                        if (_projectContext.CurrentChart is { } chart) {
+                            chart.RemapMinVolume = vol;
+                        }
+                    }
+                    _chartRemapMinVolumeInput.SetValueWithoutNotify(_projectContext.CurrentChart?.RemapMinVolume.ToString());
                 };
                 _chartRemapMaxVolumeInput.EditSubmitted += val =>
                 {
-                    if (int.TryParse(val, out var vol))
-                        MainSystem.GamePlayManager.EditChartRemaMaxVolume(vol);
-                    else
-                        _chartRemapMaxVolumeInput.SetValueWithoutNotify(MainSystem.GamePlayManager.CurrentChart?.RemapMaxVolume.ToString());
+                    if (int.TryParse(val, out var vol)) {
+                        if (_projectContext.CurrentChart is { } chart) {
+                            chart.RemapMaxVolume = vol;
+                        }
+                    }
+                    _chartRemapMaxVolumeInput.SetValueWithoutNotify(_projectContext.CurrentChart?.RemapMaxVolume.ToString());
                 };
 
-                var game = MainSystem.GamePlayManager;
-                game.RegisterNotificationAndInvoke(GamePlayManager.NotificationFlag.CurrentChart,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is not { } cht) {
-                            _chartInfoGroup.gameObject.SetActive(false);
-                        }
-                        else {
-                            _chartInfoGroup.gameObject.SetActive(true);
-                            SetName(cht.Name);
-                            SetDifficulty(cht.Difficulty);
-                            SetLevel(cht.Level);
-                            SetSpeed(cht.Speed);
-                            SetRemapMinVolume(cht.RemapMinVolume);
-                            SetRemapMaxVolume(cht.RemapMaxVolume);
-                        }
-                    });
-                game.RegisterNotification(GamePlayManager.NotificationFlag.ChartName,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is { } chart) {
-                            SetName(chart.Name);
-                            RefreshChartListUI();
-                        }
-                    });
-                game.RegisterNotification(GamePlayManager.NotificationFlag.ChartDifficulty,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is { } chart) {
-                            SetDifficulty(chart.Difficulty);
-                            RefreshChartListUI();
-                        }
-                    });
-                game.RegisterNotification(GamePlayManager.NotificationFlag.ChartLevel,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is { } chart) {
-                            SetLevel(chart.Level);
-                            RefreshChartListUI();
-                        }
-                    });
-                game.RegisterNotification(GamePlayManager.NotificationFlag.ChartSpeed,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is { } chart) {
-                            SetSpeed(chart.Speed);
-                        }
-                    });
-                game.RegisterNotification(GamePlayManager.NotificationFlag.ChartRemapMinVolume,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is { } chart) {
-                            SetRemapMinVolume(chart.RemapMinVolume);
-                        }
-                    });
-                game.RegisterNotification(GamePlayManager.NotificationFlag.ChartRemapMaxVolume,
-                    stage =>
-                    {
-                        if (stage.CurrentChart is { } chart) {
-                            SetRemapMaxVolume(chart.RemapMaxVolume);
-                        }
-                    });
+                _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.CurrentChart))) {
+                        _chartInfoGroup.gameObject.SetActive(s.CurrentChart is not null);
+                    }
+                });
+
+                _projectContext.RegisterNestedPropertyChangedAndInvoke(s => s.CurrentChart, nameof(ProjectContext.CurrentChart), (s, e) =>
+                {
+                    bool requireRefresh = false;
+                    if (e.MatchProperty(nameof(s.Name))) {
+                        SetName(s.Name);
+                        requireRefresh = true;
+                    }
+                    if (e.MatchProperty(nameof(s.Difficulty))) {
+                        SetDifficulty(s.Difficulty);
+                        requireRefresh = true;
+                    }
+                    if (e.MatchProperty(nameof(s.Level))) {
+                        SetLevel(s.Level);
+                        requireRefresh = true;
+                    }
+                    if (e.MatchProperty(nameof(s.Speed))) {
+                        SetSpeed(s.Speed);
+                    }
+                    if (e.MatchProperty(nameof(s.RemapMinVolume))) {
+                        SetRemapMinVolume(s.RemapMinVolume);
+                    }
+                    if (e.MatchProperty(nameof(s.RemapMaxVolume))) {
+                        SetRemapMaxVolume(s.RemapMaxVolume);
+                    }
+
+                    if (requireRefresh) {
+                        RefreshChartListUI();
+                    }
+                });
 
                 _chartConcatOffsetInput.EditSubmitted += val =>
                 {
@@ -336,7 +328,7 @@ namespace Deenote.UI.Views
                 };
                 _chartConcatLoadButton.Clicked += [Obsolete] async () =>
                 {
-                    if (!MainSystem.GamePlayManager.IsChartLoaded())
+                    if (_projectContext.CurrentChart is null)
                         return;
 
                 Reselect:
@@ -403,7 +395,7 @@ namespace Deenote.UI.Views
 
         private void LoadChartModelToStage(ChartEditorModel chart)
         {
-            MainSystem.GamePlayManager.LoadChartInCurrentProject(chart);
+            _projectContext.CurrentChart = chart;
             MainWindow.StatusBar.SetLocalizedStatusMessage(ChartLoadedStatusKey);
         }
 

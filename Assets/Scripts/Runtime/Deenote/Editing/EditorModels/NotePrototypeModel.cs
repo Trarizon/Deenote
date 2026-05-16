@@ -38,6 +38,14 @@ namespace Deenote.Editing.EditorModels
             Uid = INoteUnique.GetUid();
         }
 
+        public NoteData CreateAt(NoteCoord coord)
+        {
+            var data = ToDataNonLinkInfo();
+            data.Position += coord.Position;
+            data.Time += coord.Time;
+            return data;
+        }
+
         public NoteData ToDataNonLinkInfo()
         {
             var data = new NoteData {
@@ -49,6 +57,13 @@ namespace Deenote.Editing.EditorModels
             };
             data.Sounds.AddRange(Sounds.AsSpan());
             return data;
+        }
+
+        public NotePrototypeModel Clone(bool cloneSounds = true)
+        {
+            var model = new NotePrototypeModel();
+            CloneTo(model, cloneSounds);
+            return model;
         }
 
         public void CloneTo(NotePrototypeModel other, bool cloneSounds = true)
@@ -64,12 +79,14 @@ namespace Deenote.Editing.EditorModels
             }
         }
 
-        public void FromDataNonLinkInfo(NoteData data)
+        public void FromDataNonLinkInfo(NoteData data, NoteCoord baseCoord = default)
         {
-            Time = data.Time;
-            Position = data.Position;
+            Time = data.Time - baseCoord.Time;
+            Position = data.Position - baseCoord.Position;
             Size = data.Size;
             Duration = data.Duration;
+            Speed = data.Speed;
+            Kind = data.Kind;
             Sounds.Replace(data.Sounds.AsSpan());
         }
     }

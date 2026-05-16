@@ -1,8 +1,8 @@
 #nullable enable
 
-using Deenote.Core.GameStage;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels.Assertions;
+using Deenote.GameStage.Stage;
 using System.Collections.Generic;
 
 namespace Deenote.GameStage
@@ -65,6 +65,8 @@ namespace Deenote.GameStage
                     prevNote = note;
                 }
             };
+
+            // TODO: GameMusicPlayer修改后，需要在Update里调用一下note.RefreshStageDeltaTime
         }
 
         public void Initialize(IGameStageNoteFactory noteFactory)

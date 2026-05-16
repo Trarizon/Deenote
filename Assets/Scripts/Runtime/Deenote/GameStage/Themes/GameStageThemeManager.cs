@@ -2,7 +2,7 @@
 
 using CommunityToolkit.Diagnostics;
 using Cysharp.Threading.Tasks;
-using Deenote.Core.GameStage;
+using Deenote.GameStage.Stage;
 using Deenote.Library;
 using System;
 using System.Linq;

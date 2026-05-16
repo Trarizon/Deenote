@@ -3,21 +3,22 @@
 using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage.Foreground;
 using Deenote.CoreB.Notification;
 using Deenote.GameStage.Themes;
+using Deenote.GameStage.UI;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
 using Deenote.Library.Unity.UI;
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.UI;
 
 namespace Deenote.UI.Views
 {
-    public sealed partial class PerspectiveViewPanelView : MonoBehaviour
+    public sealed partial class PerspectiveViewPanelView : MonoBehaviour, IPerspectiveViewPanelInfoProvider
     {
         private ProjectContext _projectContext;
 
@@ -38,7 +39,8 @@ namespace Deenote.UI.Views
 
         public ForegroundPerspectiveViewUI StageForeground { get; private set; } = default!;
 
-        public RenderTexture ViewRendererTexture => _viewRenderTexture;
+        public RenderTexture ViewRenderTexture => _viewRenderTexture;
+        public Transform ForegroundParent => _contentTransform;
 
         private FrameCachedNotifyingProperty<Vector2> _viewSize_bf = default!;
         public Vector2 ViewSize => _viewSize_bf.Value;
@@ -114,12 +116,11 @@ namespace Deenote.UI.Views
 
             _viewRenderTexture.Resize(rtSize);
 
-            MainSystem.GamePlayManager.Stage?
-                .ApplyToRenderTexture(_viewRenderTexture);
+            ViewSizeChanged?.Invoke(this);
         }
         private void Awake()
         {
-            _projectContext= MainSystem.Contexts.Project;
+            _projectContext = MainSystem.Contexts.Project;
 
             InitAspectRatioController();
 
@@ -151,8 +152,6 @@ namespace Deenote.UI.Views
 
         private void _OnStageLoaded(GameStageThemeEntry args)
         {
-            args.Stage.ApplyCameraTargetTexture(_viewRenderTexture);
-
             var foreground = args.InstantiateUIAsync(_contentTransform);
             //var foreground = Instantiate(args.PerspectiveViewForegroundPrefab, _contentTransform);
             if (StageForeground != null) {
@@ -183,7 +182,12 @@ namespace Deenote.UI.Views
         /// <summary>
         /// InputManager requires this to judge if mouse actions should be enabled.
         /// </summary>
-        public bool IsHovering => _contentHoveringTrigger.IsHovering;
+        public bool IsMouseHovering => _contentHoveringTrigger.IsHovering;
+
+        public event Action<PointerEventData>? PointerDown;
+        public event Action<PointerEventData>? PointerUp;
+        public event Action<PointerEventData>? PointerMove;
+        public event Action<IPerspectiveViewPanelInfoProvider>? ViewSizeChanged;
 
         #endregion
     }

@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Contexts;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Assertions;
 using Deenote.Editing.EditorModels.Comparing;
@@ -25,6 +26,13 @@ namespace Deenote.Editing.NoteSelection
         public NoteSelectionContext(EditorContext editorContext)
         {
             EditorContext = editorContext;
+
+            ProjectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CurrentChart))) {
+                    _selectedNotes.Clear();
+                }
+            });
         }
 
         public void SelectNote(NoteEditorModel note)

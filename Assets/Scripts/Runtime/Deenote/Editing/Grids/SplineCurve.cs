@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Deenote.Editing.Grids
 {
     // REFACTOR: 考虑移到Core里
-    internal sealed class SplineCurve
+    public sealed class SplineCurve
     {
         private readonly double[] x;
         private readonly double[] a;
@@ -27,7 +27,7 @@ namespace Deenote.Editing.Grids
             d = new double[pointCount - 1];
         }
 
-        public static SplineCurve Linear<T>(ReadOnlySpan<T> source, Func<T, float> xSelector, Func<T, float> ySelector)
+        internal static SplineCurve Linear<T>(ReadOnlySpan<T> source, Func<T, float> xSelector, Func<T, float> ySelector)
         {
             var curve = new SplineCurve(source.Length);
 
@@ -45,7 +45,7 @@ namespace Deenote.Editing.Grids
             return curve;
         }
 
-        public static SplineCurve Cubic<T>(ReadOnlySpan<T> source, Func<T, float> xSelector, Func<T, float> ySelector)
+        internal static SplineCurve Cubic<T>(ReadOnlySpan<T> source, Func<T, float> xSelector, Func<T, float> ySelector)
         {
             var curve = new SplineCurve(source.Length);
 

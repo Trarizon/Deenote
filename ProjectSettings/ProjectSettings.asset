@@ -54,7 +54,7 @@ PlayerSettings:
   mipStripping: 0
   numberOfMipsStripped: 0
   numberOfMipsStrippedPerMipmapLimitGroup: {}
-  m_StackTraceTypes: 010000000100000001000000000000000100000001000000
+  m_StackTraceTypes: 010000000100000001000000010000000100000001000000
   iosShowActivityIndicatorOnLoading: -1
   androidShowActivityIndicatorOnLoading: -1
   iosUseCustomAppBackgroundBehavior: 0
@@ -139,8 +139,9 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.0.8
+  bundleVersion: 1.1.0-alpha
   preloadedAssets: []
+  - {fileID: 11400000, guid: f3f55b95dff20064faa7cf8f6080c2fe, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1

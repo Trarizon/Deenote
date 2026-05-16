@@ -378,7 +378,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 173.45
+  m_fontSize: 72.15
   m_fontSizeBase: 110
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -550,7 +550,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 58
+  m_fontSize: 24.1
   m_fontSizeBase: 70.85
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -700,7 +700,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 55.2
+  m_fontSize: 22.95
   m_fontSizeBase: 45.85
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1547,7 +1547,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <RectTransform>k__BackingField: {fileID: 8735043110759950269}
-  <Args>k__BackingField: {fileID: 11400000, guid: 6210dfb3df77117498fb943b9adcbc90,
+  <Config>k__BackingField: {fileID: 11400000, guid: 74323f5f60d548d4eab181552c032891,
     type: 2}
   _musicNameText: {fileID: 3068728083143188663}
   _scoreText: {fileID: 3811264543737450620}
@@ -1747,7 +1747,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 173.45
+  m_fontSize: 72.15
   m_fontSizeBase: 110
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1882,7 +1882,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 82.2
+  m_fontSize: 34.15
   m_fontSizeBase: 21.4
   m_fontWeight: 400
   m_enableAutoSizing: 1

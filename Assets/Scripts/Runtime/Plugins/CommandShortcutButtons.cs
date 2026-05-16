@@ -23,10 +23,11 @@ namespace Deenote.Runtime.Plugins
                 ImmutableArray.Create<IDeenotePlugin>(
                     new DelegatePlugin("Cut", new[] { ("zh", "剪切") }, context => { context.Editor.CutSelectedNotes(); return default; }),
                     new DelegatePlugin("Copy", new[] { ("zh", "复制") }, context => { context.Editor.CopySelectedNotes(); return default; }),
-                    new DelegatePlugin("Paste", new[] { ("zh", "粘贴") }, context => { context.Editor.PasteNotes(); return default; })),
-                ImmutableArray.Create<IDeenotePlugin>(
-                    new DelegatePlugin("Quantize", new[] { ("zh", "吸附格线") }, context => { context.Editor.EditSelectedNotesPositionCoord(c => context.GameManager.Grids.Quantize(c, true, true)); return default; }),
-                    new DelegatePlugin("Mirror", new[] { ("zh", "镜像") }, context => { context.Editor.EditSelectedNotesPosition(p => -p); return default; })));
+                    new DelegatePlugin("Paste", new[] { ("zh", "粘贴") }, context => { context.Editor.PasteNotes(); return default; }))
+            //ImmutableArray.Create<IDeenotePlugin>(
+            //    new DelegatePlugin("Quantize", new[] { ("zh", "吸附格线") }, context => { context.Editor.EditSelectedNotesPositionCoord(c => context.GameManager.Grids.Quantize(c, true, true)); return default; }),
+            //    new DelegatePlugin("Mirror", new[] { ("zh", "镜像") }, context => { context.Editor.EditSelectedNotesPosition(p => -p); return default; })));
+            );
         }
 
     }

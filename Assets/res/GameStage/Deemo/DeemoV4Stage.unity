@@ -539,7 +539,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 76409817fefe78b44b3e9b7410815c8e, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.212}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.5510778}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1473,7 +1473,6 @@ GameObject:
   - component: {fileID: 1372557757}
   - component: {fileID: 1372557759}
   - component: {fileID: 1372557758}
-  - component: {fileID: 1372557760}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: Untagged
@@ -1555,20 +1554,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &1372557760
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1372557756}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0fd81eb697a93e248bf2bef0dbc153a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _camera: {fileID: 1372557759}
-  _backgroundCamera: {fileID: 433164891}
 --- !u!1 &1407859392
 GameObject:
   m_ObjectHideFlags: 0
@@ -1692,7 +1677,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3cb2ba9d70df674fb808d093e3bfa1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _config: {fileID: 0}
+  _config: {fileID: 11400000, guid: 5fd930ec92e987444aa4c87af2c144ab, type: 2}
   _stage: {fileID: 384983969}
 --- !u!1 &1537646845
 GameObject:
@@ -1809,7 +1794,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.96523726}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.98815}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

@@ -2,6 +2,7 @@
 
 using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.CoreB.Models.Notes;
+using Deenote.Editing;
 using Deenote.Editing.EditorModels.Helpers;
 
 namespace Deenote.Core.Editing
@@ -33,7 +34,7 @@ namespace Deenote.Core.Editing
         public void CutSelectedNotes()
         {
             CopySelectedNotes();
-            RemoveNotes(Selector.SelectedNotes);
+            _editor.RemoveSelectedNotes();
         }
 
         public void PasteNotes()

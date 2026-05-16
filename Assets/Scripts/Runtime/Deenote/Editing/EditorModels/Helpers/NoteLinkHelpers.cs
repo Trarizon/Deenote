@@ -123,6 +123,51 @@ namespace Deenote.Editing.EditorModels.Helpers
             next.PrevLink = node;
         }
 
+        public static void CloneLinkInfos<TTarget>(ReadOnlySpan<NoteData> source, ReadOnlySpan<TTarget> target)
+            where TTarget : INoteLink<TTarget>
+        {
+            Guard.HasSizeEqualTo(target, source.Length);
+            // Clear previous links
+            foreach (var note in target) {
+                if (note.NextLink is not null)
+                    note.NextLink.PrevLink = default;
+                if (note.PrevLink is not null)
+                    note.PrevLink.NextLink = default;
+                note.PrevLink = default;
+                note.NextLink = default;
+            }
+
+            // <next, prev>
+            using var dp_slideLookup = DictionaryPool<NoteData, TTarget>.Get(out var slideLookup);
+
+            for (int i = 0; i < source.Length; i++) {
+                var link = source[i];
+                if (link.PrevLink is not null || link.NextLink is not null)
+                    slideLookup.Add(link, target[i]);
+            }
+
+            for (int i = 0; i < source.Length; i++) {
+                var from = source[i];
+                var to = target[i];
+
+                if (slideLookup.ContainsKey(from)) {
+                    var prevLink = from.PrevLink;
+                    TTarget copiedPrev = default!;
+
+                    // Find the nearest previous link in 'links'
+                    while (prevLink is not null && !slideLookup.TryGetValue(prevLink, out copiedPrev)) {
+                        prevLink = prevLink.PrevLink;
+                    }
+
+                    if (prevLink is not null) {
+                        Debug.Assert(copiedPrev is not null);
+                        copiedPrev!.NextLink = to;
+                        to.PrevLink = copiedPrev;
+                    }
+                }
+            }
+        }
+
         public static void CloneLinkInfos<TLink>(ReadOnlySpan<TLink> links, ReadOnlySpan<NoteData> datas)
             where TLink : INoteReadOnlyLink
         {

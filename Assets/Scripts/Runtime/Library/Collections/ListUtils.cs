@@ -27,6 +27,11 @@ namespace Deenote.Library.Collections
             }
         }
 
+        public static void RemoveAt<T>(this List<T> list, Index index)
+        {
+            list.RemoveAt(index.GetOffset(list.Count));
+        }
+
         public static void RemoveRange<T>(this List<T> list, Range range)
         {
             var (offset, length) = range.GetOffsetAndLength(list.Count);

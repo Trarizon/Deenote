@@ -1,9 +1,9 @@
 #nullable enable
 
 using Deenote.Contexts;
-using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Models.Notes.Comparers;
 using Deenote.CoreB.Notification;
+using Deenote.GamePlay.Audio;
 using Deenote.Library.Collections;
 using System;
 
@@ -13,14 +13,14 @@ namespace Deenote.GamePlay
     {
         private readonly ProjectContext _project;
         private readonly GamePlayContext _gamePlay;
-        private readonly HitSoundPlayer _hitSoundPlayer;
-        private readonly StagePianoSoundPlayer _pianoSoundPlayer;
+        private readonly GameHitSoundPlayer _hitSoundPlayer;
+        private readonly GamePianoSoundPlayer _pianoSoundPlayer;
         private int _nextHitNoteIndex;
         private int _nextHitBackgroundNoteIndex;
 
         private float _time;
 
-        public NoteSoundsPlayManager(GamePlayContext gamePlay, ProjectContext project, HitSoundPlayer hitSoundPlayer, StagePianoSoundPlayer pianoSoundPlayer)
+        public NoteSoundsPlayManager(GamePlayContext gamePlay, ProjectContext project, GameHitSoundPlayer hitSoundPlayer, GamePianoSoundPlayer pianoSoundPlayer)
         {
             _project = project;
             _gamePlay = gamePlay;

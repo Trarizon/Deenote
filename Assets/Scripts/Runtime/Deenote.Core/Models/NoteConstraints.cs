@@ -35,6 +35,13 @@ namespace Deenote.CoreB.Models
             => Math.Max(size, MinNoteSize);
 
         public static float ClampSpeed(float speed)
-            => Math.Clamp(speed, MinNoteSpeed, MaxNoteSpeed);
+        {
+            if (speed <= 0f)
+                return MinNoteSpeed;
+            return Math.Min(speed, MaxNoteSpeed);
+        }
+
+        public static float ClampDuration(float v) 
+            => Math.Max(0f, v);
     }
 }

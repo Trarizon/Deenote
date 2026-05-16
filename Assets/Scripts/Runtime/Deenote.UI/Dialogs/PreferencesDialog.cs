@@ -102,37 +102,37 @@ namespace Deenote.UI.Dialogs
             {
                 var span = val.AsSpan();
                 if (span.Length < 1) {
-                    MainSystem.GamePlayManager.CustomTempoLineColor = null;
+                    _stageContext.CustomTempoLineColor = null;
                     return;
                 }
                 if (span[0] is '#')
                     span = span[1..];
 
                 if (ColorUtils.TryParse(span, out var color)) {
-                    MainSystem.GamePlayManager.CustomTempoLineColor = color;
+                    _stageContext.CustomTempoLineColor = color;
                 }
-                SyncColorValue(_tempoLineColorInput, MainSystem.GamePlayManager.CustomTempoLineColor);
+                SyncColorValue(_tempoLineColorInput, _stageContext.CustomTempoLineColor);
             };
             _beatLineColorInput.EditSubmitted += val =>
             {
                 var span = val.AsSpan();
                 if (span.Length < 1) {
-                    MainSystem.GamePlayManager.CustomBeatLineColor = null;
+                    _stageContext.CustomBeatLineColor = null;
                     return;
                 }
                 if (span[0] is '#')
                     span = span[1..];
 
                 if (ColorUtils.TryParse(span, out var color)) {
-                    MainSystem.GamePlayManager.CustomBeatLineColor = color;
+                    _stageContext.CustomBeatLineColor = color;
                 }
-                SyncColorValue(_beatLineColorInput, MainSystem.GamePlayManager.CustomBeatLineColor);
+                SyncColorValue(_beatLineColorInput, _stageContext.CustomBeatLineColor);
             };
             _subbeatLineColorInput.EditSubmitted += val =>
             {
                 var span = val.AsSpan();
                 if (span.Length < 1) {
-                    MainSystem.GamePlayManager.CustomSubBeatLineColor = null;
+                    _stageContext.CustomSubdivisionLineColor = null;
                     return;
                 }
                 if (span[0] is '#')
@@ -140,19 +140,22 @@ namespace Deenote.UI.Dialogs
 
 
                 if (ColorUtils.TryParse(span, out var color)) {
-                    MainSystem.GamePlayManager.CustomSubBeatLineColor = color;
+                    _stageContext.CustomSubdivisionLineColor = color;
                 }
-                SyncColorValue(_subbeatLineColorInput, MainSystem.GamePlayManager.CustomSubBeatLineColor);
+                SyncColorValue(_subbeatLineColorInput, _stageContext.CustomSubdivisionLineColor);
             };
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CustomTempoLineColor,
-                manager => SyncColorValue(_tempoLineColorInput, manager.CustomTempoLineColor));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CustomBeatLineColor,
-                manager => SyncColorValue(_beatLineColorInput, manager.CustomBeatLineColor));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CustomSubBeatLineColor,
-                manager => SyncColorValue(_subbeatLineColorInput, manager.CustomSubBeatLineColor));
+            _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.CustomTempoLineColor))) {
+                    SyncColorValue(_tempoLineColorInput, s.CustomTempoLineColor);
+                }
+                if (e.MatchProperty(nameof(s.CustomBeatLineColor))) {
+                    SyncColorValue(_beatLineColorInput, s.CustomBeatLineColor);
+                }
+                if (e.MatchProperty(nameof(s.CustomSubdivisionLineColor))) {
+                    SyncColorValue(_subbeatLineColorInput, s.CustomSubdivisionLineColor);
+                }
+            });
 
             // System
 

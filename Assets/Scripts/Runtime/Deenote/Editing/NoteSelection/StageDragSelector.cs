@@ -1,10 +1,12 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage;
 using Deenote.CoreB.Models;
 using Deenote.Editing.EditorModels;
+using Deenote.GamePlay;
 using Deenote.GameStage;
+using Deenote.GameStage.Stage;
+using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
@@ -25,7 +27,7 @@ namespace Deenote.Editing.NoteSelection
     {
         private readonly GameStageContext _stageContext;
         private readonly NoteSelectionContext _context;
-        private readonly GamePlayManager _gamePlay;
+        private readonly GamePlayContext _gamePlay;
 
         private NoteCoord _startCoord;
         private NoteCoord _endCoord;
@@ -37,13 +39,23 @@ namespace Deenote.Editing.NoteSelection
         [MemberNotNullWhen(true, nameof(GameStage))]
         public bool Enabled
         {
-            get => _enabled && _gamePlay.Stage != null;
+            get => _enabled && _stageContext.GameStage != null;
             set => _enabled = value;
         }
 
-        private GameStageController? GameStage => _gamePlay.Stage;
+        private GameStageController? GameStage => _stageContext.GameStage;
 
-        public StageDragSelector(NoteSelectionContext context, GameStageContext stageContext, GamePlayManager gamePlay)
+        private StageDragSelectionMode _isToggleMode_bf;
+        public StageDragSelectionMode SelectionMode
+        {
+            get => _isToggleMode_bf;
+            set {
+                if (Utils.SetField(ref _isToggleMode_bf, value)) {
+                }
+            }
+        }
+
+        public StageDragSelector(NoteSelectionContext context, GameStageContext stageContext, GamePlayContext gamePlay)
         {
             _context = context;
             _stageContext = stageContext;
@@ -52,7 +64,7 @@ namespace Deenote.Editing.NoteSelection
 
         public event Action<StageDragSelector, SelectionAreaChangedEventArgs>? SelectionAreaChanged;
 
-        public void BeginDragSelect(NoteCoord startCoord, StageDragSelectionMode mode)
+        public void BeginDragSelect(NoteCoord startCoord)
         {
             if (!Enabled)
                 return;
@@ -62,7 +74,7 @@ namespace Deenote.Editing.NoteSelection
             SelectionAreaChanged?.Invoke(this, new(_startCoord, _endCoord));
             _state = DraggingState.Started;
 
-            if (mode is not StageDragSelectionMode.Toggle) {
+            if (SelectionMode is not StageDragSelectionMode.Toggle) {
                 _context.ClearSelection();
             }
         }
@@ -152,7 +164,7 @@ namespace Deenote.Editing.NoteSelection
                 float halfSize = note.Size / 2f;
                 float time = note.Time;
                 float speed = note.Speed;
-                float currentTime = _gamePlay.MusicPlayer.Time;
+                float currentTime = _gamePlay.CurrentTime;
 
                 if (time < currentTime) {
                     return time >= start.Time
@@ -183,7 +195,7 @@ namespace Deenote.Editing.NoteSelection
                 }
 
                 float ToPseudoTime(float time)
-                    => currentTime + (time - currentTime) * _gamePlay.GetDisplayNoteSpeed(speed);
+                    => currentTime + (time - currentTime) * _stageContext.GetDisplaySpeed(speed);
 
                 float ToAboveStagePseudoTime(float time, float speed)
                     => time + (GameStage!.NoteAppearAheadTime - GameStage.EvaluateNoteAppearAheadTime(speed));

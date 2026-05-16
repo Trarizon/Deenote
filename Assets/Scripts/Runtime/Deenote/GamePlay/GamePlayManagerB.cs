@@ -2,8 +2,8 @@
 
 using Deenote.Contexts;
 using Deenote.Core.Audio;
-using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Notification;
+using Deenote.GamePlay.Audio;
 using Deenote.Systems;
 using System;
 
@@ -14,9 +14,6 @@ namespace Deenote.GamePlay
         private readonly GamePlayContext _context;
         private readonly ProjectContext _project;
         private readonly GameMusicPlayer _musicPlayer;
-        // NEXT: 先把几个audio player迁过来吧，旧Manager的property里有额外的同步音量
-        // 的逻辑，这个需要补上先
-
         private readonly NoteSoundsPlayManager _noteSoundsPlay;
 
         private float? _manualPlaySpeedMultiplier;
@@ -43,7 +40,7 @@ namespace Deenote.GamePlay
 
         public event Action<GamePlayManagerB, PropertyEventArgs>? PropertyChanged;
 
-        internal GamePlayManagerB(GamePlayContext context, ProjectContext project, GameMusicPlayer musicPlayer, StagePianoSoundPlayer pianoSoundPlayer, HitSoundPlayer hitSoundPlayer)
+        internal GamePlayManagerB(GamePlayContext context, ProjectContext project, GameMusicPlayer musicPlayer, GamePianoSoundPlayer pianoSoundPlayer, GameHitSoundPlayer hitSoundPlayer)
         {
             _project = project;
             _context = context;
@@ -117,6 +114,26 @@ namespace Deenote.GamePlay
         private void Update_MusicPlayerPitch()
         {
 
+        }
+
+        public void TogglePlayingState()
+        {
+            _musicPlayer.TogglePlayingState();
+        }
+
+        public void Play()
+        {
+            _musicPlayer.Play();
+        }
+
+        public void Stop()
+        {
+            _musicPlayer.Stop();
+        }
+
+        public void Nudge(float delta)
+        {
+            _musicPlayer.Nudge(delta);
         }
     }
 }

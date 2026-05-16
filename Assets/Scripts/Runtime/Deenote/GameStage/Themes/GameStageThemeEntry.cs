@@ -1,8 +1,8 @@
 #nullable enable
 
-using Deenote.Core.GameStage;
-using Deenote.Core.GameStage.Foreground;
 using Deenote.GameStage.Grids;
+using Deenote.GameStage.Stage;
+using Deenote.GameStage.UI;
 using System;
 using UnityEngine;
 
@@ -28,7 +28,8 @@ namespace Deenote.GameStage.Themes
             Stage = stage;
             Config = new DeemoGameStageConfig(stage.Config);
             NoteCoordStrategy = new DefaultGameStageNoteCoordStrategy(stage.Config);
-            NoteFactory = new DefaultGameStageNoteFactory(themeConfig.NotePrefab, stage.NotePlane);
+            var stageContext = MainSystem.Contexts.GameStage;
+            NoteFactory = new DefaultGameStageNoteFactory(stageContext, themeConfig.NotePrefab, stage.NotePlane);
         }
 
         public ForegroundPerspectiveViewUI InstantiateUIAsync(Transform parent)
