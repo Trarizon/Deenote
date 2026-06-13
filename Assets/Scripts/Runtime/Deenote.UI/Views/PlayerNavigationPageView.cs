@@ -138,7 +138,7 @@ namespace Deenote.UI.Views
             #endregion
 
             _linksIndicatorToggle.IsCheckedChanged += val => _stageContext.IsShowLinkLines = val;
-            _placementIndicatorToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.IsIndicatorOn = val;
+            _placementIndicatorToggle.IsCheckedChanged += val => _stageContext.IsIndicatorsVisible = val;
             _earlyDisplaySlowNotesToggle.IsCheckedChanged += val => _stageContext.IsEarlyDisplaySlowNotes = val;
 
             _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
@@ -146,13 +146,13 @@ namespace Deenote.UI.Views
                 if (e.MatchProperty(nameof(s.IsShowLinkLines))) {
                     _linksIndicatorToggle.SetIsCheckedWithoutNotify(s.IsShowLinkLines);
                 }
+                if (e.MatchProperty(nameof(s.IsIndicatorsVisible))) {
+                    _placementIndicatorToggle.SetIsCheckedWithoutNotify(s.IsIndicatorsVisible);
+                }
                 if (e.MatchProperty(nameof(s.IsEarlyDisplaySlowNotes))) {
                     _earlyDisplaySlowNotesToggle.SetIsCheckedWithoutNotify(s.IsEarlyDisplaySlowNotes);
                 }
             });
-            MainSystem.StageChartEditor.Placer.RegisterNotificationAndInvoke(
-                StageNotePlacer.NotificationFlag.IsIndicatorOn,
-                placer => _placementIndicatorToggle.SetIsCheckedWithoutNotify(placer.IsIndicatorOn));
         }
 
         private static readonly string[] _predefinedAspectTexts = { "16:9", "16:10", "4:3" };

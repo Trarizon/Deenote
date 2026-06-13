@@ -25,7 +25,8 @@ namespace Deenote.Editing.EditorModels
 
         // Events
 
-        public event CollectionChangeEventHandler<ChartEditorModel, NoteEditorModel>? NotesChanged;
+        private readonly CollectionChangedEvent<ChartEditorModel, NoteEditorModel> _notesChanged = new();
+        public ICollectionChangedEvent<ChartEditorModel, NoteEditorModel> NotesChanged => _notesChanged;
 
         // Modifications
 
@@ -43,7 +44,7 @@ namespace Deenote.Editing.EditorModels
         internal void AddNoteEditorModel(NoteEditorModel note)
         {
             AddNoteNonNotify(note);
-            NotesChanged?.Invoke(this, CollectionChangedEventArgs.Add(MemoryMarshal.CreateReadOnlySpan(ref note, 1)));
+            _notesChanged?.Invoke(this, CollectionChangedEventArgs.Add(MemoryMarshal.CreateReadOnlySpan(ref note, 1)));
         }
 
         internal void AddNoteEditorModels(ReadOnlySpan<NoteEditorModel> notes)
@@ -52,7 +53,7 @@ namespace Deenote.Editing.EditorModels
             foreach (var note in notes) {
                 AddNoteNonNotify(note);
             }
-            NotesChanged?.Invoke(this, CollectionChangedEventArgs.Add(notes));
+            _notesChanged?.Invoke(this, CollectionChangedEventArgs.Add(notes));
         }
 
         private void RemoveNoteNonNotify(NoteEditorModel note)
@@ -69,7 +70,7 @@ namespace Deenote.Editing.EditorModels
         internal void RemoveNoteEditorModel(NoteEditorModel note)
         {
             RemoveNoteNonNotify(note);
-            NotesChanged?.Invoke(this, CollectionChangedEventArgs.Remove(MemoryMarshal.CreateReadOnlySpan(ref note, 1)));
+            _notesChanged?.Invoke(this, CollectionChangedEventArgs.Remove(MemoryMarshal.CreateReadOnlySpan(ref note, 1)));
         }
 
         internal void RemoveNoteEditorModels(ReadOnlySpan<NoteEditorModel> notes)
@@ -78,7 +79,53 @@ namespace Deenote.Editing.EditorModels
             foreach (var note in notes) {
                 RemoveNoteNonNotify(note);
             }
-            NotesChanged?.Invoke(this, CollectionChangedEventArgs.Remove(notes));
+            _notesChanged?.Invoke(this, CollectionChangedEventArgs.Remove(notes));
+        }
+
+        internal void RaiseNoteEditorModelsPropertyChanged(ReadOnlySpan<NoteEditorModel> notes, string propertyName)
+        {
+            if (_notesChanged is null)
+                return;
+
+            switch (propertyName) {
+                case nameof(NoteEditorModel.Position):
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.Position))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.PositionCoord))));
+                    break;
+                case nameof(NoteEditorModel.Time):
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.Time))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.EndTime))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.PositionCoord))));
+                    break;
+                case nameof(NoteEditorModel.PositionCoord):
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.Position))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.Time))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.EndTime))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.PositionCoord))));
+                    break;
+                case nameof(NoteEditorModel.Duration):
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.Duration))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.ActualDuration))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.EndTime))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.IsHold))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.IsComboNode))));
+                    break;
+                case nameof(NoteEditorModel.Kind):
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.Kind))));
+                    // IsSlide, IsSwipe, IsHold, ActualDuration
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.IsSlide))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.IsSwipe))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.IsHold))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.ActualDuration))));
+                    break;
+                case nameof(NoteEditorModel.CollisionCount):
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.CollisionCount))));
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(nameof(NoteEditorModel.IsCollided))));
+                    break;
+                default:
+                    _notesChanged.Invoke(this, CollectionChangedEventArgs.PropertyChanged(notes, new(propertyName)));
+                    break;
+            }
         }
 
         // Other

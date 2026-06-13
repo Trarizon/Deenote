@@ -6,7 +6,7 @@ namespace Deenote.CoreB.Models
 {
     public struct Tempo
     {
-        public static Tempo PositiveInfinity => new Tempo(float.PositiveInfinity, 0f);
+        public static Tempo PositiveInfinity => new Tempo(0, float.PositiveInfinity);
 
         public const float MaxBpm = 1200f;
         public const float MinBeatLineInterval = 60 / MaxBpm;

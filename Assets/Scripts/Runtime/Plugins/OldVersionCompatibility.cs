@@ -47,11 +47,11 @@ namespace Deenote.Runtime.Plugins
                     //    context.UI.ToastManager.ShowRawTextToastAsync(texts["nochartload"], 2f).Forget();
                     //    return;
                     //}
-                    context.ProjectManager.AssertProjectLoaded();
+                    // context.ProjectManager.AssertProjectLoaded();
 
                     var res = await context.UI.DialogManager.OpenFileExplorerInputFileAsync(
                         LocalizableText.Raw(texts["exportas"]),
-                        context.ProjectManager.CurrentProject.MusicName,
+                        "music",// context.ProjectManager.CurrentProject.MusicName,
                         ".json");
                     if (res.IsCancelled)
                         return;

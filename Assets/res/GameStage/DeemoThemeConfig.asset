@@ -25,3 +25,5 @@ MonoBehaviour:
     type: 3}
   NotePrefab: {fileID: 3873625400187784241, guid: 160a09d6b531cb34d876b0226dae8742,
     type: 3}
+  NoteIndicatorPrefab: {fileID: 3287208875695698390, guid: d258ceafb7b62de4ba218040a2b6f8eb,
+    type: 3}

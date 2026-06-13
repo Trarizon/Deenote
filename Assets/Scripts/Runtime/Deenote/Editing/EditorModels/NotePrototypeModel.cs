@@ -3,29 +3,27 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Notification;
 using Deenote.Library.Collections;
+using System;
 using System.Collections.Generic;
 
 namespace Deenote.Editing.EditorModels
 {
-    public sealed partial class NotePrototypeModel : ObservableObject, IGameNote, INoteLink<NotePrototypeModel>
+    public sealed partial class NotePrototypeModel :INotifyPropertyChanged<NotePrototypeModel>, IGameNote, INoteLink<NotePrototypeModel>
     {
         public uint Uid { get; }
 
-        [ObservableProperty] float _time;
-        [ObservableProperty] float _position;
-        [ObservableProperty] float _size = NoteConstraints.DefaultSize;
-        [ObservableProperty] float _duration;
-        [ObservableProperty] float _speed = NoteConstraints.DefaultSpeed;
-        [ObservableProperty] NoteKind _kind;
+        private float _time_bf;
+        private float _position_bf;
+        private float _size_bf;
+        private float _duration_bf;
+        private float _speed_bf;
+        private NoteKind _kind_bf;
+
+        public event Action<NotePrototypeModel, PropertyEventArgs>? PropertyChanged;
 
         public List<PianoSoundData> Sounds { get; } = new();
-
-        public NoteCoord PositionCoord
-        {
-            get => new(Position, Time);
-            set => (Position, Time) = (value.Position, value.Time);
-        }
 
         internal NotePrototypeModel? NextLink { get; set; }
         internal NotePrototypeModel? PrevLink { get; set; }
@@ -36,6 +34,12 @@ namespace Deenote.Editing.EditorModels
         public NotePrototypeModel()
         {
             Uid = INoteUnique.GetUid();
+        }
+
+        public void ReplaceSounds(ReadOnlySpan<PianoSoundData> sounds)
+        {
+            Sounds.Replace(sounds);
+            PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(Sounds)));
         }
 
         public NoteData CreateAt(NoteCoord coord)
@@ -54,6 +58,7 @@ namespace Deenote.Editing.EditorModels
                 Position = Position,
                 Time = Time,
                 Size = Size,
+                Speed = Speed,
             };
             data.Sounds.AddRange(Sounds.AsSpan());
             return data;

@@ -18,7 +18,7 @@ namespace Deenote.Core.Editing
     {
         private const float DragSelectionAreaMaxPosition = 6f;
 
-        private GamePlayManager _game = default!;
+        // private GamePlayManager _game = default!;
 
         private readonly List<NoteEditorModel> _selectedNotes = new();
 
@@ -34,22 +34,22 @@ namespace Deenote.Core.Editing
         public event Action<StageNoteSelector>? SelectedNotesChanging;
         public event Action<StageNoteSelector>? SelectedNotesChanged;
 
-        internal StageNoteSelector(GamePlayManager game)
-        {
-            _game = game;
-            //_game.RegisterNotification(
-            //    GamePlayManager.NotificationFlag.CurrentChart,
-            //    manager => Clear());
-            //_game.MusicPlayer.TimeChanged += args =>
-            //{
-            //    if (!IsDragSelecting)
-            //        return;
+        // internal StageNoteSelector(GamePlayManager game)
+        // {
+        //     _game = game;
+        //     //_game.RegisterNotification(
+        //     //    GamePlayManager.NotificationFlag.CurrentChart,
+        //     //    manager => Clear());
+        //     //_game.MusicPlayer.TimeChanged += args =>
+        //     //{
+        //     //    if (!IsDragSelecting)
+        //     //        return;
 
-            //    var delta = args.NewTime - args.OldTime;
-            //    _dragEndCoord.Time += delta;
-            //    UpdateDragSelection(_dragStartCoord, _dragEndCoord);
-            //};
-        }
+        //     //    var delta = args.NewTime - args.OldTime;
+        //     //    _dragEndCoord.Time += delta;
+        //     //    UpdateDragSelection(_dragStartCoord, _dragEndCoord);
+        //     //};
+        // }
 
         private enum DraggingSelectionState
         {

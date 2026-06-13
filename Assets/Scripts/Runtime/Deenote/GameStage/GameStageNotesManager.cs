@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels.Assertions;
 using Deenote.GameStage.Stage;
@@ -11,14 +12,17 @@ namespace Deenote.GameStage
     internal sealed class GameStageNotesManager
     {
         private readonly GameStageContext _stage;
+        private readonly ProjectContext _project;
         private readonly GameStageNotesContext _context;
+
         private IGameStageNoteFactory? _factory;
 
         private List<GameStageNoteController> _notes = new();
 
-        public GameStageNotesManager(GameStageContext stage)
+        public GameStageNotesManager(GameStageContext stage, ProjectContext project)
         {
             _stage = stage;
+            _project = project;
             _context = stage.NotesContext;
 
             _stage.RegisterPropertyChangedAndInvoke((s, e) =>
@@ -49,22 +53,13 @@ namespace Deenote.GameStage
 
             _context.ActiveNotesChanged += (s, e) =>
             {
-                foreach (var note in _notes) {
-                    _factory.Return(note);
-                }
-                _notes.Clear();
-                foreach (var note in s.ActiveNotes) {
-                    var controller = _factory.Create();
-                    controller.Initialize(note);
-                    _notes.Add(controller);
-                }
-                ModelAsserts.AssertInOrderViaTimeUnique(s.ActiveNotes);
-                GameStageNoteController? prevNote = null;
-                foreach(var note in _notes) {
-                    note.PostInitialize(prevNote);
-                    prevNote = note;
-                }
+                RefreshAllStageNotes();
             };
+
+            _project.RegisterNestedCollectionChangedAndInvokeNullable(x => x.CurrentChart, nameof(ProjectContext.CurrentChart), x => x.NotesChanged, (s, e) =>
+            {
+                RefreshAllStageNotes();
+            });
 
             // TODO: GameMusicPlayer修改后，需要在Update里调用一下note.RefreshStageDeltaTime
         }
@@ -76,6 +71,25 @@ namespace Deenote.GameStage
                 var controller = _factory.Create();
                 controller.Initialize(note);
                 _notes.Add(controller);
+            }
+        }
+
+        private void RefreshAllStageNotes()
+        {
+            foreach (var note in _notes) {
+                _factory.Return(note);
+            }
+            _notes.Clear();
+            foreach (var note in _context.ActiveNotes) {
+                var controller = _factory.Create();
+                controller.Initialize(note);
+                _notes.Add(controller);
+            }
+            ModelAsserts.AssertInOrderViaTimeUnique(_context.ActiveNotes);
+            GameStageNoteController? prevNote = null;
+            foreach (var note in _notes) {
+                note.PostInitialize(prevNote);
+                prevNote = note;
             }
         }
     }

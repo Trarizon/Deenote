@@ -66,7 +66,10 @@ namespace Deenote.Editing
 
         private void EnterEntryIdle()
         {
-            if (_placer.IsPastingRequested) {
+            if (!_mouseInuputData.InRange) {
+                State = FsmState.IdleOutOfRange;
+            }
+            else if (_placer.IsPastingRequested) {
                 State = FsmState.IdlePaste;
             }
             else if (_placer.IsPlacingSlidesRequested) {
@@ -84,7 +87,7 @@ namespace Deenote.Editing
 
         private void ProcessIdleSingle()
         {
-            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, false, out var coord)) {
+            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, true, out var coord)) {
                 return;
             }
             _placer.MovingIdle(coord);
@@ -97,7 +100,7 @@ namespace Deenote.Editing
 
         private void ProcessIdleSlides()
         {
-            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, false, out var coord)) {
+            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, true, out var coord)) {
                 return;
             }
             _placer.MovingIdle(coord);
@@ -110,7 +113,7 @@ namespace Deenote.Editing
 
         private void ProcessIdlePaste()
         {
-            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, false, out var coord)) {
+            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, true, out var coord)) {
                 return;
             }
             _placer.MovingPlaceTemplate(coord);
@@ -127,7 +130,7 @@ namespace Deenote.Editing
 
         private void ProcessPlacingSingle()
         {
-            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, false, out var coord)) {
+            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, true, out var coord)) {
                 return;
             }
             _placer.MovingPlaceSingle(coord, _mouseInuputData.DraggedDelta, 0);
@@ -140,7 +143,7 @@ namespace Deenote.Editing
 
         private void ProcessPlacingSlides()
         {
-            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, false, out var coord)) {
+            if (!TryConvertScreenPointToNoteCoord(_mouseInuputData.ScreenPoint, true, out var coord)) {
                 return;
             }
             _placer.MovingPlaceSlides(coord);
@@ -182,7 +185,7 @@ namespace Deenote.Editing
 
         #endregion
 
-        private bool TryConvertScreenPointToNoteCoord(Vector2 screenPoint, bool applyHighlightNoteSpeed, out NoteCoord coord)
+        private bool TryConvertScreenPointToNoteCoord(Vector2 screenPoint, bool applyPlacementNoteSpeed, out NoteCoord coord)
         {
             coord = default;
             if (_stage.GameStage is null) {
@@ -193,7 +196,7 @@ namespace Deenote.Editing
                 return false;
             }
 
-            if (!_stage.GameStage.TryEvaluatePerspectiveViewportPointToLocalNoteCoord(viewportPoint, applyHighlightNoteSpeed ? _stage.HighlightedNoteSpeed : 1, out coord)) {
+            if (!_stage.GameStage.TryEvaluatePerspectiveViewportPointToLocalNoteCoord(viewportPoint, applyPlacementNoteSpeed ? _editor.NotePlacement.PlacementNoteSpeed : 1, out coord)) {
                 return false;
             }
 

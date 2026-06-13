@@ -4,6 +4,8 @@ using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.EditorModels;
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Deenote.Contexts
@@ -68,6 +70,14 @@ namespace Deenote.Contexts
             if (CurrentChart is null || !s.Charts.Contains(CurrentChart)) {
                 CurrentChart = s.Charts.FirstOrDefault();
             }
+        }
+    
+        [Conditional("DEBUG")]
+        [MemberNotNull(nameof(CurrentProject))]
+        public void AssertProjectLoaded(string message = "Project is not loaded.")
+        {
+            if (CurrentProject is null)
+                throw new InvalidOperationException(message);
         }
     }
 }

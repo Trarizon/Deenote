@@ -90,14 +90,16 @@ namespace Deenote.UI.Dialogs
             _mouseSensitivityInput.EditSubmitted += val =>
             {
                 if (float.TryParse(val, out var fval))
-                    MainSystem.GlobalSettings.GameViewScrollSensitivity = fval;
+                    _environment.GameViewScrollSensitivity = fval;
                 _mouseSensitivityInput.SetValueWithoutNotify(fval.ToString("F1"));
             };
-            _mouseSensitivityInvertButton.Clicked += () => MainSystem.GlobalSettings.GameViewScrollSensitivity = -MainSystem.GlobalSettings.GameViewScrollSensitivity;
-            MainSystem.GlobalSettings.RegisterNotificationAndInvoke(
-                GlobalSettings.NotificationFlag.GameViewScrollSensitivity,
-                settings => _mouseSensitivityInput.SetValueWithoutNotify(settings.GameViewScrollSensitivity.ToString("F1")));
-
+            _mouseSensitivityInvertButton.Clicked += () => _environment.GameViewScrollSensitivity = -_environment.GameViewScrollSensitivity;
+            _environment.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.GameViewScrollSensitivity))) {
+                    _mouseSensitivityInput.SetValueWithoutNotify(s.GameViewScrollSensitivity.ToString("F1"));
+                }
+            });
             _tempoLineColorInput.EditSubmitted += val =>
             {
                 var span = val.AsSpan();

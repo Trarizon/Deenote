@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.CoreB.Models.Notes;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels.Helpers;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -53,6 +54,11 @@ namespace Deenote.GameStage.Stage.Deemo.Notes
             else {
                 _holdBodySpriteRender.gameObject.SetActive(false);
             }
+        }
+
+        protected override void OnNonCoordPropertyChanged(PropertyEventArgs e)
+        {
+            Refresh();
         }
     }
 }

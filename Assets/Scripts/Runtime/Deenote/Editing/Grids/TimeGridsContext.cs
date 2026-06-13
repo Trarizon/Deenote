@@ -2,6 +2,7 @@
 
 using Deenote.Contexts;
 using Deenote.Core;
+using Deenote.CoreB;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels.Helpers;

@@ -1,28 +1,21 @@
 #nullable enable
 
-using Deenote.Core;
 using Deenote.Editing;
 using Deenote.GamePlay;
 using Deenote.GameStage;
-using Deenote.GameStage.UI;
 
 namespace Deenote.Contexts
 {
     public sealed class RootContext
     {
-        public ProjectContext Project { get; }
-        public EditorContext Editor { get; }
-        public EnvironmentContext Environment { get; }
-        public GamePlayContext GamePlay { get; }
-        public GameStageContext GameStage { get; }
+        public ProjectContext Project { get; internal init; }
+        public EditorContext Editor { get; internal init; }
+        public EnvironmentContext Environment { get; internal init; }
+        public GamePlayContext GamePlay { get; internal init; }
+        public GameStageContext GameStage { get; internal init; }
 
-        internal RootContext(IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
-        {
-            Environment = new EnvironmentContext(storage);
-            Project = new ProjectContext();
-            Editor = new EditorContext(Project, storage);
-            GamePlay = new GamePlayContext(Project, storage);
-            GameStage = new GameStageContext(Project, GamePlay, Editor, perspectiveViewPanelInfo, storage);
-        }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        internal RootContext() { }
+#pragma warning restore CS8618
     }
 }

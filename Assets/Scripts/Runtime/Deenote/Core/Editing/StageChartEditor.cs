@@ -1,26 +1,8 @@
 #nullable enable
 
-using CommunityToolkit.HighPerformance.Buffers;
-using Deenote.Api.Operations;
 using Deenote.Contexts;
-using Deenote.Core.GamePlay;
-using Deenote.Core.Project;
-using Deenote.CoreB.Models;
-using Deenote.CoreB.Models.Notes;
-using Deenote.CoreB.Models.Notes.Comparers;
-using Deenote.CoreB.Notification;
 using Deenote.Editing;
-using Deenote.Editing.EditorModels;
-using Deenote.Editing.EditorModels.Assertions;
-using Deenote.Editing.Operations;
-using Deenote.GameStage;
 using Deenote.Library.Components;
-using Deenote.ProjectManagement;
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace Deenote.Core.Editing
 {
@@ -30,98 +12,96 @@ namespace Deenote.Core.Editing
         internal EditorContext _context = default!;
         internal ChartNotesEditor _editor;
 
-        internal ProjectManager _project = default!;
-        internal GamePlayManager _game = default!;
+        // internal ProjectManager _project = default!;
+        // internal GamePlayManager _game = default!;
 
         private OperationMemento _operations = default!;
 
-        public StageNotePlacer Placer { get; private set; } = default!;
+        // public StageNotePlacer Placer { get; private set; } = default!;
         public StageNoteSelector Selector { get; private set; } = default!;
         public OperationMemento OperationMemento => _operations;
 
-        private void Awake()
-        {
-            _projectContext = MainSystem.Contexts.Project;
-            _context = MainSystem.Contexts.Editor;
-            _operations = new();
-            _editor = MainSystem.ChartEditor;
+        // private void Awake()
+        // {
+        //     _projectContext = MainSystem.Contexts.Project;
+        //     _context = MainSystem.Contexts.Editor;
+        //     _operations = new();
+        //     _editor = MainSystem.ChartEditor;
 
-            Awake_ClipBoard();
+        //     Awake_ClipBoard();
 
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("editor/indicator", Placer.IsIndicatorOn);
-                configs.Set("editor/snap_pos", Placer.SnapToPositionGrid);
-                configs.Set("editor/snap_time", Placer.SnapToTimeGrid);
-            };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                Placer.IsIndicatorOn = configs.GetBoolean("editor/indicator", true);
-                Placer.SnapToPositionGrid = configs.GetBoolean("editor/snap_pos", true);
-                Placer.SnapToTimeGrid = configs.GetBoolean("editor/snap_time", true);
-            };
-            MainSystem.ProjectManagerB.ProjectSaved += () =>
-            {
-                OperationMemento.SaveAtCurrent();
-            };
+        //     MainSystem.SaveSystem.SavingConfigurations += configs =>
+        //     {
+        //         // configs.Set("editor/snap_pos", Placer.SnapToPositionGrid);
+        //         // configs.Set("editor/snap_time", Placer.SnapToTimeGrid);
+        //     };
+        //     MainSystem.SaveSystem.LoadedConfigurations += configs =>
+        //     {
+        //         // Placer.SnapToPositionGrid = configs.GetBoolean("editor/snap_pos", true);
+        //         // Placer.SnapToTimeGrid = configs.GetBoolean("editor/snap_time", true);
+        //     };
+        //     MainSystem.ProjectManagerB.ProjectSaved += () =>
+        //     {
+        //         OperationMemento.MarkSaveAtCurrent();
+        //     };
 
-            _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
-            {
-                if (e.MatchProperty(nameof(s.CurrentProject))) {
-                    _operations.Reset();
-                }
-            });
-        }
+        //     // _projectContext.RegisterPropertyChangedAndInvoke((s, e) =>
+        //     // {
+        //     //     if (e.MatchProperty(nameof(s.CurrentProject))) {
+        //     //         _operations.Reset();
+        //     //     }
+        //     // });
+        // }
 
-        internal void OnInstantiate(ProjectManager project, GamePlayManager game, GameStageContext stageContext)
-        {
-            _project = project;
-            _game = game;
+        // internal void OnInstantiate(ProjectManager project, GamePlayManager game, GameStageContext stageContext)
+        // {
+        //     _project = project;
+        //     _game = game;
 
-            Placer = new StageNotePlacer(this, stageContext);
-            Selector = new StageNoteSelector(game);
+        //     // Placer = new StageNotePlacer(this, stageContext);
+        //     Selector = new StageNoteSelector(game);
 
-            //_project.RegisterNotification(
-            //    ProjectManager.NotificationFlag.CurrentProject,
-            //    manager =>
-            //    {
-            //        _operations.Reset();
-            //    });
+        //     //_project.RegisterNotification(
+        //     //    ProjectManager.NotificationFlag.CurrentProject,
+        //     //    manager =>
+        //     //    {
+        //     //        _operations.Reset();
+        //     //    });
 
-            /*
-            _game.RegisterNotification(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager =>
-                {
-                    _operations.Reset();
-                });
-            */
-        }
+        //     /*
+        //     _game.RegisterNotification(
+        //         GamePlayManager.NotificationFlag.CurrentChart,
+        //         manager =>
+        //         {
+        //             _operations.Reset();
+        //         });
+        //     */
+        // }
 
         #region Add Remove
 
-        private void OnNoteCollectionChanged()
-        {
-            //_game.AssertChartLoaded();
-            NoteComparers.AssertInOrderViaTime(_projectContext.CurrentChart!.Notes);
-            _game.UpdateNotes(true, false);
-        }
+        // private void OnNoteCollectionChanged()
+        // {
+        //     //_game.AssertChartLoaded();
+        //     NoteComparers.AssertInOrderViaTime(_projectContext.CurrentChart!.Notes);
+        //     // _game.UpdateNotes(true, false);
+        // }
 
-        [Obsolete]
-        private void AddNote(NoteData note)
-        {
-            //if (!_game.IsChartLoaded())
-            //    return;
+        // [Obsolete]
+        // private void AddNote(NoteData note)
+        // {
+        //     //if (!_game.IsChartLoaded())
+        //     //    return;
 
-            _operations.Do(_projectContext.CurrentChart!.GetAddNoteOperation(new NoteEditorModel(note))
-                .OnRedone(note =>
-                {
-                    // this.Selector.Clear();
-                    OnNoteCollectionChanged();
-                    ModelAsserts.AssertChartEditorModel(_projectContext.CurrentChart!);
-                })
-                .OnUndone(note => OnNoteCollectionChanged()));
-        }
+        //     _operations.Do(_projectContext.CurrentChart!.GetAddNoteOperation(new NoteEditorModel(note))
+        //         .OnRedone(note =>
+        //         {
+        //             // this.Selector.Clear();
+        //             OnNoteCollectionChanged();
+        //             ModelAsserts.AssertChartEditorModel(_projectContext.CurrentChart!);
+        //         })
+        //         .OnUndone(note => OnNoteCollectionChanged()));
+        // }
 
         /// <summary>
         /// 

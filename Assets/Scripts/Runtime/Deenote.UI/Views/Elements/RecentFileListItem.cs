@@ -14,7 +14,7 @@ namespace Deenote.UI.Views.Elements
     {
         [SerializeField] Button _button = default!;
 
-        public MenuNavigationPageView Parent { get; private set; } = default!;
+        private MenuNavigationPageView _parent = default!;
 
         public string FilePath { get; private set; } = default!;
 
@@ -58,9 +58,9 @@ namespace Deenote.UI.Views.Elements
         {
             _button.Clicked += UniTask.Action(async () =>
             {
-                if (MainSystem.ProjectManager.IsProjectLoaded()) {
+                if (_parent._projectContext.CurrentProject is not null) {
                     var res = await MainWindow.DialogManager.OpenMessageBoxAsync(
-                        MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange
+                        _parent._editorContext.Operations.HasUnsavedChange
                             ? _openProjOnUnsavedOpenMsgBoxArgs
                             : _openProjOnOpenMsgBoxArgs);
                     if (res != 0)
@@ -70,11 +70,11 @@ namespace Deenote.UI.Views.Elements
                 // Load project
                 if (File.Exists(FilePath)) {
                     MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadingStatusKey);
-                    Parent._projectManager.UnloadCurrentProject();
-                    bool res = await Parent._projectManager.OpenLoadFileAsync(FilePath);
+                    _parent._projectManager.UnloadCurrentProject();
+                    bool res = await _parent._projectManager.OpenLoadFileAsync(FilePath);
                     if (res) {
                         MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadedStatusKey);
-                        Parent.TouchRecentFile(this);
+                        _parent.TouchRecentFile(this);
                     }
                     else {
                         MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectFailedStatusKey);
@@ -88,7 +88,7 @@ namespace Deenote.UI.Views.Elements
                 var click = await MainWindow.DialogManager.OpenMessageBoxAsync(_fileNotFoundMsgBoxArgs);
                 switch (click) {
                     case 0: // Remove
-                        Parent.RemoveRecentFile(this);
+                        _parent.RemoveRecentFile(this);
                         return;
                     case 1: { // Reselect
                         var res = await MainWindow.DialogManager.OpenFileExplorerSelectFileAsync(
@@ -97,15 +97,15 @@ namespace Deenote.UI.Views.Elements
                             Path.GetDirectoryName(FilePath));
                         if (res.IsCancelled)
                             return;
-                        bool openRes = await Parent._projectManager.OpenLoadFileAsync(res.Path);
+                        bool openRes = await _parent._projectManager.OpenLoadFileAsync(res.Path);
                         if (!openRes) {
                             MainWindow.DialogManager.OpenMessageBoxAsync(_loadProjFailedMsgBoxArgs).Forget();
-                            Parent.RemoveRecentFile(this);
+                            _parent.RemoveRecentFile(this);
                             return;
                         }
                         else {
                             Initialize(res.Path);
-                            Parent.TouchRecentFile(this);
+                            _parent.TouchRecentFile(this);
                             return;
                         }
                     }
@@ -116,7 +116,7 @@ namespace Deenote.UI.Views.Elements
 
         internal void OnInstantiate(MenuNavigationPageView parent)
         {
-            Parent = parent;
+            _parent = parent;
         }
 
         internal void Initialize(string filePath)

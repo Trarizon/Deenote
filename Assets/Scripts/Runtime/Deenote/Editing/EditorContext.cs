@@ -22,9 +22,10 @@ namespace Deenote.Editing
         {
             ProjectContext = projectContext;
             NoteSelection = new NoteSelectionContext(this);
-            NotePlacement = new NotePlacementContext();
+            NotePlacement = new NotePlacementContext(storage);
             Operations = new OperationMemento();
             Grids = new GridsContext(projectContext, storage);
+            ClipBoard = new NotesClipBoard();
         }
     }
 }

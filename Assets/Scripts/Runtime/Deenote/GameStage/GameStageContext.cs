@@ -13,11 +13,14 @@ using Deenote.GamePlay;
 using Deenote.GameStage.Stage;
 using Deenote.GameStage.UI;
 using Deenote.Editing;
+using Deenote.Editing.NotePlacement;
 
 namespace Deenote.GameStage
 {
     public sealed class GameStageContext : INotifyPropertyChanged<GameStageContext>
     {
+        private readonly StageNotePlacer2 _notePlacer;
+        private readonly EditorContext _editorContext;
         public ProjectContext ProjectContext { get; }
         public GameStageThemeContext ThemeContext { get; }
         internal GameStageNotesContext NotesContext { get; }
@@ -114,26 +117,20 @@ namespace Deenote.GameStage
         }
 
 
-        private const float ZeroAvoidHighlightedSpeed = 0.1f;
-
-        private float _highlightedNoteSpeed_bf;
         /// <summary>
         /// If <see cref="IsFilterNoteSpeed"/> is <see langword="true"/>,
         /// a downplayed note will not be selectable on stage.
-        /// <br/>
-        /// The value is also the default value when place note by editor
         /// </summary>
+        // TODO: 拆分了Highlighted和PlacementNoteSpeed的概念，有些地方的HighlightedNoteSpeed调用可能得换
         public float HighlightedNoteSpeed
         {
-            get => _highlightedNoteSpeed_bf;
-            set {
-                if (value <= 0f)
-                    value = ZeroAvoidHighlightedSpeed;
-                if (Utils.SetField(ref _highlightedNoteSpeed_bf, value)) {
-                    PropertyChanged?.Invoke(this, new(nameof(HighlightedNoteSpeed)));
-                }
-            }
+            get => _editorContext.NotePlacement.PlacementNoteSpeed;
         }
+
+        /// <summary>
+        /// Actual default speed of note that will be placed, this could be affected by state of placer.
+        /// </summary>
+        public float ActualPlacementNoteSpeed => _notePlacer.ForceDisplayPlacementNoteSpeed ?? _editorContext.NotePlacement.PlacementNoteSpeed;
 
         private bool _filterNoteSpeed;
         public bool IsFilterNoteSpeed
@@ -156,6 +153,26 @@ namespace Deenote.GameStage
                 }
             }
         }
+
+        #endregion
+
+        #region Indicator Properties
+
+        private bool _indicatorsVisible_bf;
+        public bool IsIndicatorsVisible
+        {
+            get => _indicatorsVisible_bf;
+            set {
+                if (Utils.SetField(ref _indicatorsVisible_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(IsIndicatorsVisible)));
+                    if (_notePlacer.IndicatorsForceVisible is null) {
+                        PropertyChanged?.Invoke(this, new(nameof(ActualIndicatorsVisible)));
+                    }
+                }
+            }
+        }
+
+        public bool ActualIndicatorsVisible => _notePlacer.IndicatorsForceVisible ?? IsIndicatorsVisible;
 
         #endregion
 
@@ -224,15 +241,36 @@ namespace Deenote.GameStage
 
         public event Action<GameStageContext, PropertyEventArgs>? PropertyChanged;
 
-        public GameStageContext(ProjectContext project, GamePlayContext gamePlay, EditorContext editorContext, IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
+        public GameStageContext(ProjectContext project, GamePlayContext gamePlay, EditorContext editorContext, StageNotePlacer2 notePlacer, IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfo, SaveSystem storage)
         {
+            _editorContext = editorContext;
+            _notePlacer = notePlacer;
             ProjectContext = project;
             ThemeContext = new GameStageThemeContext();
-            NotesContext = new GameStageNotesContext(this, project, gamePlay, editorContext);   
+            NotesContext = new GameStageNotesContext(this, project, gamePlay, editorContext);
             PerspectiveViewPanelInfo = perspectiveViewPanelInfo;
+
+            _editorContext.NotePlacement.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.PlacementNoteSpeed))) {
+                    PropertyChanged?.Invoke(this, new(nameof(HighlightedNoteSpeed)));
+                }
+            });
+
+            _notePlacer.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.IndicatorsForceVisible))) {
+                    PropertyChanged?.Invoke(this, new(nameof(ActualIndicatorsVisible)));
+                }
+                if (e.MatchProperty(nameof(s.ForceDisplayPlacementNoteSpeed))) {
+                    PropertyChanged?.Invoke(this, new(nameof(ActualPlacementNoteSpeed)));
+                }
+            });
 
             storage.SavingConfigurations += configs =>
             {
+                configs.Set("editor/indicator", IsIndicatorsVisible);
+
                 configs.Set("stage/highlight_note_speed", HighlightedNoteSpeed);
                 configs.Set("stage/filter_note_speed", IsFilterNoteSpeed);
                 configs.Set("stage/apply_speed_diff", IsApplySpeedDifference);
@@ -255,7 +293,8 @@ namespace Deenote.GameStage
 
             storage.LoadedConfigurations += configs =>
             {
-                HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
+                IsIndicatorsVisible = configs.GetBoolean("editor/indicator", true);
+
                 IsFilterNoteSpeed = configs.GetBoolean("stage/filter_note_speed", false);
                 IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
 

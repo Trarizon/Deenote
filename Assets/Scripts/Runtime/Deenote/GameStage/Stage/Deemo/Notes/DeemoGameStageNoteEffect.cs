@@ -58,7 +58,7 @@ namespace Deenote.GameStage.Stage.Deemo.Notes
             _holdingExplosionScaler.localScale = scale;
         }
 
-        public void SetHoldingEffect(float passedTime,float duration)
+        public void SetHoldingEffect(float passedTime, float duration)
         {
             SetActiveEffectKind(EffectKind.Holding);
         }
@@ -185,6 +185,7 @@ namespace Deenote.GameStage.Stage.Deemo.Notes
 
         public enum EffectKind
         {
+            Invalid = 0,
             Holding,
             Hit,
         }

@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Contexts;
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
@@ -20,6 +21,7 @@ namespace Deenote.UI.Views.Panels
 {
     public sealed class NoteInfoPianoSoundEditPanel : MonoBehaviour
     {
+        private ProjectContext _projectContext;
         private EditorContext _editorContext;
         private ChartNotesEditor _editor;
 
@@ -61,6 +63,7 @@ namespace Deenote.UI.Views.Panels
 
         private void Awake()
         {
+            _projectContext = MainSystem.Contexts.Project;
             _editorContext = MainSystem.Contexts.Editor;
             _editor = MainSystem.ChartEditor;
 
@@ -90,17 +93,19 @@ namespace Deenote.UI.Views.Panels
 
         private void OnEnable()
         {
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteSounds, _OnSelectedNotesSoundsChanged);
-            _editorContext.NoteSelection.RegisterPropertyChangingAndInvoke((s, e) =>
+            _projectContext.RegisterNestedCollectionChangedAndInvokeNullable(x => x.CurrentChart, nameof(ProjectContext.CurrentChart), x => x.NotesChanged, (s, e) =>
             {
-                if (e.PropertyName == nameof(s.SelectedNotes)) {
+                ResetEditingNotesAndLoad(_editorContext.NoteSelection.SelectedNotes);
+            });
+            _editorContext.NoteSelection.RegisterPropertyChanging((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.SelectedNotes))) {
                     SaveSoundDatas();
                 }
             }).UnregisterWhenGameObjectDisabled(gameObject);
             _editorContext.NoteSelection.RegisterPropertyChangedAndInvoke((s, e) =>
             {
-                if (e.PropertyName == nameof(s.SelectedNotes)) {
+                if (e.MatchProperty(nameof(s.SelectedNotes))) {
                     ResetEditingNotesAndLoad(s.SelectedNotes);
                     if (s.SelectedNotes.IsEmpty) {
                         _playSoundButton.IsInteractable = false;
@@ -116,18 +121,16 @@ namespace Deenote.UI.Views.Panels
 
         private void OnDisable()
         {
-            MainSystem.StageChartEditor.UnregisterNotification(
-                StageChartEditor.NotificationFlag.NoteSounds, _OnSelectedNotesSoundsChanged);
-
             SaveSoundDatas();
         }
 
         #region Event Handlers
 
-        private void _OnSelectedNotesSoundsChanged(StageChartEditor editor)
+        private void _ChartNotesSoundsChanged(ChartEditorModel s, CollectionChangedEventArgs<NoteEditorModel> e)
         {
-            ResetEditingNotesAndLoad(editor.Selector.SelectedNotes);
+            ResetEditingNotesAndLoad(_editorContext.NoteSelection.SelectedNotes);
         }
+
 
         #endregion
 

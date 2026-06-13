@@ -40,7 +40,6 @@ namespace Deenote.GameStage.Grids
 
         private Mesh _mesh;
 
-        private GamePlayManager _game = default!;
         private GameStageController _gameStage = default!;
 
         public event Action<LineCollector>? LineCollecting;

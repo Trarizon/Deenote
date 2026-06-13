@@ -27,8 +27,6 @@ namespace Deenote.GameStage.Stage
 
         [SerializeField] GameStageConfig _config = default!;
 
-        [Obsolete]
-        public GamePlayManager GamePlay { get => MainSystem.GamePlayManager; }
         internal GameStageNotePlaneController NotePlane => _notePlane;
         internal PlacementNotePlaneController IndicatorPlane => _indicatorPlane;
         internal SelectionAreaRect SelectionAreaRect => _selectionAreaRect;
@@ -90,27 +88,31 @@ namespace Deenote.GameStage.Stage
         internal void OnInstantiate(GameStageThemeEntry themeEntry)
         {
             ThemeEntry = themeEntry;
+            IndicatorPlane.OnInstantiate(
+                MainSystem.Contexts.GamePlay,
+                MainSystem.Contexts.Editor.NotePlacement,
+                MainSystem.Contexts.GameStage);
         }
 
-        [Obsolete]
-        protected internal virtual void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
-        {
-            ////GamePlay = gamePlayManager;
-            ////GamePlay.RegisterNotification(
-            ////    GamePlayManager.NotificationFlag.StageEffectOn,
-            ////    _manager => IsStageEffectOn = _manager.IsStageEffectOn);
-            //GamePlay.RegisterNotification(
-            //    GamePlayManager.NotificationFlag.NoteSpeed,
-            //    manager => NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(manager.ActualNoteFallSpeed));
-            //GamePlay.RegisterNotification(
-            //    GamePlayManager.NotificationFlag.SuddenPlus,
-            //    manager => VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(manager.SuddenPlus));
-            ////IsStageEffectOn = gamePlayManager.IsStageEffectOn;
-            //NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
-            //VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
+        // [Obsolete]
+        // protected internal virtual void Initialize(GamePlayManager gamePlayManager, ProjectContext projectContext)
+        // {
+        //     ////GamePlay = gamePlayManager;
+        //     ////GamePlay.RegisterNotification(
+        //     ////    GamePlayManager.NotificationFlag.StageEffectOn,
+        //     ////    _manager => IsStageEffectOn = _manager.IsStageEffectOn);
+        //     //GamePlay.RegisterNotification(
+        //     //    GamePlayManager.NotificationFlag.NoteSpeed,
+        //     //    manager => NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(manager.ActualNoteFallSpeed));
+        //     //GamePlay.RegisterNotification(
+        //     //    GamePlayManager.NotificationFlag.SuddenPlus,
+        //     //    manager => VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(manager.SuddenPlus));
+        //     ////IsStageEffectOn = gamePlayManager.IsStageEffectOn;
+        //     //NoteFallSpeedInternal = ConvertFallSpeedToPlaneSpeed(gamePlayManager.ActualNoteFallSpeed);
+        //     //VisibleRangeCullingRatio = ConvertSuddenPlusToVisibleRangeCullingRatio(gamePlayManager.SuddenPlus);
 
-            ////SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
-        }
+        //     ////SelectionAreaRect.Initialize(ServiceProvider.StageDragSelector);
+        // }
 
         protected internal virtual void Initialize(GameStageContext context)
         {

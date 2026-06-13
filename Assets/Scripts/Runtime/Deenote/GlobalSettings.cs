@@ -21,7 +21,6 @@ namespace Deenote
                 configs.Set("vsync", IsVSyncOn);
                 configs.Set("ineffective_prop_visible", IsIneffectivePropertiesVisible);
                 configs.Set("fps_shown", IsFpsShown);
-                configs.Set("scroll_sensitivity", GameViewScrollSensitivity);
                 configs.Set("check_update", CheckUpdateOnStartup);
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
@@ -33,7 +32,6 @@ namespace Deenote
                 IsVSyncOn = configs.GetBoolean("vsync");
                 IsIneffectivePropertiesVisible = configs.GetBoolean("ineffective_prop_visible");
                 IsFpsShown = configs.GetBoolean("fps_shown");
-                GameViewScrollSensitivity = configs.GetSingle("scroll_sensitivity", 1f);
                 CheckUpdateOnStartup = configs.GetBoolean("check_update", true);
             };
         }
@@ -59,16 +57,6 @@ namespace Deenote
 
                 _isIneffectivePropertiesVisible = value;
                 NotifyFlag(NotificationFlag.IneffectivePropertiesVisible);
-            }
-        }
-
-        public float GameViewScrollSensitivity
-        {
-            get => _gameViewScrollSensitivity_bf;
-            set {
-                if (Utils.SetField(ref _gameViewScrollSensitivity_bf, value)) {
-                    NotifyFlag(NotificationFlag.GameViewScrollSensitivity);
-                }
             }
         }
 

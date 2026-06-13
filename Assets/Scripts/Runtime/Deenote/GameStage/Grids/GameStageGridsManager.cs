@@ -2,7 +2,9 @@
 
 using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.CoreB.Models;
+using Deenote.Editing;
 using Deenote.Editing.Grids;
+using Deenote.Editing.NotePlacement;
 using Deenote.GamePlay;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -53,8 +55,7 @@ namespace Deenote.GameStage.Grids
                 return;
 
             // OPTIMIZE: Use note appear time would be better
-            // REFACTOR: HighlightedNoteSpeed应该是editor的PlaceNoteSpeed，这一个文件里所有的应该都要
-            var endTime = startTime + theme.NoteCoordStrategy.GetNoteActiveAheadTime(_stage.ActualNoteFallSpeed, _stage.HighlightedNoteSpeed);
+            var endTime = startTime + theme.NoteCoordStrategy.GetNoteActiveAheadTime(_stage.ActualNoteFallSpeed, _stage.ActualPlacementNoteSpeed);
 
             var gridConfig = theme.GridLineConfig;
             float minx = theme.NoteCoordStrategy.PositionToWorldX(NoteConstraints.StageMinPosition);

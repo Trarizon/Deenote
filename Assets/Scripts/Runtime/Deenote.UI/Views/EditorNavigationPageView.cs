@@ -3,18 +3,16 @@
 using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.Contexts;
 using Deenote.Core.Editing;
-using Deenote.Core.GamePlay;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.Grids;
-using Deenote.Editing.NoteSelection;
+using Deenote.Editing.NotePlacement;
 using Deenote.GamePlay;
 using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
-using Deenote.Library.Mathematics;
 using Deenote.UIFramework.Controls;
 using System;
 using System.Collections.Immutable;
@@ -30,6 +28,7 @@ namespace Deenote.UI.Views
         private GameStageContext _stageContext;
 
         private ChartNotesEditor _editor;
+        private StageNotePlacer2 _placer;
 
         [SerializeField] TextBox _highlightNoteSpeedInput = default!;
         [SerializeField] ToggleButton _applySpeedDiffToggle = default!;
@@ -84,6 +83,7 @@ namespace Deenote.UI.Views
             _stageContext = MainSystem.Contexts.GameStage;
 
             _editor = MainSystem.ChartEditor;
+            _placer = MainSystem.StageNotePlacer;
         }
 
         private void Start()
@@ -99,17 +99,21 @@ namespace Deenote.UI.Views
                 _highlightNoteSpeedInput.EditSubmitted += text =>
                 {
                     if (float.TryParse(text, out var value))
-                        _stageContext.HighlightedNoteSpeed = value;
+                        _editorContext.NotePlacement.PlacementNoteSpeed = value;
                     else
-                        _highlightNoteSpeedInput.SetValueWithoutNotify(_stageContext.HighlightedNoteSpeed.ToString("F2"));
+                        _highlightNoteSpeedInput.SetValueWithoutNotify(_editorContext.NotePlacement.PlacementNoteSpeed.ToString("F2"));
                 };
+                _editorContext.NotePlacement.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.PlacementNoteSpeed))) {
+                        _highlightNoteSpeedInput.SetValueWithoutNotify(s.PlacementNoteSpeed.ToString("F2"));
+                    }
+                });
+
                 _applySpeedDiffToggle.IsCheckedChanged += val => _stageContext.IsApplySpeedDifference = val;
                 _filterNoteSpeedToggle.IsCheckedChanged += val => _stageContext.IsFilterNoteSpeed = val;
                 _stageContext.RegisterPropertyChangedAndInvoke((s, e) =>
                 {
-                    if (e.MatchProperty(nameof(s.HighlightedNoteSpeed))) {
-                        _highlightNoteSpeedInput.SetValueWithoutNotify(s.HighlightedNoteSpeed.ToString("F2"));
-                    }
                     if (e.MatchProperty(nameof(s.IsApplySpeedDifference))) {
                         _applySpeedDiffToggle.SetIsCheckedWithoutNotify(s.IsApplySpeedDifference);
                     }
@@ -182,15 +186,17 @@ namespace Deenote.UI.Views
                     _editorContext.Grids.TimeGrids.SubdivisionPerBeat = _predefinedHorizontalGridCount[index];
                 };
 
-                _horizontalGridSnapToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.SnapToTimeGrid = val;
-                MainSystem.StageChartEditor.Placer.RegisterNotificationAndInvoke(
-                    StageNotePlacer.NotificationFlag.SnapToTimeGrid,
-                    placer => _horizontalGridSnapToggle.SetIsCheckedWithoutNotify(placer.SnapToTimeGrid));
-
-                _verticalGridSnapToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.SnapToPositionGrid = val;
-                MainSystem.StageChartEditor.Placer.RegisterNotificationAndInvoke(
-                    StageNotePlacer.NotificationFlag.SnapToPositionGrid,
-                    placer => _verticalGridSnapToggle.SetIsCheckedWithoutNotify(placer.SnapToPositionGrid));
+                _horizontalGridSnapToggle.IsCheckedChanged += val => _placer.SnapToTimeGrids = val;
+                _verticalGridSnapToggle.IsCheckedChanged += val => _placer.SnapToPositionGrids = val;
+                _placer.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.MatchProperty(nameof(s.SnapToPositionGrids))) {
+                        _verticalGridSnapToggle.SetIsCheckedWithoutNotify(s.SnapToPositionGrids);
+                    }
+                    if (e.MatchProperty(nameof(s.SnapToTimeGrids))) {
+                        _horizontalGridSnapToggle.SetIsCheckedWithoutNotify(s.SnapToTimeGrids);
+                    }
+                });
 
                 _horizontalGridVisibleToggle.IsCheckedChanged += val => _stageContext.IsTimeGridsVisible = val;
                 _verticalGridVisibleToggle.IsCheckedChanged += val => _stageContext.IsPositionGridsVisible = val;
@@ -281,7 +287,7 @@ namespace Deenote.UI.Views
                 _bpmEndTimeInput.EditSubmitted += val =>
                 {
                     if (float.TryParse(val, out var fval)) {
-                        if (MainSystem.ProjectManager.IsProjectLoaded())
+                        if (_projectContext.CurrentProject is not null)
                             _bpmEndTime = Mathf.Min(fval, _gamePlayContext.MusicLength);
                         else
                             _bpmEndTime = fval;
@@ -296,7 +302,7 @@ namespace Deenote.UI.Views
                 };
                 _bpmFillButton.Clicked += () =>
                 {
-                    MainSystem.ProjectManager.AssertProjectLoaded();
+                    _projectContext.AssertProjectLoaded();
                     var endTime = Mathf.Min(_bpmEndTime, _gamePlayContext.MusicLength);
                     _editor.InsertTempo(new TempoRange(_bpmValue, _bpmStartTime, endTime));
                 };

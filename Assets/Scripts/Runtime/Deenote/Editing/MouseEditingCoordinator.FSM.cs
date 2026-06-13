@@ -16,7 +16,7 @@ namespace Deenote.Editing
         {
             get => _state_bf;
             set {
-                if (_state_bf == value) return;
+                // if (_state_bf == value) return;
 
                 Debug.Log($"[{nameof(MouseEditingCoordinator)}] Exit state {_state_bf}");
 
@@ -172,7 +172,36 @@ namespace Deenote.Editing
         public void MouseMove(Vector2 screenPoint)
         {
             _mouseInuputData.SetPoint(screenPoint);
+            switch (State) {
+                case FsmState.IdleOutOfRange:
+                    State = FsmState.EntryIdle;
+                    break;
+            }
             Process();
+        }
+
+        public void MouseMoveOutOfRange()
+        {
+            _mouseInuputData.SetOutOfRange();
+            switch (State) {
+                case FsmState.IdleSingle:
+                case FsmState.IdleSlides:
+                case FsmState.IdlePaste:
+                    State = FsmState.IdleOutOfRange;
+                    break;
+            }
+        }
+
+        public bool TryPreparePaste()
+        {
+            switch (State) {
+                case FsmState.IdleSingle:
+                case FsmState.IdleSlides:
+                case FsmState.IdlePaste:
+                    State = FsmState.IdlePaste;
+                    return true;
+            }
+            return false;
         }
 
         private void Process()
@@ -201,6 +230,7 @@ namespace Deenote.Editing
 
         private struct MouseInuputData
         {
+            public bool InRange;
             public bool LeftMouseDown;
             public bool RightMouseDown;
             public Vector2 ScreenPoint { get; private set; }
@@ -213,7 +243,11 @@ namespace Deenote.Editing
                 PressedScreenPoint = screenPoint;
             }
 
-            public void SetPoint(Vector2 screenPoint) => ScreenPoint = screenPoint;
+            public void SetPoint(Vector2 screenPoint)
+            {
+                ScreenPoint = screenPoint;
+                InRange = true;
+            }
 
             public void SetPointAsRelease(Vector2 screenPoint)
             {
@@ -222,6 +256,12 @@ namespace Deenote.Editing
                 PressedScreenPoint = new(float.NaN, float.NaN);
 #endif
             }
+
+            public void SetOutOfRange()
+            {
+                InRange = false;
+            }
+
         }
 
         private struct InputCoordData
@@ -239,8 +279,10 @@ namespace Deenote.Editing
         private enum FsmState
         {
             Invalid = 0,
-            EntryIdle = 0x10,
-            IdleSingle,
+            EntryIdle,
+            IdleOutOfRange,
+
+            IdleSingle = 0x10,
             IdleSlides,
             IdlePaste,
             PlacingSingle,

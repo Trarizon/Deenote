@@ -2,22 +2,17 @@
 
 using Cysharp.Threading.Tasks;
 using Deenote.Contexts;
-using Deenote.Core.GamePlay;
-using Deenote.Core.Project;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Charts;
 using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
 using Deenote.Library;
 using Deenote.Library.Collections;
-using Deenote.Library.Components;
 using Deenote.Localization;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.UI.Views.Elements;
-using Deenote.UIFramework;
 using Deenote.UIFramework.Controls;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -26,7 +21,7 @@ namespace Deenote.UI.Views
 {
     public sealed class ProjectInfoNavigationPageView : MonoBehaviour
     {
-        private ProjectContext _projectContext;
+        internal ProjectContext _projectContext;
         internal EnvironmentContext _environment;
 
         [Header("Project")]
@@ -124,7 +119,7 @@ namespace Deenote.UI.Views
             {
                 _audioButton.Clicked += UniTask.Action(async () =>
                 {
-                    AssertProjectLoaded();
+                    _projectContext.AssertProjectLoaded();
                     _rcts.CancelAndReset();
                     var cancellationToken = _rcts.Token;
 
@@ -350,7 +345,8 @@ namespace Deenote.UI.Views
                         goto Reselect;
                     }
 
-                    MainSystem.StageChartEditor.ConcatNotes(chartData, _chartConcatOffset, _chartConcatMultiplier);
+                    // TODO: 谱面连接功能，这个应该需要移到Plugins里了
+                    // MainSystem.StageChartEditor.ConcatNotes(chartData, _chartConcatOffset, _chartConcatMultiplier);
                 };
 
                 void SetName(string name) => _chartNameInput.SetValueWithoutNotify(name);
@@ -381,12 +377,12 @@ namespace Deenote.UI.Views
 
         internal void RemoveChart(ProjectInfoChartListItem item)
         {
-            MainSystem.ProjectManager.AssertProjectLoaded();
+            _projectContext.AssertProjectLoaded();
 
             int findIndex = _chartItems.IndexOf(item);
             Debug.Assert(findIndex >= 0, $"Try to remove a {nameof(ProjectInfoChartListItem)} that is not in the list");
             _chartItems.RemoveAt(findIndex);
-            Debug.Assert(ReferenceEquals(item.ChartModel, MainSystem.ProjectManager.CurrentProject.Charts[findIndex]),
+            Debug.Assert(ReferenceEquals(item.ChartModel, _projectContext.CurrentProject.Charts[findIndex]),
                 "Chart in ProjectInfo page and in current project not match");
             _projectContext.CurrentProject.RemoveChartAt(findIndex);
         }
@@ -398,8 +394,5 @@ namespace Deenote.UI.Views
             _projectContext.CurrentChart = chart;
             MainWindow.StatusBar.SetLocalizedStatusMessage(ChartLoadedStatusKey);
         }
-
-        [System.Diagnostics.Conditional("UNITY_ASSERTIONS")]
-        private void AssertProjectLoaded() => Debug.Assert(MainSystem.ProjectManager.CurrentProject is not null);
     }
 }

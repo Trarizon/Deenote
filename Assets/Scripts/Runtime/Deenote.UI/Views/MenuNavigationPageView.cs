@@ -1,11 +1,12 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
+using Deenote.Contexts;
 using Deenote.Core;
-using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
+using Deenote.Editing;
 using Deenote.Library;
 using Deenote.Library.Collections;
-using Deenote.Library.Components;
 using Deenote.Localization;
 using Deenote.ProjectManagement;
 using Deenote.UI.Dialogs;
@@ -16,14 +17,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using Deenote.CoreB.Notification;
-using Deenote.Contexts;
 
 namespace Deenote.UI.Views
 {
     public sealed class MenuNavigationPageView : MonoBehaviour
     {
-        private ProjectContext _projectContext;
+        internal ProjectContext _projectContext;
+        internal EditorContext _editorContext;
         internal ProjectManagerB _projectManager;
 
         private const int MaxRecentFilesCount = 5;
@@ -120,6 +120,7 @@ namespace Deenote.UI.Views
         private void Awake()
         {
             _projectContext = MainSystem.Contexts.Project;
+            _editorContext = MainSystem.Contexts.Editor;
             _projectManager = MainSystem.ProjectManagerB;
 
             _recentFiles = new(UnityUtils.CreateObjectPool(
@@ -206,9 +207,9 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuCreateNewProjectAsync()
         {
-            if (MainSystem.ProjectManager.IsProjectLoaded()) {
+            if (_projectContext.CurrentProject is not null) {
                 var res = await MainWindow.DialogManager.OpenMessageBoxAsync(
-                    MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange
+                    _editorContext.Operations.HasUnsavedChange
                         ? _newProjectOnUnsavedOpenMsgBoxArgs
                         : _newProjectOnOpenMsgBoxArgs);
                 if (res != 0)
@@ -222,9 +223,9 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuOpenProjectAsync()
         {
-            if (MainSystem.ProjectManager.IsProjectLoaded()) {
+            if (_projectContext.CurrentProject is not null) {
                 var res = await MainWindow.DialogManager.OpenMessageBoxAsync(
-                    MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange
+                    _editorContext.Operations.HasUnsavedChange
                         ? _openProjOnUnsavedOpenMsgBoxArgs
                         : _openProjOnOpenMsgBoxArgs);
                 if (res != 0) return;
@@ -256,8 +257,8 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuSaveProjectAsync()
         {
-            MainSystem.ProjectManager.AssertProjectLoaded("Unexpected interactable save button when current project is null");
-            var proj = MainSystem.ProjectManager.CurrentProject;
+            _projectContext.AssertProjectLoaded("Unexpected interactable save button when current project is null");
+            var proj = _projectContext.CurrentProject;
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
             await _projectManager.SaveCurrentProjectAsync();
@@ -267,11 +268,11 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuSaveProjectAsAsync()
         {
-            MainSystem.ProjectManager.AssertProjectLoaded("Unexpected interactable save button when current project is not loaded");
+            _projectContext.AssertProjectLoaded("Unexpected interactable save button when current project is not loaded");
         SelectFile:
             var feRes = await MainWindow.DialogManager.OpenFileExplorerInputFileAsync(
                 LocalizableText.Localized(SaveAsFileExplorerTitleKey),
-                MainSystem.ProjectManager.CurrentProject.MusicName,
+                _projectContext.CurrentProject.MusicName,
                 MainSystem.Args.DeenotePreferFileExtension);
             if (feRes.IsCancelled)
                 return;
@@ -288,7 +289,7 @@ namespace Deenote.UI.Views
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
             await _projectManager.SaveCurrentProjectToAsync(feRes.Path);
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavedStatusKey, duration: SaveStatusMessageDuration);
-            AddOrTouchRecentFiles(MainSystem.ProjectManager.CurrentProject.ProjectFilePath);
+            AddOrTouchRecentFiles(_projectContext.CurrentProject.ProjectFilePath);
         }
 
         #endregion

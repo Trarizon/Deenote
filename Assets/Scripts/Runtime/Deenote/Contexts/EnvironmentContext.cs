@@ -49,6 +49,17 @@ namespace Deenote.Contexts
             }
         }
 
+        private float _gameViewScrollSensitivity_bf;
+        public float GameViewScrollSensitivity
+        {
+            get => _gameViewScrollSensitivity_bf;
+            set {
+                if (Utils.SetField(ref _gameViewScrollSensitivity_bf, value)) {
+                    PropertyChanged?.Invoke(this, new(nameof(GameViewScrollSensitivity)));
+                }
+            }
+        }
+
         public event Action<EnvironmentContext, PropertyEventArgs>? PropertyChanged;
 
         public EnvironmentContext(SaveSystem saveSystem)
@@ -57,12 +68,14 @@ namespace Deenote.Contexts
             {
                 configs.Set("project/autosave", (int)AutoSave);
                 configs.Set("project/autosave_interval", AutoSaveIntervalTime);
+                configs.Set("scroll_sensitivity", GameViewScrollSensitivity);
             };
             saveSystem.LoadedConfigurations += configs =>
             {
                 AutoSave = (ProjectAutoSaveOption)configs.GetInt32("project/autosave", (int)ProjectAutoSaveOption.Off);
                 var autosaveintervaltime = configs.GetInt32("project/autosave_interval", -1);
                 AutoSaveIntervalTime = autosaveintervaltime <= 0 ? DefaultAutoSaveIntervalTime : autosaveintervaltime;
+                GameViewScrollSensitivity = configs.GetSingle("scroll_sensitivity", 1f);
             };
         }
     }

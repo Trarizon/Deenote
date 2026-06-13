@@ -338,10 +338,6 @@ MonoBehaviour:
   _perspectiveCamera: {fileID: 1372557759}
   _perspectiveLineRenderer: {fileID: 900070399}
   _config: {fileID: 11400000, guid: ed64e606f86dc004d986c5e0d42e23b2, type: 2}
-  <Args>k__BackingField: {fileID: 11400000, guid: c5ef0acc7035d894ebff6fef35d31d34,
-    type: 2}
-  <GridLineArgs>k__BackingField: {fileID: 11400000, guid: 9b6012c3663b01a4e85e046c1a6e9c46,
-    type: 2}
   _backgroundCamera: {fileID: 433164891}
   _judgeLineEffect: {fileID: 979261336}
   _backgroundAnimation: {fileID: 1407859395}
@@ -432,6 +428,37 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!1 &441213472
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 441213473}
+  m_Layer: 0
+  m_Name: Content
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &441213473
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 441213472}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1583514218}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &472084912
 GameObject:
   m_ObjectHideFlags: 0
@@ -539,7 +566,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 76409817fefe78b44b3e9b7410815c8e, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.5510778}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.81200004}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1794,7 +1821,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.98815}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.36809602}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1867,7 +1894,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 441213473}
   m_Father: {fileID: 384983966}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1583514219
@@ -1883,7 +1911,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _stage: {fileID: 384983969}
-  _prefab: {fileID: 0}
+  _content: {fileID: 441213473}
 --- !u!1 &1660038577
 GameObject:
   m_ObjectHideFlags: 0

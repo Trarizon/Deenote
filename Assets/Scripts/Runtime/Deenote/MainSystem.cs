@@ -4,8 +4,6 @@ using Deenote.Audio;
 using Deenote.Contexts;
 using Deenote.Core;
 using Deenote.Core.Editing;
-using Deenote.Core.GamePlay;
-using Deenote.Core.Project;
 using Deenote.Editing;
 using Deenote.Editing.NotePlacement;
 using Deenote.Editing.NoteSelection;
@@ -33,8 +31,8 @@ namespace Deenote
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
         [SerializeField] MonoBehaviourHooks _hooks = default!;
         [Header("Manager")]
-        [SerializeField] ProjectManager _projectManager = default!;
-        [SerializeField] GamePlayManager _gamePlayManager = default!;
+        // [SerializeField] ProjectManager _projectManager = default!;
+        // [SerializeField] GamePlayManager _gamePlayManager = default!;
         [SerializeField] StageChartEditor _stageChartEditor = default!;
 
         private UnhandledExceptionHandler _unhandledExceptionHandler = default!;
@@ -47,16 +45,13 @@ namespace Deenote
         public static PianoSoundSource PianoSoundSource => Instance._pianoSoundSource;
         internal static MonoBehaviourHooks GlobalHooks => Instance._hooks;
 
-        public static ProjectManager ProjectManager { get; private set; }
-        public static GamePlayManager GamePlayManager => Instance._gamePlayManager;
-        public static StageChartEditor StageChartEditor => Instance._stageChartEditor;
-
         public static RootContext Contexts { get; private set; }
         public static ProjectManagerB ProjectManagerB { get; private set; }
         public static GamePlayManagerB GamePlayManagerB { get; private set; }
         internal static GameStageManager GameStageManager { get; private set; }
         public static GameStageThemeManager GameStageThemeManager { get; private set; }
 
+        public static EditorManager EditorManager { get; private set; }
         public static ChartNotesEditor ChartEditor { get; private set; }
 
         public static StageNotePlacer2 StageNotePlacer { get; private set; }
@@ -73,30 +68,47 @@ namespace Deenote
             var stagePianoSoundPlayer = new GamePianoSoundPlayer(PianoSoundSource);
 
             SaveSystem = new();
-            Contexts = new(PerspectiveViewPanelInfo, SaveSystem);
+            
+            var environmentContext = new EnvironmentContext(SaveSystem);
+            var projectContext = new ProjectContext();
+            var editorContext = new EditorContext(projectContext, SaveSystem);
+            ChartEditor = new(editorContext, projectContext);
+
+            var gamePlayContext = new GamePlayContext(projectContext, SaveSystem);
+            StageNotePlacer = new(gamePlayContext, editorContext, ChartEditor, SaveSystem, _inputInterpreter);
+            var gameStageContext = new GameStageContext(projectContext, gamePlayContext, editorContext, StageNotePlacer, PerspectiveViewPanelInfo, SaveSystem);
+
+            Contexts = new RootContext {
+                Project = projectContext,
+                Editor = editorContext,
+                Environment = environmentContext,
+                GamePlay = gamePlayContext,
+                GameStage = gameStageContext,
+            };
+
             ProjectManagerB = new(Contexts.Project, Contexts.Environment);
-            ProjectManager = new(Contexts.Project, Contexts.Environment);
-            GamePlayManagerB = new(Contexts.GamePlay, Contexts.Project, _gameMusicPlayer, stagePianoSoundPlayer, _hitSoundPlayer);
+            // ProjectManager = new(Contexts.Project, Contexts.Environment);
+            GamePlayManagerB = new(Contexts.Environment, Contexts.GamePlay, Contexts.Project, _gameMusicPlayer, stagePianoSoundPlayer, _hitSoundPlayer, PerspectiveViewPanelInfo, _inputInterpreter);
             GameStageThemeManager = new(Contexts.GameStage.ThemeContext);
-            GameStageManager = new(Contexts.GameStage, Contexts.Editor, Contexts.GamePlay, GameStageThemeManager);
+            GameStageManager = new(Contexts.GameStage, Contexts.Project, Contexts.Editor, Contexts.GamePlay, GameStageThemeManager, _inputInterpreter);
 
-            ChartEditor = new(Contexts.Editor, Contexts.Project);
-
-            StageNotePlacer = new(Contexts.GamePlay, Contexts.Editor.Grids, Contexts.Editor.NotePlacement, ChartEditor);
-            StageDragSelector = new StageDragSelector(Contexts.Editor.NoteSelection, Contexts.GameStage, Contexts.GamePlay, Contexts.Project, _inputInterpreter);
+            StageDragSelector = new StageDragSelector(Contexts.Editor.NoteSelection, Contexts.GameStage, Contexts.GamePlay, Contexts.Project);
             MouseEditingCoordinator = new(StageNotePlacer, StageDragSelector, Contexts.GameStage, Contexts.GamePlay, Contexts.Editor);
 
             GlobalSettings = new();
 
-            GamePlayManager._stageContext = Contexts.GameStage;
-            GamePlayManager._projectContext = Contexts.Project;
-
-            StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager, Contexts.GameStage);
+            EditorManager = new(Contexts.Project, Contexts.Editor, ProjectManagerB, ChartEditor, MouseEditingCoordinator, _inputInterpreter);
+            // GamePlayManager._stageContext = Contexts.GameStage;
+            // GamePlayManager._projectContext = Contexts.Project;
+            // StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager, Contexts.GameStage);
         }
 
         private void Start()
         {
-            StageDragSelector.OnStart();
+            GamePlayManagerB.OnStart();
+            GameStageManager.OnStart();
+            StageNotePlacer.OnStart();
+            EditorManager.OnStart();
 
             SaveSystem.LoadConfigurations();
             //_ = GameStageSceneLoader.LoadAsync("DeemoStage");

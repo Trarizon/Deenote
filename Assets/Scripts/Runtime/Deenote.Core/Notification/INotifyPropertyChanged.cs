@@ -19,6 +19,8 @@ namespace Deenote.CoreB.Notification
     {
         public static PropertyEventArgs AllProperties => default;
 
+        public static PropertyEventArgs NoProperty => new("-");
+
         public string PropertyName { get; }
         public PropertyEventArgs(string propertyName) => PropertyName = propertyName;
 
@@ -64,7 +66,7 @@ namespace Deenote.CoreB.Notification
             where T : INotifyPropertyChanged<T>, INotifyPropertyChanging<T>
             where T1 : INotifyPropertyChanged<T1>
         {
-            self.RegisterPropertyChangingAndInvoke((s, e) =>
+            self.RegisterPropertyChanging((s, e) =>
             {
                 if (e.MatchProperty(propName)) {
                     var prop = property(s);
@@ -84,7 +86,7 @@ namespace Deenote.CoreB.Notification
             where T : INotifyPropertyChanged<T>, INotifyPropertyChanging<T>
             where T1 : INotifyPropertyChanged<T1>
         {
-            self.RegisterPropertyChangingAndInvoke((s, e) =>
+            self.RegisterPropertyChanging((s, e) =>
             {
                 if (e.MatchProperty(propName)) {
                     var prop = property(s);
@@ -103,6 +105,28 @@ namespace Deenote.CoreB.Notification
             });
         }
 
+        public static void RegisterNestedCollectionChangedAndInvokeNullable<T, T1, T2>(this T self, Func<T, T1?> property, string propertyName, Func<T1, ICollectionChangedEvent<T1, T2>> @event, CollectionChangeEventHandler<T1?, T2> action)
+            where T : INotifyPropertyChanged<T>, INotifyPropertyChanging<T>
+        {
+            self.RegisterPropertyChanging((s, e) =>
+            {
+                if (e.MatchProperty(propertyName)) {
+                    var prop = property(s);
+                    if (prop is not null)
+                        @event(prop).Event -= action;
+                }
+            });
+            self.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(propertyName)) {
+                    var prop = property(s);
+                    if (prop is not null)
+                        @event(prop).Event += action;
+                    action(prop, CollectionChangedEventArgs<T2>.RefreshAll);
+                }
+            });
+        }
+
         public static PropertyChangedRegistration<T> RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyEventArgs> action)
             where T : INotifyPropertyChanged<T>
         {
@@ -111,11 +135,10 @@ namespace Deenote.CoreB.Notification
             return new PropertyChangedRegistration<T>(self, action);
         }
 
-        public static PropertyChangingRegistration<T> RegisterPropertyChangingAndInvoke<T>(this T self, Action<T, PropertyEventArgs> action)
+        public static PropertyChangingRegistration<T> RegisterPropertyChanging<T>(this T self, Action<T, PropertyEventArgs> action)
             where T : INotifyPropertyChanging<T>
         {
             self.PropertyChanging += action;
-            action(self, PropertyEventArgs.AllProperties);
             return new PropertyChangingRegistration<T>(self, action);
         }
     }

@@ -3,18 +3,22 @@
 using Deenote.Contexts;
 using Deenote.Core.Audio;
 using Deenote.CoreB.Notification;
+using Deenote.Editing;
 using Deenote.GamePlay.Audio;
+using Deenote.GameStage.UI;
 using Deenote.Systems;
-using System;
 
 namespace Deenote.GamePlay
 {
-    public sealed class GamePlayManagerB : INotifyPropertyChanged<GamePlayManagerB>
+    public sealed partial class GamePlayManagerB
     {
+        private readonly EnvironmentContext _environment;
         private readonly GamePlayContext _context;
         private readonly ProjectContext _project;
         private readonly GameMusicPlayer _musicPlayer;
         private readonly NoteSoundsPlayManager _noteSoundsPlay;
+        private readonly IPerspectiveViewPanelInfoProvider _perspectiveViewPanelInfoProvider;
+        private readonly InputInterpreter _inputInterpreter;
 
         private float? _manualPlaySpeedMultiplier;
 
@@ -38,15 +42,20 @@ namespace Deenote.GamePlay
             }
         }
 
-        public event Action<GamePlayManagerB, PropertyEventArgs>? PropertyChanged;
-
-        internal GamePlayManagerB(GamePlayContext context, ProjectContext project, GameMusicPlayer musicPlayer, GamePianoSoundPlayer pianoSoundPlayer, GameHitSoundPlayer hitSoundPlayer)
+        internal GamePlayManagerB(EnvironmentContext environment, GamePlayContext context, ProjectContext project, GameMusicPlayer musicPlayer, GamePianoSoundPlayer pianoSoundPlayer, GameHitSoundPlayer hitSoundPlayer, IPerspectiveViewPanelInfoProvider perspectiveViewPanelInfoProvider, InputInterpreter inputInterpreter)
         {
+            _environment = environment;
             _project = project;
             _context = context;
             _musicPlayer = musicPlayer;
             _noteSoundsPlay = new NoteSoundsPlayManager(_context, _project, hitSoundPlayer, pianoSoundPlayer);
+            _perspectiveViewPanelInfoProvider = perspectiveViewPanelInfoProvider;
+            _inputInterpreter = inputInterpreter;
 
+        }
+
+        internal void OnStart()
+        {
             _musicPlayer.TimeChanged += (args) =>
             {
                 _context.CurrentTime = args.NewTime;
@@ -89,6 +98,7 @@ namespace Deenote.GamePlay
             });
 
             RegisterHooks(MainSystem.GlobalHooks);
+            RegisterInputs();
         }
 
         private void RegisterHooks(MonoBehaviourHooks hooks)

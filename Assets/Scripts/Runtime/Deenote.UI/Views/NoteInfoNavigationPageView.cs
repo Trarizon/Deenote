@@ -1,11 +1,13 @@
 #nullable enable
 
 using CommunityToolkit.Diagnostics;
+using Deenote.Contexts;
 using Deenote.Core.Editing;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.Editing.EditorModels;
+using Deenote.Editing.NotePlacement;
 using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
@@ -21,9 +23,11 @@ namespace Deenote.UI.Views
 {
     public sealed class NoteInfoNavigationPageView : MonoBehaviour
     {
+        private ProjectContext _projectContext;
         private GameStageContext _stageContext;
         private EditorContext _editorContext;
         private ChartNotesEditor _editor;
+        private StageNotePlacer2 _notePlacer;
 
         [SerializeField] TextBlock _noteHeaderText = default!;
         [SerializeField] TextBox _positionInput = default!;
@@ -63,9 +67,11 @@ namespace Deenote.UI.Views
 
         private void Awake()
         {
+            _projectContext = MainSystem.Contexts.Project;
             _stageContext = MainSystem.Contexts.GameStage;
             _editorContext = MainSystem.Contexts.Editor;
             _editor = MainSystem.ChartEditor;
+            _notePlacer = MainSystem.StageNotePlacer;
 
             _interactableControls = new IInteractableControl[] {
                 _positionInput, _timeInput, _sizeInput, _durationInput,
@@ -90,6 +96,8 @@ namespace Deenote.UI.Views
             // Properties
             #region Position Time Size Duration
 
+            // TODO: 谱面里note的property的变化需要同步到ui
+
             _positionInput.EditSubmitted += text =>
             {
                 if (float.TryParse(text, out var value))
@@ -97,25 +105,13 @@ namespace Deenote.UI.Views
                 // Re-sync value, as StageChartEditor may clamp value
                 NotifyMultiFloatValueChanged(_positionInput, _editorContext.NoteSelection.SelectedNotes, n => n.Position);
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NotePosition,
-                editor => NotifyMultiFloatValueChanged(_positionInput, editor.Selector.SelectedNotes, n => n.Position));
+
             _timeInput.EditSubmitted += text =>
             {
                 if (float.TryParse(text, out var value))
                     _editor.EditNotesTime(_editorContext.NoteSelection.SelectedNotes, value);
                 NotifyMultiFloatValueChanged(_timeInput, _editorContext.NoteSelection.SelectedNotes, n => n.Time);
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteTime,
-                editor => NotifyMultiFloatValueChanged(_timeInput, editor.Selector.SelectedNotes, n => n.Time));
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NotePositionCoord,
-                editor =>
-                {
-                    NotifyMultiFloatValueChanged(_positionInput, editor.Selector.SelectedNotes, n => n.Position);
-                    NotifyMultiFloatValueChanged(_timeInput, editor.Selector.SelectedNotes, n => n.Time);
-                });
 
             _sizeInput.EditSubmitted += text =>
             {
@@ -123,9 +119,6 @@ namespace Deenote.UI.Views
                     _editor.EditNotesSize(_editorContext.NoteSelection.SelectedNotes, value);
                 NotifyMultiFloatValueChanged(_sizeInput, _editorContext.NoteSelection.SelectedNotes, n => n.Size);
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteSize,
-                editor => NotifyMultiFloatValueChanged(_sizeInput, editor.Selector.SelectedNotes, n => n.Size));
 
             _durationInput.EditSubmitted += text =>
             {
@@ -134,9 +127,6 @@ namespace Deenote.UI.Views
                 NotifyMultiFloatValueChanged(_durationInput, _editorContext.NoteSelection.SelectedNotes, n => n.Duration);
                 SyncFloatInput(_durationInput, value);
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteDuration,
-                editor => NotifyMultiFloatValueChanged(_durationInput, editor.Selector.SelectedNotes, n => n.Duration));
             _linkAsHoldButton.Clicked += () =>
             {
                 var notes = _editorContext.NoteSelection.SelectedNotes;
@@ -166,9 +156,6 @@ namespace Deenote.UI.Views
                 if (check)
                     _editor.EditNotesKind(_editorContext.NoteSelection.SelectedNotes, NoteKind.Swipe);
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteKind,
-                editor => NotifyMultiKindChanged(editor.Selector.SelectedNotes));
 
             _speedInput.EditSubmitted += text =>
             {
@@ -179,11 +166,8 @@ namespace Deenote.UI.Views
             _speedToPlaceSpeedButton.Clicked += () =>
             {
                 if (_selectedNotesSpeed is { } speed)
-                    _stageContext.HighlightedNoteSpeed = speed;
+                    _editorContext.NotePlacement.PlacementNoteSpeed = speed;
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteSpeed,
-                editor => NotifyMultiSpeedValueChanged(editor.Selector.SelectedNotes));
 
 
             _soundsButton.Clicked += () =>
@@ -205,9 +189,6 @@ namespace Deenote.UI.Views
                     : MainWindow.Args.UIIcons.NoteInfoSoundsCollapseSprite;
             };
 
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteSounds,
-                editor => NotifyMultiSoundsChanged(editor.Selector.SelectedNotes));
 
             #endregion
 
@@ -219,18 +200,12 @@ namespace Deenote.UI.Views
                     _editor.EditNotesShift(_editorContext.NoteSelection.SelectedNotes, value);
                 NotifyMultiFloatValueChanged(_shiftInput, _editorContext.NoteSelection.SelectedNotes, n => n.Shift);
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteShift,
-                editor => NotifyMultiFloatValueChanged(_shiftInput, editor.Selector.SelectedNotes, n => n.Shift));
             _eventIdInput.EditSubmitted += text =>
             {
                 _editor.EditNotesEventId(_editorContext.NoteSelection.SelectedNotes, text);
                 // Avoid display place holder
                 _eventIdInput.SetPlaceHolderText(LocalizableText.Raw(""));
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteEventId,
-                editor => NotifyMultiEventIdChanged(editor.Selector.SelectedNotes));
 
             //_warningTypeDropdown.ResetOptions(WarningTypeExt.DropdownOptions);
             //_warningTypeDropdown.SelectedIndexChanged += index =>
@@ -248,70 +223,108 @@ namespace Deenote.UI.Views
                     _editor.EditNotesVibrate(_editorContext.NoteSelection.SelectedNotes, c);
                 }
             };
-            MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
-                StageChartEditor.NotificationFlag.NoteVibrate,
-                editor => NotifyMultiBoolValueChanged(_vibrateCheckBox, editor.Selector.SelectedNotes, n => n.Vibrate));
 
             #endregion
 
+            _projectContext.RegisterNestedCollectionChangedAndInvokeNullable(x => x.CurrentChart, nameof(ProjectContext.CurrentChart), x => x.NotesChanged, (s, e) =>
+            {
+                if(e.Action is CollectionChangeAction.Add or CollectionChangeAction.Remove) {
+                    // We only care about selected notes, changing the collection size may not directly affect the selected notes.
+                    // And if so, the listener on NoteSelection will be invoked to handle it.
+                    return;
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Position))) {
+                    NotifyMultiFloatValueChanged(_positionInput, _editorContext.NoteSelection.SelectedNotes, n => n.Position);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Time))) {
+                    NotifyMultiFloatValueChanged(_timeInput, _editorContext.NoteSelection.SelectedNotes, n => n.Time);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Size))) {
+                    NotifyMultiFloatValueChanged(_sizeInput, _editorContext.NoteSelection.SelectedNotes, n => n.Size);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Duration))) {
+                    NotifyMultiFloatValueChanged(_durationInput, _editorContext.NoteSelection.SelectedNotes, n => n.Duration);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Kind))) {
+                    NotifyMultiKindChanged(_editorContext.NoteSelection.SelectedNotes);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Speed))) {
+                    NotifyMultiSpeedValueChanged(_editorContext.NoteSelection.SelectedNotes);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Sounds))) {
+                    NotifyMultiSoundsChanged(_editorContext.NoteSelection.SelectedNotes);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Shift))) {
+                    NotifyMultiFloatValueChanged(_shiftInput, _editorContext.NoteSelection.SelectedNotes, n => n.Shift);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.EventId))) {
+                    NotifyMultiEventIdChanged(_editorContext.NoteSelection.SelectedNotes);
+                }
+                if (e.PropertyChangedArgs.MatchProperty(nameof(NoteEditorModel.Vibrate))) {
+                    NotifyMultiBoolValueChanged(_vibrateCheckBox, _editorContext.NoteSelection.SelectedNotes, n => n.Vibrate);
+                }
+            });
+
             _editorContext.NoteSelection.RegisterPropertyChangedAndInvoke((s, e) =>
             {
-                var notes = s.SelectedNotes;
+                if (e.MatchProperty(nameof(s.SelectedNotes))) {
+                    var notes = s.SelectedNotes;
 
-                _linkAsHoldButton.IsInteractable = notes.Length == 2;
+                    _linkAsHoldButton.IsInteractable = notes.Length == 2;
 
-                switch (notes.Length) {
-                    case 0:
-                        _noteHeaderText.SetLocalizedText(NoteNonSelectedHeader);
-                        SetControlsActive(false);
-                        _speedToPlaceSpeedButton.IsInteractable = false;
-                        NotifyMultiSoundsChanged(notes);
-                        break;
-                    case 1:
-                        _noteHeaderText.SetLocalizedText(NoteSelectedHeader, "1");
-                        SetControlsActive(true);
-                        var note = notes[0];
-                        SyncFloatInput(_positionInput, note.Position);
-                        SyncFloatInput(_timeInput, note.Time);
-                        SyncFloatInput(_sizeInput, note.Size);
-                        SyncFloatInput(_durationInput, note.Duration);
-                        switch (note.Kind) {
-                            case NoteKind.Click:
-                                _clickNoteKindToggle.SetIsCheckedWithoutNotify(true);
-                                break;
-                            case NoteKind.Slide:
-                                _slideNoteKindToggle.SetIsCheckedWithoutNotify(true);
-                                break;
-                            case NoteKind.Swipe:
-                                _swipeNoteKindToggle.SetIsCheckedWithoutNotify(true);
-                                break;
-                            default:
-                                break;
-                        }
-                        SyncFloatInput(_speedInput, note.Speed);
-                        _selectedNotesSpeed = note.Speed;
-                        _speedToPlaceSpeedButton.IsInteractable = true;
-                        NotifyMultiSoundsChanged(notes);
-                        SyncFloatInput(_shiftInput, note.Shift);
-                        _eventIdInput.SetValueWithoutNotify(note.EventId);
-                        //_warningTypeDropdown.SetValueWithoutNotify(note.WarningType.ToIndex());
-                        _vibrateCheckBox.SetValueWithoutNotify(note.Vibrate);
-                        break;
-                    default:
-                        _noteHeaderText.SetLocalizedText(NoteSelectedHeader, notes.Length.ToString());
-                        SetControlsActive(true);
-                        NotifyMultiFloatValueChanged(_positionInput, notes, n => n.Position);
-                        NotifyMultiFloatValueChanged(_timeInput, notes, n => n.Time);
-                        NotifyMultiFloatValueChanged(_sizeInput, notes, n => n.Size);
-                        NotifyMultiFloatValueChanged(_durationInput, notes, n => n.Duration);
-                        NotifyMultiKindChanged(notes);
-                        NotifyMultiSpeedValueChanged(notes);
-                        NotifyMultiSoundsChanged(notes);
-                        NotifyMultiFloatValueChanged(_shiftInput, notes, n => n.Shift);
-                        NotifyMultiEventIdChanged(notes);
-                        //NotifyMultiWarningTypeChanged(notes);
-                        NotifyMultiBoolValueChanged(_vibrateCheckBox, notes, n => n.Vibrate);
-                        break;
+                    switch (notes.Length) {
+                        case 0:
+                            _noteHeaderText.SetLocalizedText(NoteNonSelectedHeader);
+                            SetControlsActive(false);
+                            _speedToPlaceSpeedButton.IsInteractable = false;
+                            NotifyMultiSoundsChanged(notes);
+                            break;
+                        case 1:
+                            _noteHeaderText.SetLocalizedText(NoteSelectedHeader, "1");
+                            SetControlsActive(true);
+                            var note = notes[0];
+                            SyncFloatInput(_positionInput, note.Position);
+                            SyncFloatInput(_timeInput, note.Time);
+                            SyncFloatInput(_sizeInput, note.Size);
+                            SyncFloatInput(_durationInput, note.Duration);
+                            switch (note.Kind) {
+                                case NoteKind.Click:
+                                    _clickNoteKindToggle.SetIsCheckedWithoutNotify(true);
+                                    break;
+                                case NoteKind.Slide:
+                                    _slideNoteKindToggle.SetIsCheckedWithoutNotify(true);
+                                    break;
+                                case NoteKind.Swipe:
+                                    _swipeNoteKindToggle.SetIsCheckedWithoutNotify(true);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            SyncFloatInput(_speedInput, note.Speed);
+                            _selectedNotesSpeed = note.Speed;
+                            _speedToPlaceSpeedButton.IsInteractable = true;
+                            NotifyMultiSoundsChanged(notes);
+                            SyncFloatInput(_shiftInput, note.Shift);
+                            _eventIdInput.SetValueWithoutNotify(note.EventId);
+                            //_warningTypeDropdown.SetValueWithoutNotify(note.WarningType.ToIndex());
+                            _vibrateCheckBox.SetValueWithoutNotify(note.Vibrate);
+                            break;
+                        default:
+                            _noteHeaderText.SetLocalizedText(NoteSelectedHeader, notes.Length.ToString());
+                            SetControlsActive(true);
+                            NotifyMultiFloatValueChanged(_positionInput, notes, n => n.Position);
+                            NotifyMultiFloatValueChanged(_timeInput, notes, n => n.Time);
+                            NotifyMultiFloatValueChanged(_sizeInput, notes, n => n.Size);
+                            NotifyMultiFloatValueChanged(_durationInput, notes, n => n.Duration);
+                            NotifyMultiKindChanged(notes);
+                            NotifyMultiSpeedValueChanged(notes);
+                            NotifyMultiSoundsChanged(notes);
+                            NotifyMultiFloatValueChanged(_shiftInput, notes, n => n.Shift);
+                            NotifyMultiEventIdChanged(notes);
+                            //NotifyMultiWarningTypeChanged(notes);
+                            NotifyMultiBoolValueChanged(_vibrateCheckBox, notes, n => n.Vibrate);
+                            break;
+                    }
                 }
             });
 

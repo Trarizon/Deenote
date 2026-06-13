@@ -2,9 +2,8 @@
 
 using Cysharp.Threading.Tasks;
 using Deenote.Contexts;
-using Deenote.Core.Project;
 using Deenote.CoreB.Notification;
-using Deenote.Library.Components;
+using Deenote.Editing;
 using Deenote.Library.Mathematics;
 using System;
 using System.IO;
@@ -18,6 +17,8 @@ namespace Deenote.ProjectManagement
     {
         private const string AutoSaveJsonDirName = $"Deenote_AutoSave";
 
+        private ProjectContext _projectContext;
+        private EditorContext _editorContext;
         private ProjectManagerB _projectManager;
         private EnvironmentContext _environment;
 
@@ -38,6 +39,8 @@ namespace Deenote.ProjectManagement
 
         private void Awake()
         {
+            _projectContext = MainSystem.Contexts.Project;
+            _editorContext = MainSystem.Contexts.Editor;
             _projectManager = MainSystem.ProjectManagerB;
             _environment = MainSystem.Contexts.Environment;
         }
@@ -71,11 +74,11 @@ namespace Deenote.ProjectManagement
 
         private async UniTask AutoSaveProjectAsync()
         {
-            if (!MainSystem.ProjectManager.IsProjectLoaded())
+            if (_projectContext.CurrentProject is null)
                 return;
             if (_projectManager.SavingStatus is ProjectSavingStatus.Saving)
                 return;
-            if (!MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange)
+            if (!_editorContext.Operations.HasUnsavedChange)
                 return;
 
             switch (_environment.AutoSave) {
@@ -87,7 +90,7 @@ namespace Deenote.ProjectManagement
                 case ProjectAutoSaveOption.OnAndSaveJson:
                     Saving?.Invoke();
                     var proj = _projectManager.SaveCurrentProjectAsync();
-                    var dir = Path.Combine(Path.GetDirectoryName(MainSystem.ProjectManager.CurrentProject.ProjectFilePath), AutoSaveJsonDirName);
+                    var dir = Path.Combine(Path.GetDirectoryName(_projectContext.CurrentProject.ProjectFilePath), AutoSaveJsonDirName);
                     var charts = _projectManager.SaveCurrentProjectChartJsonsToAsync(dir);
                     await proj;
                     await charts;

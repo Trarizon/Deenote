@@ -29,7 +29,7 @@ namespace Deenote.GameStage.Themes
             Config = new DeemoGameStageConfig(stage.Config);
             NoteCoordStrategy = new DefaultGameStageNoteCoordStrategy(stage.Config);
             var stageContext = MainSystem.Contexts.GameStage;
-            NoteFactory = new DefaultGameStageNoteFactory(stageContext, themeConfig.NotePrefab, stage.NotePlane);
+            NoteFactory = new DefaultGameStageNoteFactory(stageContext, themeConfig.NotePrefab, stage.NotePlane, themeConfig.NoteIndicatorPrefab, stage.IndicatorPlane);
         }
 
         public ForegroundPerspectiveViewUI InstantiateUIAsync(Transform parent)

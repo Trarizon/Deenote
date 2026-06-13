@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.CoreB.Models;
 using UnityEngine;
 
 namespace Deenote.GameStage
@@ -11,6 +12,12 @@ namespace Deenote.GameStage
         float WorldXToPosition(float x);
         float TimeToZ(float time, float fallSpeed, float noteSpeed);
         float ZToTime(float z, float fallSpeed, float noteSpeed);
+    }
+
+    public static class GameStageNoteCoordStrategyExtensions
+    {
+        public static (float X, float Z) CoordToXZ(this IGameStageNoteCoordStrategy strategy, NoteCoord coord, float fallSpeed, float noteSpeed)
+            => (strategy.PositionToWorldX(coord.Position), strategy.TimeToZ(coord.Time, fallSpeed, noteSpeed));
     }
 
     internal class DefaultGameStageNoteCoordStrategy : IGameStageNoteCoordStrategy

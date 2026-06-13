@@ -18,12 +18,28 @@ namespace Deenote.Editing
 
         private void Awake()
         {
-            // NEXT: Placer还得把indicator写出来才能看到效果，还是先把其他部分处理掉把
-            // 先转发一下input actions
             _inputActions = new();
 
             _mouseEditingCoordinator = MainSystem.MouseEditingCoordinator;
             _perspectiveViewPanelInfoProvider = MainSystem.PerspectiveViewPanelInfo;
+        }
+
+        // private void Start()
+        // {
+        //     UISystem.FocusedControlChanged += ctrl =>
+        //     {
+        //         SetGeneralsEnable(ctrl is null);
+        //     };
+        // }
+
+        private void OnEnable()
+        {
+            EnableActions();
+        }
+
+        private void OnDisable()
+        {
+            DisableActions();
         }
 
         private void Update()
@@ -45,8 +61,21 @@ namespace Deenote.Editing
                     _mouseEditingCoordinator.RightMouseDown(pos);
                 if (mouse.rightButton.wasReleasedThisFrame)
                     _mouseEditingCoordinator.RightMouseUp(pos);
+                _mouseEditingCoordinator.MouseMove(pos);
             }
-            _mouseEditingCoordinator.MouseMove(pos);
+            else {
+                _mouseEditingCoordinator.MouseMoveOutOfRange();
+            }
+        }
+
+        private void EnableActions()
+        {
+            _inputActions.Enable();
+        }
+
+        private void DisableActions()
+        {
+
         }
     }
 }

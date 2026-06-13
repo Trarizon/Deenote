@@ -46,7 +46,7 @@ namespace Deenote.Inputting
         private void Awake()
         {
             //_game = MainSystem.GamePlayManager;
-            _ceditor = MainSystem.StageChartEditor;
+            // _ceditor = MainSystem.StageChartEditor;
 
             _gamePlayContext = MainSystem.Contexts.GamePlay;
             _gamePlay = MainSystem.GamePlayManagerB;
@@ -58,10 +58,10 @@ namespace Deenote.Inputting
 
             _inputActions = new();
 
-            RegisterStageGamePlay();
+            // RegisterStageGamePlay();
             RegisterStageSettings();
-            RegisterNoteEdit();
-            RegisterEditorSettings();
+            // RegisterNoteEdit();
+            // RegisterEditorSettings();
             RegisterProjectManagement();
 
             UISystem.FocusedControlChanged += ctrl =>
@@ -128,65 +128,65 @@ namespace Deenote.Inputting
         private bool _manualPlaySpeedUp;
         private float _manualPlay;
 
-        private void RegisterStageGamePlay()
-        {
-            var actions = _inputActions.StageGamePlay;
-            actions.PauseResume.started += _ => _gamePlay.TogglePlayingState();
-            actions.AutoResetPlay.started += _ =>
-            {
-                _musicResetTime = _gamePlayContext.CurrentTime;
-                _gamePlay.Play();
-            };
-            actions.AutoResetPlay.canceled += _ =>
-            {
-                if (_musicResetTime is { } mrt) {
-                    _gamePlay.Stop();
-                    _gamePlayContext.CurrentTime = mrt;
-                    _musicResetTime = null;
-                }
-            };
-            actions.ToMusicStart.started += _ => _gamePlayContext.CurrentTime = 0f;
-            actions.ToMusicEnd.started += _ => _gamePlayContext.CurrentTime = _gamePlayContext.MusicLength;
-            actions.ManualPlay.started += context =>
-            {
-                _manualPlay = context.ReadValue<float>();
-                SetManualPlay();
-            };
-            actions.ManualPlay.canceled += context =>
-            {
-                _manualPlay = 0f;
-                _gamePlay.SetManualPlaySpeed(null);
-            };
-            actions.ManualPlaySpeedUp.started += _ =>
-            {
-                _manualPlaySpeedUp = true;
-                if (_manualPlay != 0f) SetManualPlay();
-            };
-            actions.ManualPlaySpeedUp.canceled += _ =>
-            {
-                _manualPlaySpeedUp = false;
-                if (_manualPlay != 0f) SetManualPlay();
-            };
-            actions.ScrollPlay.performed += context =>
-            {
-                if (!MainWindow.Views.PerspectiveViewPanelView.IsMouseHovering)
-                    return;
+        // private void RegisterStageGamePlay()
+        // {
+        //     var actions = _inputActions.StageGamePlay;
+        //     actions.PauseResume.started += _ => _gamePlay.TogglePlayingState();
+        //     actions.AutoResetPlay.started += _ =>
+        //     {
+        //         _musicResetTime = _gamePlayContext.CurrentTime;
+        //         _gamePlay.Play();
+        //     };
+        //     actions.AutoResetPlay.canceled += _ =>
+        //     {
+        //         if (_musicResetTime is { } mrt) {
+        //             _gamePlay.Stop();
+        //             _gamePlayContext.CurrentTime = mrt;
+        //             _musicResetTime = null;
+        //         }
+        //     };
+        //     actions.ToMusicStart.started += _ => _gamePlayContext.CurrentTime = 0f;
+        //     actions.ToMusicEnd.started += _ => _gamePlayContext.CurrentTime = _gamePlayContext.MusicLength;
+        //     actions.ManualPlay.started += context =>
+        //     {
+        //         _manualPlay = context.ReadValue<float>();
+        //         SetManualPlay();
+        //     };
+        //     actions.ManualPlay.canceled += context =>
+        //     {
+        //         _manualPlay = 0f;
+        //         _gamePlay.SetManualPlaySpeed(null);
+        //     };
+        //     actions.ManualPlaySpeedUp.started += _ =>
+        //     {
+        //         _manualPlaySpeedUp = true;
+        //         if (_manualPlay != 0f) SetManualPlay();
+        //     };
+        //     actions.ManualPlaySpeedUp.canceled += _ =>
+        //     {
+        //         _manualPlaySpeedUp = false;
+        //         if (_manualPlay != 0f) SetManualPlay();
+        //     };
+        //     actions.ScrollPlay.performed += context =>
+        //     {
+        //         if (!MainWindow.Views.PerspectiveViewPanelView.IsMouseHovering)
+        //             return;
 
-                var delta = context.ReadValue<Vector2>().y;
-                if (delta != 0f) {
-                    var deltaTime = delta * 0.001f * MainSystem.GlobalSettings.GameViewScrollSensitivity;
-                    _gamePlay.Nudge(-deltaTime);
-                }
-            };
+        //         var delta = context.ReadValue<Vector2>().y;
+        //         if (delta != 0f) {
+        //             var deltaTime = delta * 0.001f * MainSystem.GlobalSettings.GameViewScrollSensitivity;
+        //             _gamePlay.Nudge(-deltaTime);
+        //         }
+        //     };
 
-            void SetManualPlay()
-            {
-                if (_manualPlaySpeedUp)
-                    _gamePlay.SetManualPlaySpeed(5.0f * _manualPlay);
-                else
-                    _gamePlay.SetManualPlaySpeed(2.5f * _manualPlay);
-            }
-        }
+        //     void SetManualPlay()
+        //     {
+        //         if (_manualPlaySpeedUp)
+        //             _gamePlay.SetManualPlaySpeed(5.0f * _manualPlay);
+        //         else
+        //             _gamePlay.SetManualPlaySpeed(2.5f * _manualPlay);
+        //     }
+        // }
 
         #endregion
 
@@ -199,10 +199,10 @@ namespace Deenote.Inputting
         {
             var actions = _inputActions.StageSettings;
             actions.EscapeFullScreen.started += _ => { MainWindow.Views.PerspectiveViewPanelView.SetIsFullScreen(false); };
-            actions.NoteFallSpeedUp.started += _ => _stageContext.NoteFallSpeed += NoteFallSpeedDelta;
-            actions.NoteFallSpeedDown.started += _ => _stageContext.NoteFallSpeed -= NoteFallSpeedDelta;
-            actions.MusicSpeedUp.started += _ => _gamePlayContext.MusicSpeed += MusicSpeedDelta;
-            actions.MusicSpeedDown.started += _ => _gamePlayContext.MusicSpeed -= MusicSpeedDelta;
+            // actions.NoteFallSpeedUp.started += _ => _stageContext.NoteFallSpeed += NoteFallSpeedDelta;
+            // actions.NoteFallSpeedDown.started += _ => _stageContext.NoteFallSpeed -= NoteFallSpeedDelta;
+            // actions.MusicSpeedUp.started += _ => _gamePlayContext.MusicSpeed += MusicSpeedDelta;
+            // actions.MusicSpeedDown.started += _ => _gamePlayContext.MusicSpeed -= MusicSpeedDelta;
         }
 
         #endregion
@@ -220,80 +220,80 @@ namespace Deenote.Inputting
         private const float DurationDelta = 0.001f;
         private const float DurationDeltaLarge = 0.01f;
 
-        private void RegisterNoteEdit()
-        {
-            var actions = _inputActions.NoteEdit;
-            // actions.SelectAllNotes.started += _ => _ceditor.Selector.SelectAll();
-            actions.RemoveSelectedNotes.started += _ => _editor.RemoveSelectedNotes();
-            actions.Copy.started += _ => _ceditor.CopySelectedNotes();
-            actions.Cut.started += _ => _ceditor.CutSelectedNotes();
-            actions.Paste.started += _ => _ceditor.PasteNotes();
-            actions.Redo.started += _ => _ceditor.OperationMemento.Redo(null);
-            actions.Undo.started += _ => _ceditor.OperationMemento.Undo(null);
-            actions.TimeDec.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t - TimeDelta);
-            actions.TimeInc.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t + TimeDelta);
-            actions.TimeDecLarge.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t - TimeDeltaLarge);
-            actions.TimeIncLarge.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t + TimeDeltaLarge);
-            actions.TimeDecByGrid.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => _grids.TimeGrids.FloorToNearestNextGrid(t).Value ?? t);
-            actions.TimeIncByGrid.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => _grids.TimeGrids.CeilToNearestNextGrid(t).Value ?? t);
-            actions.PositionLeft.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p - PositionDelta);
-            actions.PositionRight.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p + PositionDelta);
-            actions.PositionLeftLarge.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p - PositionDeltaLarge);
-            actions.PositionRightLarge.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p + PositionDeltaLarge);
-            actions.PositionLeftByGrid.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => _grids.PositionGrids.FloorToNearestNextGrid(p) ?? p);
-            actions.PositionRightByGrid.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => _grids.PositionGrids.CeilToNearestNextGrid(p) ?? p);
-            actions.PositionMirror.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => -p);
-            actions.CoordQuantize.started += _ => _editor.EditPositionCoord(_selection.SelectedNotes, c => _grids.Quantize(c, true, true));
-            actions.SizeDec.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s - SizeDelta);
-            actions.SizeInc.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s + SizeDelta);
-            actions.SizeDecLarge.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s - SizeDeltaLarge);
-            actions.SizeIncLarge.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s + SizeDeltaLarge);
-            actions.SpeedDec.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s -= SpeedDelta);
-            actions.SpeedInc.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s += SpeedDelta);
-            actions.SpeedDecLarge.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s -= SpeedDeltaLarge);
-            actions.SpeedIncLarge.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s += SpeedDeltaLarge);
-            actions.KindClick.started += _ => _editor.EditNotesKind(_selection.SelectedNotes, NoteKind.Click);
-            actions.KindSlide.started += _ => _editor.EditNotesKind(_selection.SelectedNotes, NoteKind.Slide);
-            actions.KindSwipe.started += _ => _editor.EditNotesKind(_selection.SelectedNotes, NoteKind.Swipe);
-            actions.SoundAdd.started += _ => _editor.EditNotesSounds(_selection.SelectedNotes, true);
-            actions.SoundRemove.started += _ => _editor.EditNotesSounds(_selection.SelectedNotes, false);
-            actions.DurationDec.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d - DurationDelta);
-            actions.DurationInc.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d + DurationDelta);
-            actions.DurationDecLarge.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d - DurationDeltaLarge);
-            actions.DurationIncLarge.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d + DurationDeltaLarge);
-            actions.DurationDecByGrid.started += _ => _editor.EditNotesEndTime(_selection.SelectedNotes, t => _grids.TimeGrids.FloorToNearestNextGrid(t).Value ?? t);
-            actions.DurationIncByGrid.started += _ => _editor.EditNotesEndTime(_selection.SelectedNotes, t => _grids.TimeGrids.CeilToNearestNextGrid(t).Value ?? t);
-            actions.CreateHoldBetween.started += _ =>
-            {
-                if (_selection.SelectedNotes.Length != 2)
-                    return;
+        // private void RegisterNoteEdit()
+        // {
+        //     var actions = _inputActions.NoteEdit;
+        //     // actions.SelectAllNotes.started += _ => _ceditor.Selector.SelectAll();
+        //     actions.RemoveSelectedNotes.started += _ => _editor.RemoveSelectedNotes();
+        //     actions.Copy.started += _ => _ceditor.CopySelectedNotes();
+        //     actions.Cut.started += _ => _ceditor.CutSelectedNotes();
+        //     actions.Paste.started += _ => _ceditor.PasteNotes();
+        //     actions.Redo.started += _ => _ceditor.OperationMemento.Redo(null);
+        //     actions.Undo.started += _ => _ceditor.OperationMemento.Undo(null);
+        //     actions.TimeDec.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t - TimeDelta);
+        //     actions.TimeInc.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t + TimeDelta);
+        //     actions.TimeDecLarge.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t - TimeDeltaLarge);
+        //     actions.TimeIncLarge.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => t + TimeDeltaLarge);
+        //     actions.TimeDecByGrid.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => _grids.TimeGrids.FloorToNearestNextGrid(t).Value ?? t);
+        //     actions.TimeIncByGrid.started += _ => _editor.EditNotesTime(_selection.SelectedNotes, t => _grids.TimeGrids.CeilToNearestNextGrid(t).Value ?? t);
+        //     actions.PositionLeft.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p - PositionDelta);
+        //     actions.PositionRight.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p + PositionDelta);
+        //     actions.PositionLeftLarge.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p - PositionDeltaLarge);
+        //     actions.PositionRightLarge.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => p + PositionDeltaLarge);
+        //     actions.PositionLeftByGrid.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => _grids.PositionGrids.FloorToNearestNextGrid(p) ?? p);
+        //     actions.PositionRightByGrid.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => _grids.PositionGrids.CeilToNearestNextGrid(p) ?? p);
+        //     actions.PositionMirror.started += _ => _editor.EditNotesPosition(_selection.SelectedNotes, p => -p);
+        //     actions.CoordQuantize.started += _ => _editor.EditPositionCoord(_selection.SelectedNotes, c => _grids.Quantize(c, true, true));
+        //     actions.SizeDec.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s - SizeDelta);
+        //     actions.SizeInc.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s + SizeDelta);
+        //     actions.SizeDecLarge.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s - SizeDeltaLarge);
+        //     actions.SizeIncLarge.started += _ => _editor.EditNotesSize(_selection.SelectedNotes, s => s + SizeDeltaLarge);
+        //     actions.SpeedDec.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s -= SpeedDelta);
+        //     actions.SpeedInc.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s += SpeedDelta);
+        //     actions.SpeedDecLarge.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s -= SpeedDeltaLarge);
+        //     actions.SpeedIncLarge.started += _ => _editor.EditNotesSpeed(_selection.SelectedNotes, s => s += SpeedDeltaLarge);
+        //     actions.KindClick.started += _ => _editor.EditNotesKind(_selection.SelectedNotes, NoteKind.Click);
+        //     actions.KindSlide.started += _ => _editor.EditNotesKind(_selection.SelectedNotes, NoteKind.Slide);
+        //     actions.KindSwipe.started += _ => _editor.EditNotesKind(_selection.SelectedNotes, NoteKind.Swipe);
+        //     actions.SoundAdd.started += _ => _editor.EditNotesSounds(_selection.SelectedNotes, true);
+        //     actions.SoundRemove.started += _ => _editor.EditNotesSounds(_selection.SelectedNotes, false);
+        //     actions.DurationDec.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d - DurationDelta);
+        //     actions.DurationInc.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d + DurationDelta);
+        //     actions.DurationDecLarge.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d - DurationDeltaLarge);
+        //     actions.DurationIncLarge.started += _ => _editor.EditNotesDuration(_selection.SelectedNotes, d => d + DurationDeltaLarge);
+        //     actions.DurationDecByGrid.started += _ => _editor.EditNotesEndTime(_selection.SelectedNotes, t => _grids.TimeGrids.FloorToNearestNextGrid(t).Value ?? t);
+        //     actions.DurationIncByGrid.started += _ => _editor.EditNotesEndTime(_selection.SelectedNotes, t => _grids.TimeGrids.CeilToNearestNextGrid(t).Value ?? t);
+        //     actions.CreateHoldBetween.started += _ =>
+        //     {
+        //         if (_selection.SelectedNotes.Length != 2)
+        //             return;
 
-                var prev = _selection.SelectedNotes[0];
-                var next = _selection.SelectedNotes[1];
+        //         var prev = _selection.SelectedNotes[0];
+        //         var next = _selection.SelectedNotes[1];
 
-                _editor.CreateHoldBetween(prev, next);
-            };
-        }
+        //         _editor.CreateHoldBetween(prev, next);
+        //     };
+        // }
 
         #endregion
 
         #region EditorSettings
 
-        private void RegisterEditorSettings()
-        {
-            var actions = _inputActions.EditorSettings;
-            actions.SnapToGrids.started += _ =>
-            {
-                var placer = _ceditor.Placer;
-                var val = !(placer.SnapToPositionGrid && placer.SnapToTimeGrid);
-                placer.SnapToPositionGrid = placer.SnapToTimeGrid = val;
-            };
-            actions.PasteRememberPosition.started += _ => _ceditor.Placer.PasteRememberPositionModifier = true;
-            actions.PasteRememberPosition.canceled += _ => _ceditor.Placer.PasteRememberPositionModifier = false;
-            actions.PlaceNoteSlideFlag.started += _ => _ceditor.Placer.PlaceSlideModifier = true;
-            actions.PlaceNoteSlideFlag.canceled += _ => _ceditor.Placer.PlaceSlideModifier = false;
-            actions.PlaceSoundNote.started += _ => _ceditor.Placer.PlaceSoundNoteByDefault = !_ceditor.Placer.PlaceSoundNoteByDefault;
-        }
+        // private void RegisterEditorSettings()
+        // {
+        //     var actions = _inputActions.EditorSettings;
+        //     // actions.SnapToGrids.started += _ =>
+        //     // {
+        //     //     var placer = _ceditor.Placer;
+        //     //     var val = !(placer.SnapToPositionGrid && placer.SnapToTimeGrid);
+        //     //     placer.SnapToPositionGrid = placer.SnapToTimeGrid = val;
+        //     // };
+        //     // actions.PasteRememberPosition.started += _ => _ceditor.Placer.PasteRememberPositionModifier = true;
+        //     // actions.PasteRememberPosition.canceled += _ => _ceditor.Placer.PasteRememberPositionModifier = false;
+        //     // actions.PlaceNoteSlideFlag.started += _ => _ceditor.Placer.PlaceSlideModifier = true;
+        //     // actions.PlaceNoteSlideFlag.canceled += _ => _ceditor.Placer.PlaceSlideModifier = false;
+        //     // actions.PlaceSoundNote.started += _ => _ceditor.Placer.PlaceSoundNoteByDefault = !_ceditor.Placer.PlaceSoundNoteByDefault;
+        // }
 
         #endregion
 

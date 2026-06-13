@@ -1,51 +1,49 @@
 #nullable enable
 
-using Deenote.CoreB.Models;
-using Deenote.CoreB.Models.Notes;
+using Deenote.Core;
+using Deenote.CoreB.Notification;
 using Deenote.Editing.EditorModels;
-using Deenote.Library.Collections;
+using Deenote.Library;
 using System;
-using System.Collections.Generic;
 
 namespace Deenote.Editing.NotePlacement
 {
-    public sealed class NotePlacementContext
+    public sealed partial class NotePlacementContext : INotifyPropertyChanged<NotePlacementContext>
     {
-        internal NotePrototypeModel MetaPrototype { get; }
-        internal List<NotePrototypeModel> CurrentPrototypes { get; } = new();
-        
-        internal NoteCoord AnchorCoord { get; set; }
+        private const float ZeroAvoidPlacementNoteSpeed = 0.1f;
 
-        public NotePlacementContext()
+        private float _placementNoteSpeed_bf;
+        public float PlacementNoteSpeed
+        {
+            get => _placementNoteSpeed_bf;
+            set {
+                if (value <= 0f)
+                    value = ZeroAvoidPlacementNoteSpeed;
+                if (Utils.SetField(ref _placementNoteSpeed_bf, value)) {
+                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(PlacementNoteSpeed)));
+                }
+            }
+        }
+
+        public NotePlacementContext(SaveSystem storage)
         {
             MetaPrototype = new NotePrototypeModel {
                 Speed = 1,
                 Size = 1,
             };
+
+            storage.SavingConfigurations += configs =>
+            {
+                configs.Set("stage/highlight_note_speed", PlacementNoteSpeed);
+            };
+
+            storage.LoadedConfigurations += configs =>
+            {
+                PlacementNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
+            };
         }
 
-        public NoteData ClonePrototypeData() { return MetaPrototype.ToDataNonLinkInfo(); }
+        public event Action<NotePlacementContext, PropertyEventArgs>? PropertyChanged;
 
-        public void InsertPrototype(int index, out NotePrototypeModel model)
-        {
-            model = new NotePrototypeModel();
-            CurrentPrototypes.Insert(index, model);
-        }
-
-        public void AddPrototype(out NotePrototypeModel model)
-        {
-            model = new NotePrototypeModel();
-            CurrentPrototypes.Add(model);
-        }
-
-        public void RemovePrototypes(Range range)
-        {
-            CurrentPrototypes.RemoveRange(range);
-        }
-
-        public void ReplacePrototypes(ReadOnlySpan<NotePrototypeModel> models)
-        {
-            CurrentPrototypes.Replace(models);
-        }
     }
 }

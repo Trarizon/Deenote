@@ -17,16 +17,16 @@ namespace Deenote.Editing.Operations
         /// <remarks>
         /// DO NOT use this method edit note Time / Position / Duration / Kind / Sounds
         /// </remarks>
-        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, T value,
+        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, string propertyName, T value,
             Func<NoteEditorModel, T> getter, Action<NoteEditorModel, T> setter)
-            => new SimpleEditNotesPropertyOperation<T>(chart, notes, getter, setter, value);
+            => new SimpleEditNotesPropertyOperation<T>(chart, propertyName, notes, getter, setter, value);
 
         /// <remarks>
         /// DO NOT use this method edit note Time / Position / Duration / Kind / Sounds
         /// </remarks>
-        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, Func<T, T> valueSelector,
+        public static EditNotesPropertyOperation<T> GetEditNotesOperation<T>(this ChartEditorModel chart, ImmutableArray<NoteEditorModel> notes, string propertyName, Func<T, T> valueSelector,
             Func<NoteEditorModel, T> valueGetter, Action<NoteEditorModel, T> valueSetter)
-            => new SimpleEditNotesPropertyOperation<T>(chart, notes, valueGetter, valueSetter, valueSelector);
+            => new SimpleEditNotesPropertyOperation<T>(chart, propertyName, notes, valueGetter, valueSetter, valueSelector);
 
         // Time
 
@@ -131,6 +131,7 @@ namespace Deenote.Editing.Operations
                 }
 
                 OnRedone(firstTime);
+                OnDone();
                 return Notes;
             }
 
@@ -153,29 +154,39 @@ namespace Deenote.Editing.Operations
                     }
                 }
                 OnUndone();
+                OnDone();
                 return Notes;
             }
 
             protected virtual void OnUndoing() { }
             protected virtual void OnUndone() { }
+
+            protected virtual void OnDone() { }
         }
 
         private sealed class SimpleEditNotesPropertyOperation<TProperty> : EditNotesPropertyOperation<TProperty>
         {
+            private readonly string _propertyName;
             private readonly Action<NoteEditorModel, TProperty> _setter;
-            internal SimpleEditNotesPropertyOperation(ChartEditorModel chart,
+            internal SimpleEditNotesPropertyOperation(ChartEditorModel chart, string propertyName,
                 ImmutableArray<NoteEditorModel> notes,
                 Func<NoteEditorModel, TProperty> valueGetter,
                 Action<NoteEditorModel, TProperty> valueSetter,
                 ValueProvider<TProperty> valueProvider)
                 : base(chart, notes, valueGetter, valueProvider)
             {
+                this._propertyName = propertyName;
                 _setter = valueSetter;
             }
 
             protected override void SetValue(int status, int index, TProperty newValue)
             {
                 _setter(Notes[index], newValue);
+            }
+
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), _propertyName);
             }
         }
 
@@ -195,6 +206,11 @@ namespace Deenote.Editing.Operations
                 NoteLinkHelpers.ReorderLink(note);
                 NoteCollisionHelpers.ReupdateCollisionPostMoving(Chart, note);
             }
+
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.Time));
+            }
         }
 
         public sealed class EditNotesPositionPropertyOperation : EditNotesPropertyOperation<float>
@@ -211,6 +227,11 @@ namespace Deenote.Editing.Operations
                 NoteCollisionHelpers.ReupdateCollisionPreMoving(Chart, note);
                 note.Position = newValue;
                 NoteCollisionHelpers.ReupdateCollisionPostMoving(Chart, note);
+            }
+
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.Position));
             }
         }
 
@@ -230,6 +251,11 @@ namespace Deenote.Editing.Operations
                 NoteLinkHelpers.ReorderLink(note);
                 NoteCollisionHelpers.ReupdateCollisionPostMoving(Chart, note);
             }
+
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.PositionCoord));
+            }
         }
 
         public abstract class EditNotesDurationPropertyOperation<T> : EditNotesPropertyOperation<T>
@@ -246,6 +272,11 @@ namespace Deenote.Editing.Operations
             {
                 var note = Notes[index];
                 NoteDurationHelpers.SetDuration(Chart, note, GetDuration(note, newValue));
+            }
+
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.Duration));
             }
 
             protected abstract float GetDuration(NoteEditorModel note, T value);
@@ -338,6 +369,13 @@ namespace Deenote.Editing.Operations
                 }
             }
 
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.Kind));
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.PrevLink));
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.NextLink));
+            }
+
             private readonly record struct LinkInfo(
                 INoteLink? PrevLink,
                 INoteLink? NextLink);
@@ -354,6 +392,11 @@ namespace Deenote.Editing.Operations
             protected override void SetValue(int status, int index, ImmutableArray<PianoSoundData> newValue)
             {
                 Notes[index].Sounds.Replace(newValue.AsSpan());
+            }
+
+            protected override void OnDone()
+            {
+                Chart.RaiseNoteEditorModelsPropertyChanged(Notes.AsSpan(), nameof(NoteEditorModel.Sounds));
             }
         }
 
@@ -377,14 +420,5 @@ namespace Deenote.Editing.Operations
             public static implicit operator ValueProvider<T>(T value) => new ValueProvider<T>(value);
             public static implicit operator ValueProvider<T>(Func<T, T> selector) => new ValueProvider<T>(selector);
         }
-
-        /// <remarks>
-        /// InsertBefore indicates whether the note should insert before or after NoteRefAfterSort.
-        /// But when Undoing, the value is reversed, when InsertBefore is true, should insert after NoteRefBeforeSort
-        /// </remarks>
-        private record struct LinkContext(
-            bool InsertBefore,
-            INoteLink? NoteRefBeforeSort,
-            INoteLink? NoteRefAfterSort);
     }
 }

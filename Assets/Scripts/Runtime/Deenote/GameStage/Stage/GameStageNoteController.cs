@@ -17,7 +17,6 @@ namespace Deenote.GameStage.Stage
     internal abstract class GameStageNoteController : MonoBehaviour
     {
         protected GameStageContext _context = default!;
-        protected GamePlayManager _game = default!;
         protected GameStageNotePlaneController _plane = default!;
 
         public NoteEditorModel NoteModel { get; private set; } = default!;
@@ -37,9 +36,7 @@ namespace Deenote.GameStage.Stage
         protected float AppearAheadTime
         {
             get {
-                //_game.AssertStageLoaded();
-
-                var suddenPlusAheadTime = _context.GameStage.EvaluateNoteAppearAheadTime(NoteModel.Speed);
+                var suddenPlusAheadTime = _plane.GameStage.EvaluateNoteAppearAheadTime(_context.GetDisplaySpeed( NoteModel.Speed));
                 float aheadTime;
                 if (_context.IsEarlyDisplaySlowNotes) {
                     aheadTime = suddenPlusAheadTime;
@@ -55,7 +52,6 @@ namespace Deenote.GameStage.Stage
         {
             _context = context;
             _plane = plane;
-            _game = _plane.GameStage.GamePlay;
             _plane.GameStage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
         }
 
@@ -339,7 +335,7 @@ namespace Deenote.GameStage.Stage
         {
             //_game.AssertStageLoaded();
 
-            float z = _context.GameStage.EvaluateNoteWorldZ(time, NoteModel.Speed);
+            float z = _plane.GameStage.EvaluateNoteWorldZ(time, _context.GetDisplaySpeed(NoteModel.Speed));
             transform.WithLocalPositionZ(z);
         }
 
@@ -371,8 +367,8 @@ namespace Deenote.GameStage.Stage
                 var to = NoteModel.NextLink;
                 var from = NoteModel;
 
-                var (fromX, fromZ) = _context.GameStage.EvaluateNoteWorldXZ(from.PositionCoord - new NoteCoord(0f, currentTime), from.Speed);
-                var (toX, toZ) = _context.GameStage.EvaluateNoteWorldXZ(to.PositionCoord - new NoteCoord(0f, currentTime), to.Speed);
+                var (fromX, fromZ) = _plane.GameStage.EvaluateNoteWorldXZ(from.PositionCoord - new NoteCoord(0f, currentTime), _context.GetDisplaySpeed(from.Speed));
+                var (toX, toZ) = _plane.GameStage.EvaluateNoteWorldXZ(to.PositionCoord - new NoteCoord(0f, currentTime), _context.GetDisplaySpeed(to.Speed));
                 _linkLine = (new Vector2(fromX, fromZ), new Vector2(toX, toZ));
             }
             else {
@@ -427,15 +423,15 @@ namespace Deenote.GameStage.Stage
             //_game.AssertStageLoaded();
 
             if (previousStageNote is null) {
-                _appearAheadTime0SuddenPlus = _context.GameStage.EvaluateNoteActiveAheadTime(NoteModel.Speed);
+                _appearAheadTime0SuddenPlus = _plane.GameStage.EvaluateNoteActiveAheadTime(_context.GetDisplaySpeed(NoteModel.Speed));
                 return;
             }
 
             var prevNoteAppearAheadTime = previousStageNote._appearAheadTime0SuddenPlus;
             var prevNoteAppearTime = previousStageNote.NoteModel.Time - prevNoteAppearAheadTime;
-            var noteAppearTime = _context.GameStage.EvaluateNoteActiveTime(NoteModel);
+            var noteAppearTime = _plane.GameStage.EvaluateNoteActiveTime(NoteModel);
             if (prevNoteAppearTime <= noteAppearTime) {
-                _appearAheadTime0SuddenPlus = _context.GameStage.EvaluateNoteActiveAheadTime(NoteModel.Speed);
+                _appearAheadTime0SuddenPlus = _plane.GameStage.EvaluateNoteActiveAheadTime(_context.GetDisplaySpeed(NoteModel.Speed));
                 return;
             }
 

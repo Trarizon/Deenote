@@ -39,7 +39,7 @@ namespace Deenote
 
             static void QuitRegistration(CancelEventArgs args)
             {
-                if (!MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange) {
+                if (!MainSystem.Contexts.Editor.Operations.HasUnsavedChange) {
                     return;
                 }
                 var res = MainWindow.DialogManager.OpenMessageBoxAsync(_quitUnsavedMsgBoxArgs)

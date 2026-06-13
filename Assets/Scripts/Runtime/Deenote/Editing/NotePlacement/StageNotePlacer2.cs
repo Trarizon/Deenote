@@ -1,7 +1,7 @@
 #nullable enable
 
 using CommunityToolkit.HighPerformance.Buffers;
-using Deenote.Api.Experimental;
+using Deenote.Core;
 using Deenote.CoreB.Models;
 using Deenote.CoreB.Models.Notes;
 using Deenote.CoreB.Notification;
@@ -9,18 +9,23 @@ using Deenote.Editing.EditorModels;
 using Deenote.Editing.EditorModels.Helpers;
 using Deenote.Editing.Grids;
 using Deenote.GamePlay;
-using Deenote.Library;
+using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Deenote.Editing.NotePlacement
 {
-    public sealed class StageNotePlacer2 : INotifyPropertyChanged<StageNotePlacer2>
+    public enum NotePlacingMode
+    {
+        Normal,
+        SoundNote,
+    }
+
+    public sealed partial class StageNotePlacer2 : INotifyPropertyChanged<StageNotePlacer2>
     {
         #region Constants
 
@@ -56,100 +61,33 @@ namespace Deenote.Editing.NotePlacement
         private readonly GridsContext _grids;
         private readonly NotePlacementContext _context;
         private readonly ChartNotesEditor _editor;
+        private readonly InputInterpreter _inputInterpreter;
 
         private readonly NotePrototypeModel _metaPrototype;
 
-        private bool _indicatorsVisible_bf;
-        public bool IndicatorsVisible
-        {
-            get => _indicatorsVisible_bf;
-            set {
-                if (Utils.SetField(ref _indicatorsVisible_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IndicatorsVisible)));
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(ActualIndicatorsVisible)));
-                }
-            }
-        }
+        private bool _snapToPositionGrids_bf;
+        private bool _snapToTimeGrids_bf;
 
         private bool? _indicatorsForceVisible_bf;
-        internal bool? IndicatorsForceVisible
-        {
-            get => _indicatorsForceVisible_bf;
-            set {
-                if (Utils.SetField(ref _indicatorsForceVisible_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IndicatorsForceVisible)));
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(ActualIndicatorsVisible)));
-                }
-            }
-        }
-
-        public bool ActualIndicatorsVisible => _indicatorsForceVisible_bf ?? _indicatorsVisible_bf;
-
-        private bool _snapToPositionGrids_bf;
-        public bool SnapToPositionGrids
-        {
-            get => _snapToPositionGrids_bf;
-            set {
-                if (Utils.SetField(ref _snapToPositionGrids_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(SnapToPositionGrids)));
-                }
-            }
-        }
-
-        private bool _snapToTimeGrids_bf;
-        public bool SnapToTimeGrids
-        {
-            get => _snapToTimeGrids_bf;
-            set {
-                if (Utils.SetField(ref _snapToTimeGrids_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(SnapToTimeGrids)));
-                }
-            }
-        }
-
-        public event Action<StageNotePlacer2, PropertyEventArgs>? PropertyChanged;
-
+        private float? _forceDisplayPlacementNoteSpeed_bf;
         private bool _isPastingRequested_bf;
-
-        internal bool IsPastingRequested
-        {
-            get => _isPastingRequested_bf;
-            set {
-                if (Utils.SetField(ref _isPastingRequested_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IsPastingRequested)));
-                }
-            }
-        }
         private bool _isPlacingSlidesRequested_bf;
-        internal bool IsPlacingSlidesRequested
-        {
-            get => _isPlacingSlidesRequested_bf;
-            set {
-                if (Utils.SetField(ref _isPlacingSlidesRequested_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IsPlacingSlidesRequested)));
-                }
-            }
-        }
         private bool _isPastingRemeberPosition_bf;
-        internal bool IsPastingRemeberPosition
-        {
-            get => _isPastingRemeberPosition_bf;
-            set {
-                if (Utils.SetField(ref _isPastingRemeberPosition_bf, value)) {
-                    PropertyChanged?.Invoke(this, new PropertyEventArgs(nameof(IsPastingRemeberPosition)));
-                }
-            }
-        }
+        private bool _placeSoundNoteByDefault_bf;
 
+        private bool _isIdle;
         private NoteCoord _startCoord;
         private NoteCoord _startCoordQuantized;
 
-        public StageNotePlacer2(GamePlayContext gamePlay, GridsContext grids, NotePlacementContext placement, ChartNotesEditor editor)
+        public event Action<StageNotePlacer2, PropertyEventArgs>? PropertyChanged;
+
+        internal StageNotePlacer2(GamePlayContext gamePlay, EditorContext editorContext, ChartNotesEditor editor, SaveSystem storage, InputInterpreter inputInterpreter)
         {
             _gamePlay = gamePlay;
-            _grids = grids;
-            _context = placement;
+            _grids = editorContext.Grids;
+            _context = editorContext.NotePlacement;
             _editor = editor;
+            _inputInterpreter = inputInterpreter;
 
             _metaPrototype = new NotePrototypeModel {
                 Position = 0,
@@ -157,16 +95,54 @@ namespace Deenote.Editing.NotePlacement
                 Size = 1,
                 Speed = 1
             };
+
+            storage.SavingConfigurations += configs =>
+            {
+                configs.Set("editor/snap_pos", SnapToPositionGrids);
+                configs.Set("editor/snap_time", SnapToTimeGrids);
+            };
+
+            storage.LoadedConfigurations += configs =>
+            {
+                SnapToPositionGrids = configs.GetBoolean("editor/snap_pos", true);
+                SnapToTimeGrids = configs.GetBoolean("editor/snap_time", true);
+            };
+        }
+
+        public void OnStart()
+        {
+            _context.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.MatchProperty(nameof(s.PlacementNoteSpeed))) {
+                    _metaPrototype.Speed = s.PlacementNoteSpeed;
+                    NotifyMetaPrototypeChanged();
+                }
+            });
+
+            var actions = _inputInterpreter.InputActions.EditorSettings;
+            actions.SnapToGrids.started += _ =>
+            {
+                var val = !(SnapToPositionGrids && SnapToTimeGrids);
+                SnapToPositionGrids = val;
+                SnapToTimeGrids = val;
+            };
+            actions.PasteRememberPosition.started += _ => IsPastingRemeberPosition = true; ;
+            actions.PasteRememberPosition.canceled += _ => IsPastingRemeberPosition = false;
+            actions.PlaceNoteSlideFlag.started += _ => IsPlacingSlidesRequested = true;
+            actions.PlaceNoteSlideFlag.canceled += _ => IsPlacingSlidesRequested = false;
+            actions.PlaceSoundNote.started += _ => PlaceSoundNoteByDefault = true;
         }
 
         public void PrepareSingle()
         {
+            _isIdle = true;
             var prototype = _metaPrototype.Clone();
             _context.ReplacePrototypes(MemoryMarshal.CreateReadOnlySpan(ref prototype, 1));
         }
 
         public void PrepareSlide()
         {
+            _isIdle = true;
             var prototype = _metaPrototype.Clone();
             prototype.Kind = NoteKind.Slide;
             _context.ReplacePrototypes(MemoryMarshal.CreateReadOnlySpan(ref prototype, 1));
@@ -174,12 +150,14 @@ namespace Deenote.Editing.NotePlacement
 
         public void BeginPlaceSingleNote(NoteCoord coord)
         {
+            _isIdle = false;
             _startCoord = coord;
             _startCoordQuantized = _grids.Quantize(coord, SnapToPositionGrids, SnapToTimeGrids);
         }
 
         public void BeginPlaceSlides(NoteCoord coord)
         {
+            _isIdle = false;
             _startCoord = coord;
             _startCoordQuantized = _grids.Quantize(coord, SnapToPositionGrids, SnapToTimeGrids);
             _dragPrevCoord = coord;
@@ -416,6 +394,9 @@ namespace Deenote.Editing.NotePlacement
             if (notes.IsEmpty)
                 return;
 
+            _isIdle = true;
+            IsPastingRequested = true;
+
             _templateBaseCoord = notes[0].PositionCoord;
 
             using var so = SpanOwner<NotePrototypeModel>.Allocate(notes.Length);
@@ -426,6 +407,14 @@ namespace Deenote.Editing.NotePlacement
                 span[i] = note;
             }
             NoteLinkHelpers.CloneLinkInfos(notes, (ReadOnlySpan<NotePrototypeModel>)span);
+        }
+
+        private void NotifyMetaPrototypeChanged()
+        {
+            if (_isIdle && !IsPastingRequested) {
+                var prototype = _metaPrototype.Clone();
+                _context.ReplacePrototypes(MemoryMarshal.CreateReadOnlySpan(ref prototype, 1));
+            }
         }
     }
 }

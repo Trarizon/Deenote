@@ -56,9 +56,9 @@ namespace Deenote.UI.Views.Elements
             });
             _exportButton.Clicked += UniTask.Action(async () =>
             {
-                MainSystem.ProjectManager.AssertProjectLoaded();
+                _parent._projectContext.AssertProjectLoaded();
 
-                var projFilePath = MainSystem.ProjectManager.CurrentProject.ProjectFilePath;
+                var projFilePath = _parent._projectContext.CurrentProject.ProjectFilePath;
 
                 var suffix = string.IsNullOrEmpty(ChartModel.Name)
                     ? ChartModel.Difficulty.ToLowerCaseString(_parent._environment.GameVersion)

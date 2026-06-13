@@ -85,7 +85,7 @@ namespace Deenote.Core.Editing
             _saveOffset = 0;
         }
 
-        public void SaveAtCurrent()
+        public void MarkSaveAtCurrent()
         {
             _saveOffset = 0;
         }
