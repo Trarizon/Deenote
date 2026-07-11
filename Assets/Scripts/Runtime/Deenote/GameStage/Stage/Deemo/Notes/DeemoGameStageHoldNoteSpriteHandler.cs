@@ -2,7 +2,7 @@
 
 using Deenote;
 using Deenote.Library;
-using NaughtyAttributes;
+using TriInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 

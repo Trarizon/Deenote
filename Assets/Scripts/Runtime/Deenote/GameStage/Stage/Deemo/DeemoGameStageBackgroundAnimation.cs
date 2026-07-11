@@ -1,6 +1,6 @@
 #nullable enable
 
-using NaughtyAttributes;
+using TriInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UI;
@@ -13,7 +13,7 @@ namespace Deenote.GameStage.Stage.Deemo
     {
         [SerializeField] Image _maskImage = default!;
 
-        [Header("Configs")]
+        [Title("Configs")]
         [SerializeField] float _period;
         [MinMaxSlider(0f, 1f)]
         [SerializeField] Vector2 _alphaRange;

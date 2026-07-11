@@ -11,11 +11,11 @@
         "Unity.InputSystem",
         "Deenote.InputSystem.InputActions",
         "Deenote.UIFramework",
-        "NaughtyAttributes.Core",
         "Unity.Addressables",
         "Unity.ResourceManager",
         "UniTask.Addressables",
-        "Deenote.Api"
+        "Deenote.Api",
+        "TriInspector"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

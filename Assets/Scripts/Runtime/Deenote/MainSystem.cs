@@ -15,7 +15,7 @@ using Deenote.GameStage.UI;
 using Deenote.Library.Components;
 using Deenote.ProjectManagement;
 using Deenote.Systems;
-using NaughtyAttributes;
+using TriInspector;
 using System.Collections.Immutable;
 using UnityEngine;
 
@@ -27,10 +27,10 @@ namespace Deenote
         [Required][SerializeField] GameHitSoundPlayer _hitSoundPlayer;
         [Required][SerializeField] AutoSaveTrigger _autoSaveTrigger;
         [Required][SerializeField] InputInterpreter _inputInterpreter;
-        [Header("System")]
+        [Title("System")]
         [SerializeField] PianoSoundSource _pianoSoundSource = default!;
         [SerializeField] MonoBehaviourHooks _hooks = default!;
-        [Header("Manager")]
+        [Title("Manager")]
         // [SerializeField] ProjectManager _projectManager = default!;
         // [SerializeField] GamePlayManager _gamePlayManager = default!;
         [SerializeField] StageChartEditor _stageChartEditor = default!;
@@ -68,7 +68,7 @@ namespace Deenote
             var stagePianoSoundPlayer = new GamePianoSoundPlayer(PianoSoundSource);
 
             SaveSystem = new();
-            
+
             var environmentContext = new EnvironmentContext(SaveSystem);
             var projectContext = new ProjectContext();
             var editorContext = new EditorContext(projectContext, SaveSystem);
