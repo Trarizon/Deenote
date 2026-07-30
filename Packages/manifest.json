@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.codewriter.triinspector": "https://github.com/codewriter-packages/Tri-Inspector.git",
     "com.cysharp.unitask": "2.5.10",
     "com.github-glitchenzo.nugetforunity": "4.1.1",
     "com.unity.2d.sprite": "1.0.0",
@@ -35,6 +36,7 @@
       "name": "OpenUPM",
       "url": "https://package.openupm.com",
       "scopes": [
+        "com.codewriter.triinspector",
         "com.cysharp.unitask",
         "com.github-glitchenzo.nugetforunity",
         "com.gustavopsantos.reflex"
