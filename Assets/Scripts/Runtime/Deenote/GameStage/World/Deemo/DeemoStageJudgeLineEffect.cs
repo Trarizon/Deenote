@@ -1,4 +1,5 @@
 using Deenote.Library;
+using Deenote.Replica;
 using UnityEngine;
 
 namespace Deenote.GameStage.World.Deemo
@@ -37,34 +38,12 @@ namespace Deenote.GameStage.World.Deemo
                 return;
             }
 
-            // The Animation is related to frame count rather than time
-            // We use 60 fps as frame count here
-            const float Interval = 1f / 60f;
-
-            // First frame is 1, dec 0.02 per frame
-
-            var size = 1 - 0.02f * (t / Interval);
-            size = Mathf.Max(0, size);
-            _hitEffectScaler.WithLocalScaleY(size);
+            _hitEffectScaler.WithLocalScaleY(DeemoReplica.CalcJudgeLineHitEffectScale(t));
         }
 
         private void SetBreathingEffect(float time)
         {
-            // The animation is related to frame count rather than time
-            // We use 60 fps as frame count here
-            const float Interval = 1 / 60f;
-
-            // 100 frames, inc by 0.01
-            time %= Interval * 200;
-
-            float alpha;
-            if (time < Interval * 100) {
-                alpha = time / (Interval * 100);
-            }
-            else {
-                alpha = (Interval * 200 - time) / (Interval * 100);
-            }
-            _breathingEffectSpriteRenderer.color = new Color(1, 1, 1, alpha);
+            _breathingEffectSpriteRenderer.color = new Color(1, 1, 1, DeemoReplica.CalcJudgeLineBreathingEffectAlpha(time));
         }
     }
 }

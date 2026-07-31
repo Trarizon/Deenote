@@ -1,5 +1,6 @@
 using Deenote.Core.GameStage;
 using Deenote.Library;
+using Deenote.Replica;
 using TriInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -96,52 +97,15 @@ namespace Deenote.GameStage.World.Deemo.Notes
 
         private void SetShockwave(float time)
         {
-            // 0.3333s
-
-            const float GrowTime = 5f / 60f;
-            const float FadeTime = 0.25f;
-            var tsfm = _shockwaveSpriteRenderer.transform;
-
-            float scale;
-            if (time < GrowTime) {
-                var t = time / GrowTime;
-                scale = 1.5f * Easing.OutCubic(t);
-            }
-            else if (time < GrowTime + FadeTime) {
-                var t = (0.25f - (time - GrowTime)) / 0.25f;
-                scale = 1.5f * Easing.OutCubic(t);
-            }
-            else {
-                scale = 0;
-            }
-
-            tsfm.WithLocalScaleY(scale * _note._config.ShockwaveScale);
+            _shockwaveSpriteRenderer.transform.WithLocalScaleY(
+                _note._config.ShockwaveScale * DeemoReplica.CalcNoteShockwaveEffectScale(time));
         }
 
         private void SetCirclewave(float time)
         {
-            // 0.5s
-            const float Time1 = 1f / 6f;
-            const float Time2 = 1f / 3f;
+            var (scale, alpha) = DeemoReplica.CalcNoteCirclewaveEffect(time);
 
-            Vector3 scale;
-            float alpha;
-            if (time < Time1) {
-                var s = 1 + time / (17f / 60f);
-                scale = new Vector3(s, s, 1);
-                alpha = time / Time1;
-            }
-            else if (time < Time2) {
-                float s = Mathf.Min(2f, 1f + time / (17f / 60f));
-                scale = new Vector3(s, s, 1);
-                alpha = Mathf.InverseLerp(Time2, Time1, time);
-            }
-            else {
-                scale = Vector3.one;
-                alpha = 0f;
-            }
-
-            _circlewaveSpriteRenderer.transform.localScale = scale * _note._config.CirclewaveScale;
+            _circlewaveSpriteRenderer.transform.localScale = new Vector3(scale, scale, 1) * _note._config.CirclewaveScale;
             _circlewaveSpriteRenderer.WithColorAlpha(alpha);
         }
 
@@ -170,31 +134,7 @@ namespace Deenote.GameStage.World.Deemo.Notes
         {
             // 0.91666666666667
 
-            // The glow effect animation is related to frame count rather than time,
-            // We use 60 fps as the frame count here.
-
-            const float BaseScaleX = 0.5f;
-            const float DeltaTime = 1f / 60f;
-
-            float alpha;
-            Vector2 scale;
-            if (time < DeltaTime * 5) {
-                alpha = time / (DeltaTime * 10);
-                scale = new Vector2(
-                    x: BaseScaleX + time / (DeltaTime * 100),
-                    y: time / (DeltaTime * 10));
-            }
-            else if (time < DeltaTime * 55) {
-                var t = 1 - (time - DeltaTime * 5) / (DeltaTime * 50);
-                alpha = t * 0.5f;
-                scale = new Vector2(
-                    x: BaseScaleX + time / (DeltaTime * 100),
-                    y: t * 0.5f);
-            }
-            else {
-                alpha = 0;
-                scale = new Vector2(BaseScaleX + 0.55f, y: 0f);
-            }
+            var (scale, alpha) = DeemoReplica.CalcNoteGlowEffect(time);
 
             _glowSpriteRenderer.WithColorAlpha(alpha);
             _glowSpriteRenderer.transform.localScale = scale * _note._config.GlowScale;

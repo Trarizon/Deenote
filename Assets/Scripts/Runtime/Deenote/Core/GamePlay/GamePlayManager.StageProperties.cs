@@ -3,6 +3,7 @@
 using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.Entities.Models;
+using Deenote.Replica;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
@@ -20,9 +21,7 @@ namespace Deenote.Core.GamePlay
         public float StageNoteActiveAheadTime
         {
             get {
-                var args = Stage!.Args;
-                var fallSpeed = ActualNoteFallSpeed;
-                return args.NotePanelBaseLength / args.NoteTimeToZBaseMultiplierFunction.GetY(fallSpeed) / fallSpeed;
+                return Stage!.Config.NoteAppearAheadTimeFactor / DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed);
             }
         }
 
@@ -113,10 +112,10 @@ namespace Deenote.Core.GamePlay
         }
 
         private float ConvertNoteCoordTimeToWorldZBase(float time)
-            => time * Stage!.Args.NoteTimeToZBaseMultiplierFunction.GetY(ActualNoteFallSpeed);
+            => time * DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) * Stage!.Config.NoteTimeToWorldZFactor;
 
         private float ConvertWorldZToNoteCoordTimeBase(float z)
-            => z / Stage!.Args.NoteTimeToZBaseMultiplierFunction.GetY(ActualNoteFallSpeed);
+            => z/ DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) / Stage!.Config.NoteTimeToWorldZFactor;
 
         #endregion
     }

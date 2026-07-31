@@ -1831,6 +1831,7 @@ MonoBehaviour:
     type: 2}
   <GridLineArgs>k__BackingField: {fileID: 11400000, guid: 9b6012c3663b01a4e85e046c1a6e9c46,
     type: 2}
+  _config: {fileID: 11400000, guid: b6418790971b3634f9a0a4ea3c38e25f, type: 2}
   _staveMusicNameText: {fileID: 3798957992778705542}
   _backgroundAnimation: {fileID: 6138470144613939462}
   _judgeLineEffect: {fileID: 6200646096303864112}

@@ -3,8 +3,10 @@
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage.Args;
 using Deenote.Entities;
+using Deenote.GameStage.World;
 using Deenote.Library;
 using System.Diagnostics.CodeAnalysis;
+using TriInspector;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage
@@ -33,6 +35,11 @@ namespace Deenote.Core.GameStage
         public GameStageArgs Args { get; private set; } = default!;
         [field: SerializeField]
         public GridLineArgs GridLineArgs { get; private set; } = default!;
+
+        [Title("Config")]
+        [SerializeField] GameStageConfig _config;
+
+        public GameStageConfig Config => _config;
 
         protected GamePlayManager _manager = default!;
 
