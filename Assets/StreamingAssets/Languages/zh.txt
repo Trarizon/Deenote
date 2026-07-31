@@ -606,6 +606,8 @@ Dialog_AboutTurorials_Page_UpgradeGuide_Content="""
 
 AboutDialog_Versions_Dnt_1_0=Deenote 1.0
 AboutDialog_Versions_Dnt_1_0_Content="""
+    - 调整音符特效与场景特效动画
+
     <b>Deenote 1.0.8</b>
     - 修复播放时谱面音符移动不连续、看起来卡顿的问题。 @芋圆
     - 修复高 DPI / Canvas 缩放下 RenderTexture 分辨率偏低的问题。添加渲染倍率设置项。 @芋圆

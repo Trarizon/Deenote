@@ -431,6 +431,8 @@ Dialog_AboutTurorials_Page_UpgradeGuide_Content="""
 
 AboutDialog_Versions_Dnt_1_0=Deenote 1.0
 AboutDialog_Versions_Dnt_1_0_Content="""
+    - Adjust notes' hit effect and stage effect & animation
+
     <b>Deenote 1.0.8</b>
     - Fix stage preview stutter. By @kafuu
     - Fix low resolution for high DPI, Add render scale option. By @kafuu

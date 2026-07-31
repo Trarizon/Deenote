@@ -8,10 +8,10 @@
         "Deenote.Library",
         "Unity.TextMeshPro",
         "Deenote.Localization",
-        "Trarizon.Library",
         "Unity.InputSystem",
         "Deenote.InputSystem.InputActions",
-        "Deenote.UIFramework"
+        "Deenote.UIFramework",
+        "TriInspector"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
