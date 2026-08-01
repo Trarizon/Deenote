@@ -27,7 +27,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.613497, y: 0.613497, z: 0.613497}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 3916951919596729160}
@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3916951919596729160}
   m_Layer: 0
-  m_Name: CameraRotation
+  m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -116,6 +116,38 @@ Transform:
   - {fileID: 1503554878145829842}
   m_Father: {fileID: 2480752875103872124}
   m_LocalEulerAnglesHint: {x: 20, y: 0, z: 0}
+--- !u!1 &7453901472218924929
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1406221654112918333}
+  m_Layer: 0
+  m_Name: HoldBody
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1406221654112918333
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7453901472218924929}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1108582515903867498}
+  m_Father: {fileID: 2480752875103872124}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &8728151979591830445
 GameObject:
   m_ObjectHideFlags: 0
@@ -147,7 +179,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3916951919596729160}
-  - {fileID: 1108582515903867498}
+  - {fileID: 1406221654112918333}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3287208875695698390
@@ -164,6 +196,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _noteSpriteRenderer: {fileID: 9106216317908162603}
   _holdBodySpriteRender: {fileID: 8574897916714198776}
+  _headTransform: {fileID: 3916951919596729160}
+  _holdBodyTransform: {fileID: 1406221654112918333}
+  _config: {fileID: 11400000, guid: 22af035a99c16c441af8bad4e321fcb5, type: 2}
 --- !u!1 &8752414047952031116
 GameObject:
   m_ObjectHideFlags: 0
@@ -189,12 +224,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8752414047952031116}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.5, y: 8, z: 1}
+  m_LocalScale: {x: 4, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2480752875103872124}
+  m_Father: {fileID: 1406221654112918333}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!212 &8574897916714198776
 SpriteRenderer:

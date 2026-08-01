@@ -1827,15 +1827,11 @@ MonoBehaviour:
   _noteDragSelectionPanelTransform: {fileID: 2153447970756827747}
   _holdBodyCullMaterial: {fileID: 2100000, guid: 919dd3b629e4fb64c9774a646b1a058e,
     type: 2}
-  <Args>k__BackingField: {fileID: 11400000, guid: c5ef0acc7035d894ebff6fef35d31d34,
-    type: 2}
-  <GridLineArgs>k__BackingField: {fileID: 11400000, guid: 9b6012c3663b01a4e85e046c1a6e9c46,
-    type: 2}
   _config: {fileID: 11400000, guid: b6418790971b3634f9a0a4ea3c38e25f, type: 2}
+  _gridLineConfig: {fileID: 11400000, guid: cf9bad0af6df57943be84caaa500007c, type: 2}
   _staveMusicNameText: {fileID: 3798957992778705542}
   _backgroundAnimation: {fileID: 6138470144613939462}
   _judgeLineEffect: {fileID: 6200646096303864112}
-  _deemoArgs: {fileID: 11400000, guid: d05ba06daaeec864cb50af552910a654, type: 2}
 --- !u!1 &9065392707686970931
 GameObject:
   m_ObjectHideFlags: 0

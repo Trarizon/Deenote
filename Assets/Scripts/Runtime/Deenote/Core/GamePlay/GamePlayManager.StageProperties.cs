@@ -51,19 +51,21 @@ namespace Deenote.Core.GamePlay
         #region Converters
 
         public float ConvertWorldXToNoteCoordPosition(float x)
-            => x / (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
+            => x / Stage!.Config.NotePosToWorldXFactor;
+            // => x / (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
 
         public float ConvertWorldZToNoteCoordTime(float z, float noteSpeed = 1f)
             => ConvertWorldZToNoteCoordTimeBase(z) / ActualNoteFallSpeed / GetDisplayNoteSpeed(noteSpeed);
 
         public float ConvertNoteCoordPositionToWorldX(float position)
-            => position * (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
+            => position * Stage!.Config.NotePosToWorldXFactor;
+            // => position * (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
 
         public float ConvertNoteCoordTimeToWorldZ(float time, float noteSpeed = 1f)
             => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time);
 
         public float ConvertNoteCoordTimeToHoldScaleY(float time, float noteSpeed = 1f)
-            => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time) / Stage!.Args.HoldSpritePrefab.Sprite.bounds.size.y;
+            => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time); // Stage!.Args.HoldSpritePrefab.Sprite.bounds.size.y;
 
         public (float X, float Z) ConvertNoteCoordToWorldPosition(NoteCoord coord, float noteSpeed = 1f)
             => (ConvertNoteCoordPositionToWorldX(coord.Position), ConvertNoteCoordTimeToWorldZ(coord.Time, noteSpeed));

@@ -58,12 +58,12 @@ namespace Deenote.Core.GamePlay
             float minx = _game.ConvertNoteCoordPositionToWorldX(-EntityArgs.StageMaxPosition);
             float maxx = _game.ConvertNoteCoordPositionToWorldX(EntityArgs.StageMaxPosition);
 
-            var args = _game.Stage.GridLineArgs;
+            var config = _game.Stage.GridLineConfig;
             foreach (var (time, kind) in _timeGridLines) {
                 var (color, width) = kind switch {
-                    TimeGridLineKind.SubBeatLine => (_game.CustomSubBeatLineColor ?? args.SubBeatLineColor, args.TimeGridLineWidth),
-                    TimeGridLineKind.BeatLine => (_game.CustomBeatLineColor ?? args.BeatLineColor, args.TimeGridBeatLineWidth),
-                    TimeGridLineKind.TempoLine => (_game.CustomTempoLineColor ?? args.TempoLineColor, args.TimeGridTempoLineWidth),
+                    TimeGridLineKind.SubBeatLine => (_game.CustomSubBeatLineColor ?? config.SubBeatLineData.Color, config.SubBeatLineData.Width),
+                    TimeGridLineKind.BeatLine => (_game.CustomBeatLineColor ?? config.BeatLineData.Color, config.BeatLineData.Width),
+                    TimeGridLineKind.TempoLine => (_game.CustomTempoLineColor ?? config.TempoLineData.Color, config.TempoLineData.Width),
                     _ => throw new System.NotImplementedException(),
                 };
                 var z = _game.ConvertNoteCoordTimeToWorldZ(time, _editor.Placer.PlacingNoteSpeed);

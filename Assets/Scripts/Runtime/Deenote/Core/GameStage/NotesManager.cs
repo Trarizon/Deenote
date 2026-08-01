@@ -178,7 +178,7 @@ namespace Deenote.Core.GameStage
             var noteNodes = chart.NoteNodes.AsSpan();
 
             var currentTime = _game.MusicPlayer.Time;
-            var deactiveDeltaTime = stage.Args.HitEffectSpritePrefabs.HitEffectTime;
+            var deactiveDeltaTime = stage.Config.NoteHitEffectMaxDuration;
             var deactiveNoteTime = currentTime - deactiveDeltaTime;
             var activateDeltaTime = _game.StageNoteActiveAheadTime;
             var activateNoteTime = currentTime + activateDeltaTime;
@@ -286,7 +286,7 @@ namespace Deenote.Core.GameStage
             var noteNodes = chart.NoteNodes.AsSpan();
 
             var currentTime = _game.MusicPlayer.Time;
-            var deactiveDeltaTime = stage.Args.HitEffectSpritePrefabs.HitEffectTime;
+            var deactiveDeltaTime = stage.Config.NoteHitEffectMaxDuration;
             var deactiveNoteTime = currentTime - deactiveDeltaTime;
             var activateDeltaTime = _game.StageNoteActiveAheadTime;
             var activateNoteTime = currentTime + activateDeltaTime;
@@ -360,7 +360,7 @@ namespace Deenote.Core.GameStage
             var noteNodes = chart.NoteNodes.AsSpan();
 
             var currentTime = _game.MusicPlayer.Time;
-            var deactiveDeltaTime = stage.Args.HitEffectSpritePrefabs.HitEffectTime;
+            var deactiveDeltaTime = stage.Config.NoteHitEffectMaxDuration;
             var deactiveNoteTime = currentTime - deactiveDeltaTime;
             var activateDeltaTime = _game.StageNoteActiveAheadTime;
             var activateNoteTime = currentTime + activateDeltaTime;

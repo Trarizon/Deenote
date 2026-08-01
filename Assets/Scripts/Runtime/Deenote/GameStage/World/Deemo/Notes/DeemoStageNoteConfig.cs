@@ -34,8 +34,10 @@ namespace Deenote.GameStage.World.Deemo.Notes
         public Color SelectedHighlightColor;
         public Color CollidedHighlightColor;
         public Color SelectedAndCollidedHighlightColor;
-        [Range(0, 1)]
-        public float DownplayAlpha;
+        [Range(0, 1)] public float DownplayAlpha;
+
+        [Title("Indicator")]
+        [Range(0, 1)] public float IndicatorAlpha;
 
         [Serializable]
         public struct NoteSpriteData

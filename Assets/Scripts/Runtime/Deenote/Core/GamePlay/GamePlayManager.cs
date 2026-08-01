@@ -81,7 +81,7 @@ namespace Deenote.Core.GamePlay
                 Stage.OnInstantiate(this);
                 NotesManager.Initialize(
                     UnityUtils.CreateObjectPool(
-                        Stage.Args.GamePlayNotePrefab,
+                        Stage.Config.NotePrefab,
                         Stage.NotePanelTransform,
                         item => item.OnInstantiate(this)));
                 OnStageLoaded_Properties(loader);

@@ -57,10 +57,10 @@ namespace Deenote.Core.Editing
             if (showLinkLine && _linkLineEndOffset is { } offset) {
                 _placer._editor._game.AssertStageLoaded();
 
-                var args = _placer._editor._game.Stage.GridLineArgs;
+                var configs = _placer._editor._game.Stage.GridLineConfig;
                 collector.AddLine(_localPosition, _localPosition + offset,
-                    args.LinkLineColor with { a = NoteAlpha },
-                    args.LinkLineWidth);
+                    configs.LinkLineData.ColorWithAlpha(((DeemoPlacementNoteIndicatorController)this)._config.IndicatorAlpha),
+                    configs.LinkLineData.Width);
             }
         }
 

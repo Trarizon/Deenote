@@ -69,7 +69,7 @@ namespace Deenote.Core.Editing
                 _indicatorPanelTransform = args.Stage.NoteIndicatorPanelTransform;
                 _indicators?.Clear();
                 var indicators = new PooledObjectListView<PlacementNoteIndicatorController>(
-                    UnityUtils.CreateObjectPool(args.Stage.Args.PlacementNoteIndicatorPrefab,
+                    UnityUtils.CreateObjectPool(args.Stage.Config.NoteIndicatorPrefab,
                         _indicatorPanelTransform,
                         item => item.OnInstantiate(this)));
 

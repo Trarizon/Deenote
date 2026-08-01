@@ -1,13 +1,11 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage.Args;
 using Deenote.Core.Project;
 using Deenote.GameStage.World.Deemo;
 using Deenote.Library.Components;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Deenote.Core.GameStage
 {
@@ -17,11 +15,6 @@ namespace Deenote.Core.GameStage
         [SerializeField] TMP_Text _staveMusicNameText = default!;
         [SerializeField] DeemoStageBackgroundAnimation _backgroundAnimation;
         [SerializeField] DeemoStageJudgeLineEffect _judgeLineEffect;
-
-        [Header("Args")]
-        [SerializeField] DeemoGameStageArgs _deemoArgs = default!;
-
-        public DeemoGameStageArgs DeemoArgs => _deemoArgs;
 
         protected internal override void OnInstantiate(GamePlayManager manager)
         {

@@ -48,7 +48,7 @@ namespace Deenote
         private void Start()
         {
             SaveSystem.LoadConfigurations();
-            _ = GameStageSceneLoader.LoadAsync("GameStage");
+            _ = GameStageSceneLoader.LoadAsync("StageScene");
         }
 
         public static partial class Args

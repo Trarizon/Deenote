@@ -107,7 +107,7 @@ namespace Deenote.Core.GamePlay
             if (IsCurveOn && _shouldRenderCurve) {
                 _game.AssertStageLoaded();
 
-                var args = _game.Stage.GridLineArgs;
+                var configs = _game.Stage.GridLineConfig;
                 var strip = (stackalloc Vector2[_curveRenderPositions.Length]);
                 for (int i = 0; i < strip.Length; i++) {
                     var pos = _curveRenderPositions[i];
@@ -115,7 +115,7 @@ namespace Deenote.Core.GamePlay
                     var z = _game.ConvertNoteCoordTimeToWorldZ(pos.Time - _game.MusicPlayer.Time, _editor.Placer.PlacingNoteSpeed);
                     strip[i] = new Vector2(x, z);
                 }
-                collector.AddLineStrip(strip, args.CurveLineColor, args.CurveLineWidth);
+                collector.AddLineStrip(strip, configs.CurveLineData.Color, configs.CurveLineData.Width);
             }
         }
 

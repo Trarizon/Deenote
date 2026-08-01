@@ -45,13 +45,14 @@ namespace Deenote.Core.GameStage
             _game.AssertStageLoaded();
 
             var prefab = NoteModel switch {
-                { Kind: NoteModel.NoteKind.Swipe } => _game.Stage.Args.SwipeNoteSpritePrefab,
-                { Kind: NoteModel.NoteKind.Slide } => _game.Stage.Args.SlideNoteSpritePrefab,
-                { HasSounds: true } => _game.Stage.Args.BlackNoteSpritePrefab,
-                _ when _game.IsPianoNotesDistinguished => _game.Stage.Args.NoSoundNoteSpritePrefab,
-                _ => _game.Stage.Args.BlackNoteSpritePrefab,
+                { Kind: NoteModel.NoteKind.Swipe } => _config.SwipeNoteSpriteData,
+                { Kind: NoteModel.NoteKind.Slide } => _config.SlideNoteSpriteData,
+                { HasSounds: true } => _config.ClickNoteSpriteData,
+                _ when _game.IsPianoNotesDistinguished => _config.NoSoundNoteSpriteData,
+                _ => _config.ClickNoteSpriteData,
             };
             _noteSpriteRenderer.sprite = prefab.Sprite;
+            _noteSpriteRenderer.transform.localScale = Vector3.one * prefab.Scale;
             _waveColor = prefab.WaveColor;
 
             if (NoteModel.IsHold) {
@@ -69,22 +70,16 @@ namespace Deenote.Core.GameStage
             _game.AssertStageLoaded();
 
             var prefab = NoteModel switch {
-                { Kind: NoteModel.NoteKind.Swipe } => _game.Stage.Args.SwipeNoteSpritePrefab,
-                { Kind: NoteModel.NoteKind.Slide } => _game.Stage.Args.SlideNoteSpritePrefab,
-                { HasSounds: true } => _game.Stage.Args.BlackNoteSpritePrefab,
-                _ when _game.IsPianoNotesDistinguished => _game.Stage.Args.NoSoundNoteSpritePrefab,
-                _ => _game.Stage.Args.BlackNoteSpritePrefab,
+                { Kind: NoteModel.NoteKind.Swipe } => _config.SwipeNoteSpriteData,
+                { Kind: NoteModel.NoteKind.Slide } => _config.SlideNoteSpriteData,
+                { HasSounds: true } => _config.ClickNoteSpriteData,
+                _ when _game.IsPianoNotesDistinguished => _config.NoSoundNoteSpriteData,
+                _ => _config.ClickNoteSpriteData,
             };
-            _noteSpriteRenderer.gameObject.transform.localScale = new Vector3(NoteModel.Size, 1f, 1f) * prefab.Scale;
-
-            ref readonly var hiteffectPrefab = ref _game.Stage.Args.HitEffectSpritePrefabs;
-            var explosionEffectScale = NoteModel.Size * hiteffectPrefab.ExplosionScale * Vector3.one;
-            explosionEffectScale.y *= Stage.DeemoArgs.HoldingExplosionScaleY;
+            _headTransform.localScale = new Vector3(NoteModel.Size, 1f, 1f);
 
             if (NoteModel.IsHold) {
-                ref readonly var holdPrefab = ref _game.Stage.Args.HoldSpritePrefab;
-                _holdBodySpriteRenderer.transform.WithLocalScaleX(NoteModel.Size * holdPrefab.ScaleX);
-                // Scale.y is set when time changed
+                _holdBodyTransform.WithLocalScaleX(NoteModel.Size);
             }
 
             _noteEffect.SetNoteSizeScaler(NoteModel.Size);
@@ -97,9 +92,9 @@ namespace Deenote.Core.GameStage
 
         protected override void SetHoldScaleY(float scaleY, bool isHolding)
         {
-            _holdBodySpriteRenderer.transform.WithLocalScaleY(scaleY);
+            _holdBodyTransform.WithLocalScaleY(scaleY);
             _holdBodySpriteRenderer.color = isHolding
-                ? Stage.DeemoArgs.HoldingBodyColor
+                ? _config.HoldingColor
                 : Color.white;
 
             if (isHolding) {
@@ -107,9 +102,14 @@ namespace Deenote.Core.GameStage
             }
         }
 
-        protected override void SetNoteSpriteColorRGB(Color color)
+        protected override void SetNoteSpriteEditorStatus(bool selected, bool collided)
         {
-            _noteSpriteRenderer.WithColorRGB(color);
+            _noteSpriteRenderer.WithColorRGB((selected, collided) switch {
+                (true, true) => _config.SelectedAndCollidedHighlightColor,
+                (true, false) => _config.SelectedHighlightColor,
+                (false, true) => _config.CollidedHighlightColor,
+                _ => Color.white,
+            });
         }
 
         protected override void OnStateChanged(NoteDisplayState state)
@@ -124,7 +124,7 @@ namespace Deenote.Core.GameStage
                     _noteSpriteRenderer.gameObject.SetActive(true);
                     _holdBodySpriteRenderer.gameObject.SetActive(true);
                     RefreshColoring();
-                    _noteEffect.gameObject.SetActive(true);
+                    _noteEffect.gameObject.SetActive(false);
                     break;
                 case NoteDisplayState.Holding:
                     _noteSpriteRenderer.gameObject.SetActive(false);

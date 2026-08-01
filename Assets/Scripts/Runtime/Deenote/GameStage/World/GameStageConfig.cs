@@ -1,3 +1,6 @@
+using Deenote.Core.Editing;
+using Deenote.Core.GameStage;
+using TriInspector;
 using UnityEngine;
 
 namespace Deenote.GameStage.World
@@ -6,6 +9,7 @@ namespace Deenote.GameStage.World
         fileName = "GameStageConfig",
         menuName = "Deenote/GameStage/GameStageConfig"
     )]
+    [DeclareBoxGroup("Prefabs")]
     public sealed class GameStageConfig : ScriptableObject
     {
         public float NotePosToWorldXFactor = 1;
@@ -19,5 +23,8 @@ namespace Deenote.GameStage.World
         public float NoteFadeInRatio;
         [Range(0f, 1f)]
         public float GridLineFadeInRatio;
+
+        [Group("Prefabs")][SerializeField] internal GameStageNoteController NotePrefab;
+        [Group("Prefabs")][SerializeField] internal PlacementNoteIndicatorController NoteIndicatorPrefab;
     }
 }

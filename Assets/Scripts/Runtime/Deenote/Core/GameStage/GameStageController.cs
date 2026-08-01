@@ -1,8 +1,8 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage.Args;
 using Deenote.Entities;
+using Deenote.GameStage.Grids;
 using Deenote.GameStage.World;
 using Deenote.Library;
 using System.Diagnostics.CodeAnalysis;
@@ -31,15 +31,12 @@ namespace Deenote.Core.GameStage
 
         public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
 
-        [field: SerializeField]
-        public GameStageArgs Args { get; private set; } = default!;
-        [field: SerializeField]
-        public GridLineArgs GridLineArgs { get; private set; } = default!;
-
         [Title("Config")]
         [SerializeField] GameStageConfig _config;
+        [SerializeField] GridLineConfig _gridLineConfig;
 
         public GameStageConfig Config => _config;
+        public GridLineConfig GridLineConfig => _gridLineConfig;
 
         protected GamePlayManager _manager = default!;
 

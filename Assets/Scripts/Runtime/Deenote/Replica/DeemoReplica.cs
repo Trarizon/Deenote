@@ -14,8 +14,8 @@ namespace Deenote.Replica
 
         public static float CalcJudgeLineHitEffectScale(float time)
         {
-            // 1 - 0.2 * frameCount
-            var size = 1 - 0.2f * (time * Fps);
+            // 1 - 0.02 * frameCount
+            var size = 1 - 0.02f * (time * Fps);
             return Mathf.Max(0, size);
         }
 

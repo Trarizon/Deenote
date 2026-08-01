@@ -86,11 +86,11 @@ namespace Deenote.Core.GameStage
         {
             manager.AssertStageLoaded();
 
-            var args = manager.Stage.Args;
+            var config = manager.Stage.Config;
             float percent = manager.VisibleRangePercentage;
-            float cutoff = args.NotePanelBaseLength * percent;
+            float cutoff = percent * manager.ConvertNoteCoordTimeToWorldZ(manager.StageNoteActiveAheadTime);
             _props.SetFloat(CutOffZ, cutoff);
-            _props.SetFloat(FadeInZ, cutoff * args.NoteFadeInRangePercent);
+            _props.SetFloat(FadeInZ, cutoff * config.GridLineFadeInRatio);
         }
 
         private Mesh UpdateMesh()

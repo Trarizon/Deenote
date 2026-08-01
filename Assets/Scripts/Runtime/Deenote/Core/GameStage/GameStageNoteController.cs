@@ -82,8 +82,8 @@ namespace Deenote.Core.GameStage
             if (_linkLine is var (start, end)) {
                 _game.AssertStageLoaded();
                 collector.AddLine(start, end,
-                    _game.Stage.GridLineArgs.LinkLineColor with { a = _noteColorAlpha },
-                    _game.Stage.GridLineArgs.LinkLineWidth);
+                    _game.Stage.GridLineConfig.LinkLineData.ColorWithAlpha(_noteColorAlpha),
+                    _game.Stage.GridLineConfig.LinkLineData.Width);
             }
         }
 
@@ -227,10 +227,10 @@ namespace Deenote.Core.GameStage
             Debug.Assert(_state is NoteDisplayState.Fall);
 
             var appearAheadTime = AppearAheadTime;
-            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Args.NoteFadeInRangePercent);
+            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Config.NoteFadeInRatio);
 
             var maxAlpha = _game.IsFilterNoteSpeed && !Mathf.Approximately(NoteModel.Speed, _game.HighlightedNoteSpeed)
-                ? _game.Stage.Args.NoteDownplayAlpha
+                ? ((DeemoGameStageNoteController)this)._config.DownplayAlpha
                 : 1f;
             _noteColorAlpha = MathUtils.MapTo(_stageDeltaTime, appearAheadTime, noteFadeInEndTime, 0, maxAlpha);
 
@@ -285,20 +285,10 @@ namespace Deenote.Core.GameStage
 
         private void SetNoteSpriteColor()
         {
-            _game.AssertStageLoaded();
-            var stage = _game.Stage;
-
-            Color color;
-            if (NoteModel.IsSelected)
-                color = stage.Args.NoteSelectedColor;
-            else if (NoteModel.IsCollided)
-                color = stage.Args.NoteCollidedColor;
-            else
-                color = Color.white;
-            SetNoteSpriteColorRGB(color);
+            SetNoteSpriteEditorStatus(NoteModel.IsSelected, NoteModel.IsCollided);
         }
 
-        protected abstract void SetNoteSpriteColorRGB(Color color);
+        protected abstract void SetNoteSpriteEditorStatus(bool selected, bool collided);
 
         private void SetAppearAheadTime0SuddenPlus(GameStageNoteController? previousStageNote)
         {
