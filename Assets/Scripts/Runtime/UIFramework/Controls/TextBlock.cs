@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 
 namespace Deenote.UIFramework.Controls
 {

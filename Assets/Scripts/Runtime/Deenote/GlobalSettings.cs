@@ -1,6 +1,6 @@
 using Deenote.Library;
 using Deenote.Library.Components;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using UnityEngine;
 
 namespace Deenote

@@ -1,9 +1,7 @@
-#nullable enable
-
 using System;
 using UnityEngine;
 
-namespace Deenote.Localization
+namespace Deenote.CoreB.Localization
 {
     [Serializable]
     public struct LocalizableText
@@ -22,6 +20,8 @@ namespace Deenote.Localization
         public static LocalizableText Raw(string text) => new(false, text);
 
         public static LocalizableText Localized(string textKey) => new(true, textKey);
+        public static ArgedLocalizableText Localized(string textKey, string arg0) => new(Localized(textKey), arg0);
+        public static ArgedLocalizableText Localized(string textKey, params string[] args) => new(Localized(textKey), args);
 
         public override readonly bool Equals(object? obj) => obj is LocalizableText text && this == text;
         public override readonly int GetHashCode() => HashCode.Combine(IsLocalized, TextOrKey);

@@ -1,7 +1,7 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.UIFramework.Controls;

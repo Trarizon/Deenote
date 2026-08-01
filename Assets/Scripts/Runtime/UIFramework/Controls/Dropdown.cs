@@ -3,7 +3,7 @@
 using CommunityToolkit.Diagnostics;
 using Deenote.Library;
 using Deenote.Library.Collections;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using System;
 using System.Collections.Generic;
 using UnityEngine;

@@ -7,7 +7,6 @@
         "Deenote.Entities",
         "Deenote.Library",
         "Unity.TextMeshPro",
-        "Deenote.Localization",
         "Unity.InputSystem",
         "Deenote.InputSystem.InputActions",
         "Deenote.UIFramework",

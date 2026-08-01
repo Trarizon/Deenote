@@ -6,7 +6,7 @@
         "Deenote.UI",
         "UniTask",
         "Deenote.UIFramework",
-        "Deenote.Localization"
+        "Deenote.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

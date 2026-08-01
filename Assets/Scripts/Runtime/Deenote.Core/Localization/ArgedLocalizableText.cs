@@ -1,11 +1,9 @@
-#nullable enable
-
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Deenote.Localization
+namespace Deenote.CoreB.Localization
 {
     public struct ArgedLocalizableText
     {
@@ -30,17 +28,12 @@ namespace Deenote.Localization
             }
         }
 
-        private ArgedLocalizableText(LocalizableText text, object? args)
+        internal ArgedLocalizableText(LocalizableText text, object? args)
         {
             _localizableText = text;
             _args = args;
             Debug.Assert(args is null or string or string[]);
         }
-
-        public static ArgedLocalizableText Raw(string text) => new(LocalizableText.Raw(text), null);
-        public static ArgedLocalizableText Localized(string textKey) => new(LocalizableText.Localized(textKey), null);
-        public static ArgedLocalizableText Localized(string textKey, string arg0) => new(LocalizableText.Localized(textKey), arg0);
-        public static ArgedLocalizableText Localized(string textKey, params string[] args) => new(LocalizableText.Localized(textKey), args);
 
         public override readonly bool Equals(object? obj) => obj is ArgedLocalizableText text && this == text;
         public override readonly int GetHashCode() => HashCode.Combine(_localizableText, _args);
@@ -72,8 +65,8 @@ namespace Deenote.Localization
 
         public static bool operator !=(ArgedLocalizableText left, ArgedLocalizableText right) => !(left == right);
 
-        public static bool operator ==(ArgedLocalizableText left, string right) => left == Raw(right);
-        public static bool operator !=(ArgedLocalizableText left, string right) => left != Raw(right);
+        public static bool operator ==(ArgedLocalizableText left, string right) => left == LocalizableText.Raw(right);
+        public static bool operator !=(ArgedLocalizableText left, string right) => left != LocalizableText.Raw(right);
 
         public static bool operator ==(ArgedLocalizableText left, LocalizableText right) => left == new ArgedLocalizableText(right, null);
         public static bool operator !=(ArgedLocalizableText left, LocalizableText right) => left != new ArgedLocalizableText(right, null);

@@ -5,9 +5,9 @@
         "Deenote.Library",
         "UniTask",
         "Unity.TextMeshPro",
-        "Deenote.Localization",
-        "Trarizon.Library",
-        "Unity.InputSystem"
+        "",
+        "Unity.InputSystem",
+        "Deenote.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -2,7 +2,7 @@
 
 using Cysharp.Threading.Tasks;
 using Deenote.Core;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UI;
 using Deenote.UI.Dialogs.Elements;
 using System;

@@ -1,5 +1,3 @@
-#nullable enable
-
 using CommunityToolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -7,39 +5,51 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using UnityEngine;
 
-namespace Deenote.Localization
+namespace Deenote.CoreB.Localization
 {
-    public static class LocalizationSystem
+    public class LocalizationSystem
     {
         public const string DefaultLanguageCode = "en";
         internal const string DefaultLanguageName = "English";
-        private static readonly Dictionary<string, LanguagePack> _languageDict = new();
 
-        private static LanguagePack _currentLanguagePack;
-        private static LanguagePack _defaultLanguagePack;
+        private static LocalizationSystem _ins = new LocalizationSystem();
 
-        public static Dictionary<string, LanguagePack>.ValueCollection Languages => _languageDict.Values;
+        internal static void OnDomainReloaded()
+        {
+            _ins = new LocalizationSystem();
+        }
+
+        private readonly Dictionary<string, LanguagePack> _languageDict = new();
+        private LanguagePack _currentLanguagePack;
+        private LanguagePack _defaultLanguagePack;
+        private Action<LanguagePack>? _languageChanged;
+
+        public static Dictionary<string, LanguagePack>.ValueCollection Languages => _ins._languageDict.Values;
 
         public static LanguagePack CurrentLanguage
         {
-            get => _currentLanguagePack;
+            get => _ins._currentLanguagePack;
             set {
-                if (_currentLanguagePack == value)
+                if (_ins._currentLanguagePack == value)
                     return;
 
-                if (!_languageDict.ContainsKey(value.LanguageCode))
+                if (!_ins._languageDict.ContainsKey(value.LanguageCode))
                     ThrowHelper.ThrowArgumentException("Language pack is not found in the dictionary.");
 
-                _currentLanguagePack = value;
-                LanguageChanged?.Invoke(value);
+                _ins._currentLanguagePack = value;
+                _ins._languageChanged?.Invoke(value);
             }
         }
 
-        public static event Action<LanguagePack>? LanguageChanged;
-
-        static LocalizationSystem()
+        public static event Action<LanguagePack>? LanguageChanged
         {
-            var folder = Path.Combine(Application.streamingAssetsPath, "Languages");
+            add => _ins._languageChanged += value;
+            remove => _ins._languageChanged -= value;
+        }
+
+        private LocalizationSystem()
+        {
+            var folder = Path.Combine(UnityEngine.Application.streamingAssetsPath, "Languages");
             var files = Directory.GetFiles(folder);
             foreach (var file in files) {
                 if (!file.EndsWith(".txt")) continue;
@@ -58,16 +68,16 @@ namespace Deenote.Localization
 
         public static string GetText(LocalizableText text) =>
             !text.IsLocalized ? text.TextOrKey
-                : _currentLanguagePack.GetTranslationOrDefault(text.TextOrKey) ??
-                  _defaultLanguagePack.GetTranslationOrDefault(text.TextOrKey) ??
+                : _ins._currentLanguagePack.GetTranslationOrDefault(text.TextOrKey) ??
+                  _ins._defaultLanguagePack.GetTranslationOrDefault(text.TextOrKey) ??
                   text.TextOrKey;
 
         public static bool TrySetLanguage([AllowNull] string languageCode)
         {
             if (languageCode is null)
                 return false;
-            if (_languageDict.TryGetValue(languageCode, out var pack)) {
-                _currentLanguagePack = pack;
+            if (_ins._languageDict.TryGetValue(languageCode, out var pack)) {
+                _ins._currentLanguagePack = pack;
                 return true;
             }
             return false;
@@ -75,7 +85,7 @@ namespace Deenote.Localization
 
         public static bool TryGetLanguagePack(string languageCode, out LanguagePack languagePack)
         {
-            return _languageDict.TryGetValue(languageCode, out languagePack);
+            return _ins._languageDict.TryGetValue(languageCode, out languagePack);
         }
     }
 }

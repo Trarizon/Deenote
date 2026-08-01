@@ -3,7 +3,7 @@
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UIFramework.Controls;
 using System;
 using System.Runtime.InteropServices;

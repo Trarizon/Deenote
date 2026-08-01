@@ -5,7 +5,7 @@ using Deenote.Core;
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
 using Deenote.Library.Components;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UIFramework;
 using Deenote.UIFramework.Controls;
 using System;
@@ -152,7 +152,7 @@ namespace Deenote.UI.Dialogs
             MainSystem.ProjectManager.RegisterNotificationAndInvoke(
                 ProjectManager.NotificationFlag.AutoSave,
                 manager => _autoSaveDropdown.SetValueWithoutNotify(GetAutoSaveDropdownIndex(manager.AutoSave)));
-            _autoSaveIntervalDropdown.ResetOptions(_autoSaveIntervals.AsSpan(), time => ArgedLocalizableText.Localized(AutoSaveIntervalMinutesKey, (time / 60).ToString()));
+            _autoSaveIntervalDropdown.ResetOptions(_autoSaveIntervals.AsSpan(), time => LocalizableText.Localized(AutoSaveIntervalMinutesKey, (time / 60).ToString()));
             _autoSaveIntervalDropdown.SelectedIndexChanged += val => MainSystem.ProjectManager.AutoSaveIntervalTime = GetAutoSaveIntervalDropdownOption(val);
             MainSystem.ProjectManager.RegisterNotificationAndInvoke(
                 ProjectManager.NotificationFlag.AutoSaveInterval,

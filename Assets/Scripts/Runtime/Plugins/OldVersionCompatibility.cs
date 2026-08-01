@@ -2,7 +2,7 @@
 
 using Cysharp.Threading.Tasks;
 using Deenote.Core.Project;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.Plugin;
 using System.Collections.Generic;
 using System.Collections.Immutable;

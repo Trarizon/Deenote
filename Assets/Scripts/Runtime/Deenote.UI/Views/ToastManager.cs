@@ -2,7 +2,7 @@
 
 using Cysharp.Threading.Tasks;
 using Deenote.Library;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using UnityEngine;
 using UnityEngine.Pool;
 

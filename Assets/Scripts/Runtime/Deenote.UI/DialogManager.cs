@@ -3,7 +3,7 @@
 using CommunityToolkit.HighPerformance.Buffers;
 using Cysharp.Threading.Tasks;
 using Deenote.Library.Collections;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UI.Dialogs;
 using Deenote.UI.Dialogs.Elements;
 using System;

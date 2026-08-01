@@ -5,10 +5,10 @@
         "Deenote",
         "Deenote.Plugin",
         "UniTask",
-        "Deenote.Localization",
         "Deenote.Library",
         "Deenote.Entities",
-        "Deenote.UI"
+        "Deenote.UI",
+        "Deenote.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,13 +1,13 @@
 {
-    "name": "Deenote.Localization",
-    "rootNamespace": "",
+    "name": "Deenote.Core",
+    "rootNamespace": "Deenote.CoreB",
     "references": [
-        "Unity.TextMeshPro",
-        "Deenote.Library"
+        "TriInspector",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

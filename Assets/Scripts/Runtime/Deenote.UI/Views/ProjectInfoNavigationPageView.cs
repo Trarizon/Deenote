@@ -8,7 +8,7 @@ using Deenote.Entities.Models;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.UI.Views.Elements;
 using Deenote.UIFramework;

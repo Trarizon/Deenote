@@ -5,7 +5,7 @@ using Deenote.Core.Editing;
 using Deenote.Entities.Models;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UI.Views.Panels;
 using Deenote.UIFramework.Controls;
 using System;

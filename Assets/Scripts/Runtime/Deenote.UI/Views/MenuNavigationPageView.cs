@@ -6,7 +6,7 @@ using Deenote.Core.Project;
 using Deenote.Library;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using Deenote.UI.Dialogs;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.UI.Views.Elements;

@@ -1,6 +1,3 @@
-#nullable enable
-
-using Deenote.Library.Collections;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -8,7 +5,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace Deenote.Localization
+namespace Deenote.CoreB.Localization
 {
     public sealed class LanguagePack
     {

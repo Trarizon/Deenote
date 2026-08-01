@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.Localization;
+using Deenote.CoreB.Localization;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using TMPro;
