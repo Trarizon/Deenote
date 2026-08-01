@@ -1,13 +1,13 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
-using Deenote.Library;
 using System;
 using System.IO;
 using System.Threading;
 using UnityEngine;
 using Deenote.Entities;
 using Deenote.Entities.Models;
+using Deenote.CoreB.Helpers;
 
 namespace Deenote.UI.Dialogs
 {
@@ -22,7 +22,7 @@ namespace Deenote.UI.Dialogs
             OpenSelfModalDialog();
             ResetDialog();
 
-            _cts.CancelAndReset();
+            _cts.Reset();
 
             try {
             ReAwaitButtonClick:

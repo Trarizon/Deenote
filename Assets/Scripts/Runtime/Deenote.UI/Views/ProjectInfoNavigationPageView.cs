@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Deenote.CoreB.Helpers;
+using Deenote.CoreB.Helpers;
 
 namespace Deenote.UI.Views
 {
@@ -87,7 +89,7 @@ namespace Deenote.UI.Views
                 _audioButton.Clicked += UniTask.Action(async () =>
                 {
                     AssertProjectLoaded();
-                    _rcts.CancelAndReset();
+                    _rcts.Reset();
                     var cancellationToken = _rcts.Token;
 
                     using var ctr = cancellationToken.Register(() => MainWindow.StatusBar.SetReadyStatusMessage());

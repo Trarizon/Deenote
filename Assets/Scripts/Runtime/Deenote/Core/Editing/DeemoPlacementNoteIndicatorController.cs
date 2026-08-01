@@ -2,7 +2,7 @@
 
 using Deenote.Entities.Models;
 using Deenote.GameStage.World.Deemo.Notes;
-using Deenote.Library;
+using Deenote.CoreB.Unity;
 using TriInspector;
 using UnityEngine;
 

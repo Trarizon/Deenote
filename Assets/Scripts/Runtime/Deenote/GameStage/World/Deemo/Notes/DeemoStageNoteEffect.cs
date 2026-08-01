@@ -1,5 +1,6 @@
 using Deenote.Core.GameStage;
 using Deenote.Library;
+using Deenote.CoreB.Unity;
 using Deenote.Replica;
 using TriInspector;
 using UnityEngine;

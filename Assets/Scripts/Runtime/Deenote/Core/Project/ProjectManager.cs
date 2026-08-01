@@ -1,6 +1,8 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
+using Deenote.CoreB.Helpers;
+using Deenote.CoreB.Helpers;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Entities.Storage;
@@ -102,7 +104,7 @@ namespace Deenote.Core.Project
         {
             ValidateProject();
 
-            _saveCts.CancelAndReset();
+            _saveCts.Reset();
             await SaveCurrentProjectToAsyncInternal(CurrentProject.ProjectFilePath, _saveCts.Token);
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
         }
@@ -111,7 +113,7 @@ namespace Deenote.Core.Project
         {
             ValidateProject();
 
-            _saveCts.CancelAndReset();
+            _saveCts.Reset();
             await SaveCurrentProjectToAsyncInternal(targetFilePath, _saveCts.Token);
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
         }
@@ -142,7 +144,7 @@ namespace Deenote.Core.Project
         {
             AssertProjectLoaded();
 
-            _saveChartsCts.CancelAndReset();
+            _saveChartsCts.Reset();
 
             var time = DateTime.Now;
             string dir = Path.Combine(Path.GetDirectoryName(CurrentProject.ProjectFilePath), AutoSaveJsonDirName);

@@ -5,6 +5,7 @@ using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using Deenote.Library;
+using Deenote.CoreB.Unity;
 using Deenote.Library.Mathematics;
 using UnityEngine;
 

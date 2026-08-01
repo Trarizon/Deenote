@@ -1,4 +1,5 @@
 using Deenote.Library;
+using Deenote.CoreB.Unity;
 using Deenote.Replica;
 using UnityEngine;
 

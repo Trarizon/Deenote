@@ -2,11 +2,10 @@
 
 using Deenote.Core;
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Unity.UI;
 using Deenote.GamePlay.UI;
 using Deenote.Library;
 using Deenote.Library.Components;
-using Deenote.Library.Mathematics;
-using Deenote.Library.Unity.UI;
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;

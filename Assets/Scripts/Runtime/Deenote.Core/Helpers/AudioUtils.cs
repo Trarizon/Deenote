@@ -1,5 +1,3 @@
-#nullable enable
-
 using Cysharp.Threading.Tasks;
 using NAudio.Wave;
 using NLayer.NAudioSupport;
@@ -9,9 +7,8 @@ using System.IO;
 using System.Threading;
 using UnityEngine;
 
-namespace Deenote.Library
+namespace Deenote.CoreB.Helpers
 {
-    // Copied from Chlorie's version
     public static class AudioUtils
     {
         public static async UniTask<AudioClip?> TryLoadAsync(Stream stream, string audioType,

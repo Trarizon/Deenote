@@ -1,13 +1,15 @@
-#nullable enable
-
 using System;
+using TriInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.Library.Unity.UI
+namespace Deenote.CoreB.Unity.UI
 {
+    [MovedFrom("Deenote.Library.Unity.UI")]
     public sealed class PointerHoveringTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        [ReadOnly, ShowInInspector]
         public bool IsHovering { get; private set; }
 
         public event Action<PointerHoveringTrigger, bool>? IsHoveringChanged;

@@ -1,11 +1,9 @@
-#nullable enable
-
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Deenote.Library
+namespace Deenote.CoreB.Unity
 {
-    public static class UnityWithUtils
+    public static class UnityWithExtensions
     {
         public static void WithLocalPositionX(this Transform transform, float x)
             => transform.localPosition = transform.localPosition with { x = x };

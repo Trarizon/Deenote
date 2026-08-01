@@ -1,8 +1,8 @@
 #nullable enable
 
 using CommunityToolkit.HighPerformance.Buffers;
+using Deenote.CoreB.Helpers;
 using Deenote.Entities.Models;
-using Deenote.Library;
 using Deenote.Library.Collections;
 using System;
 using System.Collections.Generic;

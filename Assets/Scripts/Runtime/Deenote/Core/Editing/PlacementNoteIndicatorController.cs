@@ -3,7 +3,7 @@
 using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.Entities.Models;
-using Deenote.Library;
+using Deenote.CoreB.Unity;
 using UnityEngine;
 
 namespace Deenote.Core.Editing

@@ -1,16 +1,14 @@
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Deenote.Library
+namespace Deenote.CoreB.Helpers
 {
     public sealed class ResetableCancellationTokenSource : IDisposable
     {
         private CancellationTokenSource? _cts;
 
-        public CancellationToken Token => _cts?.Token ?? CancellationToken.None;
+        public CancellationToken Token => (_cts ??= new()).Token;
 
         public void Cancel()
         {
@@ -18,7 +16,7 @@ namespace Deenote.Library
             _cts!.Cancel();
         }
 
-        public void CancelAndReset()
+        public void Reset()
         {
             if (_cts is not null) {
                 _cts.Cancel();

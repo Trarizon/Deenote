@@ -5,9 +5,10 @@ namespace Deenote.CoreB.Unity
 {
     public static class UnityHooks
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void DomainReloaded()
         {
+            Application.OnDomainReloaded();
             LocalizationSystem.OnDomainReloaded();
         }
     }

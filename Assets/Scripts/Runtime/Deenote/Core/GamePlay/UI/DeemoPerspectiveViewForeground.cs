@@ -4,6 +4,7 @@ using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
 using Deenote.Entities;
 using Deenote.Library;
+using Deenote.CoreB.Unity;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
 using TMPro;
