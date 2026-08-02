@@ -1,3 +1,5 @@
+using Deenote.CoreB.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -64,9 +66,29 @@ namespace Deenote.Models
             };
         }
 
-        public void SetRawIsSlide()
+        public NoteData(ReadOnlySpan<PianoSoundData> sounds,
+            float position, float size, float time,
+            float shift, float speed, float duration,
+            bool vibrate, NoteKind kind, WarningType warningType, string eventId)
         {
-            _slide = true;
+#pragma warning disable CS0618
+            _serializeType = NoteType_Legacy.Hit;
+#pragma warning restore CS0618
+            _sounds = new(sounds.Length);
+            _sounds.AddRange(sounds);
+            _position = position;
+            _size = size;
+            _time = time;
+            _shift = shift;
+            _speed = speed;
+            _duration = duration;
+#pragma warning disable CS0618
+            _vibrate = vibrate;
+#pragma warning restore CS0618
+            _swipe = kind is NoteKind.Swipe;
+            _slide = kind is NoteKind.Slide;
+            _warningType = warningType;
+
         }
 
         public NoteData CloneNonLinkInfo(bool cloneSounds = true)

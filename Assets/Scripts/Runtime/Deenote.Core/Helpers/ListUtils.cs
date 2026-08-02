@@ -1,3 +1,4 @@
+using ObservableCollections;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +8,9 @@ namespace Deenote.CoreB.Helpers
 {
     public static class ListUtils
     {
+        public static ReadOnlySpan<T> AsSpan<T>(this ObservableList<T> list)
+            => list is null ? ReadOnlySpan<T>.Empty : Utils<T>.GetUnderlyingList(list).AsSpan();
+
         public static Span<T> AsSpan<T>(this List<T> list)
             => list is null ? Span<T>.Empty : Utils<T>.GetUnderlyingArray(list).AsSpan(..list.Count);
 
@@ -36,6 +40,13 @@ namespace Deenote.CoreB.Helpers
                 var arr = Unsafe.As<List<T>, StrongBox<T[]>>(ref list);
                 Debug.Assert(arr.Value is T[]);
                 return ref arr.Value;
+            }
+
+            public static ref List<T> GetUnderlyingList(ObservableList<T> list)
+            {
+                var lst = Unsafe.As<ObservableList<T>, StrongBox<List<T>>>(ref list);
+                Debug.Assert(lst.Value is List<T>);
+                return ref lst.Value;
             }
         }
     }
