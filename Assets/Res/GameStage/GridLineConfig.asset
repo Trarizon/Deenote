@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: GridLineConfig
   m_EditorClassIdentifier: 
   LinkLineData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 1, g: 0.91372555, b: 0.5294118, a: 1}
+    Width: 2
   SubBeatLineData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 0.16470589, g: 0.16470589, b: 0.16470589, a: 0.7490196}
+    Width: 2
   BeatLineData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 0.5019608, g: 0, b: 0, a: 1}
+    Width: 3
   TempoLineData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 0, g: 0.5019608, b: 0.5019608, a: 1}
+    Width: 4
   PositionGridLineData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 0.16470589, g: 0.16470589, b: 0.16470589, a: 0.7490196}
+    Width: 2
   PositionGridBorderData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 0.16470589, g: 0.16470589, b: 0.16470589, a: 0.7490196}
+    Width: 4
   CurveLineData:
-    Color: {r: 0, g: 0, b: 0, a: 0}
-    Width: 0
+    Color: {r: 0.33333334, g: 0.75294125, b: 1, a: 1}
+    Width: 2
