@@ -1,17 +1,9 @@
 {
-    "name": "Deenote",
-    "rootNamespace": "",
+    "name": "Deenote.Models",
+    "rootNamespace": "Deenote.Models",
     "references": [
-        "Deenote.Core",
         "UniTask",
-        "Deenote.Entities",
-        "Deenote.Models",
-        "Deenote.Library",
-        "Unity.TextMeshPro",
-        "Unity.InputSystem",
-        "Deenote.InputSystem.InputActions",
-        "Deenote.UIFramework",
-        "TriInspector"
+        "Deenote.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
