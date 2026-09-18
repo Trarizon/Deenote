@@ -25,8 +25,14 @@ namespace Deenote.UIFramework.Controls
 
         public string Text => _tmpText.text;
 
+        /// <summary>
+        /// Format text with args and set it to text block.<br/>
+        /// text.Args will be ignored
+        /// </summary>
         public void SetText(LocalizableText text, ReadOnlySpan<string> args = default)
         {
+            text = text.Original;
+
             bool valueChanged = false;
             if (_localizableText != text) {
                 _localizableText = text;
@@ -46,8 +52,7 @@ namespace Deenote.UIFramework.Controls
                 RefreshDisplayText();
         }
 
-        public void SetText(ArgedLocalizableText text)
-            => SetText(text.LocalizableText, text.Args);
+        public void SetText(LocalizableText text) => SetText(text.Original, text.Args);
 
         public void SetLocalizedText(string key, ReadOnlySpan<string> args = default)
             => SetText(LocalizableText.Localized(key), args);
