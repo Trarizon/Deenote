@@ -13,8 +13,7 @@ namespace Deenote.Core.GamePlay
         private void OnStageLoaded_Properties(GameStageSceneLoader loader)
         {
             loader.StageController.IsStageEffectOn = IsStageEffectOn;
-            _cacheVisibleRangePercentage = null;
-            loader.StageController.VisibleRangePercentage = VisibleRangePercentage;
+            // Note: VisibleRangePercentage is now handled by GameStageController.OnInstantiate
         }
 
         private void RegisterConfigurations()

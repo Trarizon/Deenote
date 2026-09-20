@@ -22,13 +22,13 @@ namespace Deenote.Core.GameStage
         private Color _waveColor;
 
         private DeemoGameStageController? _deemoStage;
-        private DeemoGameStageController Stage => _deemoStage ??= (DeemoGameStageController)_game.Stage!;
+        private DeemoGameStageController Stage => _deemoStage ??= (DeemoGameStageController)_stage.GameStage!;
 
         protected override void SetHoldingHitEffect()
         {
-            _game.AssertStageLoaded();
+            _stage.AssertStageLoaded();
 
-            var stage = _game.Stage;
+            var stage = _stage.GameStage;
 
             //ref readonly var prefabs = ref stage.Args.HoldSpritePrefab;
             //ref readonly var effectPrefab = ref stage.Args.HitEffectSpritePrefabs;
@@ -42,13 +42,13 @@ namespace Deenote.Core.GameStage
 
         protected override void SetNoteSprite()
         {
-            _game.AssertStageLoaded();
+            _stage.AssertStageLoaded();
 
             var prefab = NoteModel switch {
                 { Kind: NoteModel.NoteKind.Swipe } => _config.SwipeNoteSpriteData,
                 { Kind: NoteModel.NoteKind.Slide } => _config.SlideNoteSpriteData,
                 { HasSounds: true } => _config.ClickNoteSpriteData,
-                _ when _game.IsPianoNotesDistinguished => _config.NoSoundNoteSpriteData,
+                _ when _stage.IsPianoNotesDistinguished => _config.NoSoundNoteSpriteData,
                 _ => _config.ClickNoteSpriteData,
             };
             _noteSpriteRenderer.sprite = prefab.Sprite;
@@ -67,13 +67,13 @@ namespace Deenote.Core.GameStage
 
         protected override void SetNoteSize()
         {
-            _game.AssertStageLoaded();
+            _stage.AssertStageLoaded();
 
             var prefab = NoteModel switch {
                 { Kind: NoteModel.NoteKind.Swipe } => _config.SwipeNoteSpriteData,
                 { Kind: NoteModel.NoteKind.Slide } => _config.SlideNoteSpriteData,
                 { HasSounds: true } => _config.ClickNoteSpriteData,
-                _ when _game.IsPianoNotesDistinguished => _config.NoSoundNoteSpriteData,
+                _ when _stage.IsPianoNotesDistinguished => _config.NoSoundNoteSpriteData,
                 _ => _config.ClickNoteSpriteData,
             };
             _headTransform.localScale = new Vector3(NoteModel.Size, 1f, 1f);

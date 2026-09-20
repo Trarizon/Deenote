@@ -57,6 +57,8 @@ namespace Deenote.GameStage
             get => _stageEffect_bf;
             set {
                 if (Utils.SetField(ref _stageEffect_bf, value)) {
+                    if (GameStage is not null)
+                        GameStage.IsStageEffectOn = value;
                     PropertyChanged?.Invoke(this, nameof(IsStageEffectOn));
                 }
             }

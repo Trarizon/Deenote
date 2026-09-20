@@ -78,12 +78,12 @@ namespace Deenote.Core.GamePlay
             GameStageSceneLoader.StageLoaded += loader =>
             {
                 Stage = loader.StageController;
-                Stage.OnInstantiate(this);
+                Stage.OnInstantiate(App.GameStageManager);
                 NotesManager.Initialize(
                     UnityUtils.CreateObjectPool(
                         Stage.Config.NotePrefab,
                         Stage.NotePanelTransform,
-                        item => item.OnInstantiate(this)));
+                        item => item.OnInstantiate(App.GameStageManager)));
                 OnStageLoaded_Properties(loader);
 
                 if (IsChartLoaded()) {

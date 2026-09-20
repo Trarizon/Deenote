@@ -1,7 +1,7 @@
 #nullable enable
 
-using Deenote.Core.GamePlay;
 using Deenote.Entities;
+using Deenote.GameStage;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.World;
 using Deenote.Library;
@@ -40,7 +40,7 @@ namespace Deenote.Core.GameStage
         public GameStageConfig Config => _config;
         public GridLineConfig GridLineConfig => _gridLineConfig;
 
-        protected GamePlayManager _manager = default!;
+        protected GameStageManager _stage = default!;
 
         private bool _isStageEffectOn_bf;
         private float _visibleRangePercentage_bf;
@@ -66,19 +66,25 @@ namespace Deenote.Core.GameStage
 
         private static readonly int HoldCullMaxZPropertyId = Shader.PropertyToID("_CullMaxZ");
 
-        protected internal virtual void OnInstantiate(GamePlayManager manager)
+        protected internal virtual void OnInstantiate(GameStageManager stage)
         {
-            _manager = manager;
-            _manager.RegisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                manager => VisibleRangePercentage = manager.VisibleRangePercentage);
-            _perspectiveLineRenderer.OnInstantiate(_manager);
+            _stage = stage;
+            _stage.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(GameStageManager.SuddenPlus))
+                    VisibleRangePercentage = _stage.VisibleRangePercentage;
+                else if (e.PropertyName == nameof(GameStageManager.IsStageEffectOn))
+                    IsStageEffectOn = _stage.IsStageEffectOn;
+            };
+            IsStageEffectOn = _stage.IsStageEffectOn;
+            VisibleRangePercentage = _stage.VisibleRangePercentage;
+            _perspectiveLineRenderer.OnInstantiate(_stage);
         }
 
         internal void SetSelectionPanelRect(NoteCoord startCoord, NoteCoord endCoord)
         {
-            var (xMin, zMin) = _manager.ConvertNoteCoordToWorldPosition(startCoord - new NoteCoord(0, _manager.MusicPlayer.Time));
-            var (xMax, zMax) = _manager.ConvertNoteCoordToWorldPosition(endCoord - new NoteCoord(0, _manager.MusicPlayer.Time));
+            var (xMin, zMin) = _stage.ConvertNoteCoordToWorldPosition(startCoord - new NoteCoord(0, _stage.MusicTime));
+            var (xMax, zMax) = _stage.ConvertNoteCoordToWorldPosition(endCoord - new NoteCoord(0, _stage.MusicTime));
 
             _noteDragSelectionPanelTransform.gameObject.SetActive(true);
             _noteDragSelectionPanelTransform.offsetMin = new(xMin, zMin);
@@ -95,8 +101,8 @@ namespace Deenote.Core.GameStage
 
         protected virtual void OnVisibleRangePercentageChanged(float value)
         {
-            var time = _manager.StageNoteActiveAheadTime * value;
-            var z = _manager.ConvertNoteCoordTimeToWorldZ(time);
+            var time = _stage.StageNoteActiveAheadTime * value;
+            var z = _stage.ConvertNoteCoordTimeToWorldZ(time);
             _holdBodyCullMaterial.SetFloat(HoldCullMaxZPropertyId, z);
         }
 

@@ -10,7 +10,7 @@ namespace Deenote.GameStage
         public GameStageGridsManager GridsManager { get; }
         public GameStageNotesManager NotesManager { get; }
 
-        public GameStageConfig Config => MainSystem.GamePlayManager.Stage!.Config;
+        public GameStageConfig Config => GameStage!.Config;
         public IGameStageStrategy Strategy { get; } = new DeemoGameStageStrategy();
         private IGameStageNoteFactory? NoteFactory { get; set; }
 
@@ -43,7 +43,9 @@ namespace Deenote.GameStage
 
         private void OnGameStageLoaded(GameStageController stage)
         {
+            GameStage = stage;
             NoteFactory = new DefaultGameStageNoteFactory(
+                this,
                 Config.NotePrefab,
                 stage.NotePlane
             );

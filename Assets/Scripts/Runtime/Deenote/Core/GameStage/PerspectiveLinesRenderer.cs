@@ -1,6 +1,6 @@
 #nullable enable
 
-using Deenote.Core.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library.Components;
 using System;
 using System.Collections.Generic;
@@ -38,7 +38,7 @@ namespace Deenote.Core.GameStage
 
         private Mesh _mesh;
 
-        private GamePlayManager _game = default!;
+        private GameStageManager _stage = default!;
 
         public event Action<LineCollector>? LineCollecting;
 
@@ -49,19 +49,24 @@ namespace Deenote.Core.GameStage
             _props = new MaterialPropertyBlock();
         }
 
-        internal void OnInstantiate(GamePlayManager manager)
+        internal void OnInstantiate(GameStageManager stage)
         {
-            _game = manager;
-            _game.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
+            _stage = stage;
+            _stage.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(GameStageManager.SuddenPlus))
+                    _OnSuddenPlusChanged();
+            };
+            _OnSuddenPlusChanged();
         }
 
         private void OnDestroy()
         {
-            _game.UnregisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
+            _stage.PropertyChanged -= (s, e) =>
+            {
+                if (e.PropertyName == nameof(GameStageManager.SuddenPlus))
+                    _OnSuddenPlusChanged();
+            };
         }
 
         private void Update()
@@ -82,13 +87,13 @@ namespace Deenote.Core.GameStage
             _meshFilter.mesh = UpdateMesh();
         }
 
-        private void _OnSuddenPlusChanged(GamePlayManager manager)
+        private void _OnSuddenPlusChanged()
         {
-            manager.AssertStageLoaded();
+            _stage.AssertStageLoaded();
 
-            var config = manager.Stage.Config;
-            float percent = manager.VisibleRangePercentage;
-            float cutoff = percent * manager.ConvertNoteCoordTimeToWorldZ(manager.StageNoteActiveAheadTime);
+            var config = _stage.Config;
+            float percent = _stage.VisibleRangePercentage;
+            float cutoff = percent * _stage.ConvertNoteCoordTimeToWorldZ(_stage.StageNoteActiveAheadTime);
             _props.SetFloat(CutOffZ, cutoff);
             _props.SetFloat(FadeInZ, cutoff * config.GridLineFadeInRatio);
         }

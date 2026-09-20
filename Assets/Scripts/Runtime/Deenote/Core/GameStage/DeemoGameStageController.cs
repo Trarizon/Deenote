@@ -1,7 +1,7 @@
 #nullable enable
 
-using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
+using Deenote.GameStage;
 using Deenote.GameStage.World.Deemo;
 using Deenote.Library.Components;
 using TMPro;
@@ -16,13 +16,15 @@ namespace Deenote.Core.GameStage
         [SerializeField] DeemoStageBackgroundAnimation _backgroundAnimation;
         [SerializeField] DeemoStageJudgeLineEffect _judgeLineEffect;
 
-        protected internal override void OnInstantiate(GamePlayManager manager)
+        protected internal override void OnInstantiate(GameStageManager stage)
         {
-            base.OnInstantiate(manager);
+            base.OnInstantiate(stage);
 
-            _manager.RegisterNotification(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                _OnActiveNotesUpdated);
+            _stage.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(GameStageManager.NoteFallSpeed))
+                    _OnActiveNotesUpdated();
+            };
             MainSystem.ProjectManager.RegisterNotification(
                 ProjectManager.NotificationFlag.ProjectMusicName,
                 ProjectManager.NotificationFlag.CurrentProject,
@@ -31,28 +33,30 @@ namespace Deenote.Core.GameStage
 
         private void OnDestroy()
         {
-            _manager.UnregisterNotification(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                _OnActiveNotesUpdated);
+            _stage.PropertyChanged -= (s, e) =>
+            {
+                if (e.PropertyName == nameof(GameStageManager.NoteFallSpeed))
+                    _OnActiveNotesUpdated();
+            };
             MainSystem.ProjectManager.UnregisterNotification(
                 ProjectManager.NotificationFlag.ProjectMusicName,
                 ProjectManager.NotificationFlag.CurrentProject,
                 _OnProjectNameChanged);
         }
 
-        private void _OnActiveNotesUpdated(GamePlayManager manager)
+        private void _OnActiveNotesUpdated()
         {
-            manager.AssertChartLoaded();
+            _stage.AssertStageLoaded();
 
             // Update judge line hit effect
-            var previousHitNode = _manager.NotesManager.GetPreviousHitNote();
+            var previousHitNode = _stage.NotesManager.GetPreviousHitComboNode();
             if (previousHitNode is null) {
                 _judgeLineEffect.SetHitEffect(null);
                 return;
             }
 
             var hitTime = previousHitNode.Time;
-            var deltaTime = manager.MusicPlayer.Time - hitTime;
+            var deltaTime = _stage.MusicTime - hitTime;
             Debug.Assert(deltaTime >= 0);
 
             _judgeLineEffect.SetHitEffect(deltaTime);

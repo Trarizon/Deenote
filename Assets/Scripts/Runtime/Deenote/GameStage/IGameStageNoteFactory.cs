@@ -14,19 +14,22 @@ namespace Deenote.GameStage
 
     internal sealed class DefaultGameStageNoteFactory : IGameStageNoteFactory
     {
+        private readonly GameStageManager _stage;
         private readonly GameStageNoteController _prefab;
         private readonly GameStageNotePlaneController _plane;
         private readonly ObjectPool<GameStageNoteController> _pool;
 
         public DefaultGameStageNoteFactory(
+            GameStageManager stage,
             GameStageNoteController prefab, GameStageNotePlaneController plane)
         {
+            _stage = stage;
             _prefab = prefab;
             _plane = plane;
             _pool = UnityUtils.CreateObjectPool(() =>
             {
-                var item=Object.Instantiate(_prefab,_plane.ContentTransform);
-                // item.OnInstantiate(_conte);
+                var item = Object.Instantiate(_prefab, _plane.ContentTransform);
+                item.OnInstantiate(_stage);
                 return item;
             });
         }

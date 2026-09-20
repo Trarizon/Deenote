@@ -3,7 +3,9 @@
 using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.Entities.Models;
+using Deenote.GameStage;
 using Deenote.Replica;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
@@ -18,106 +20,76 @@ namespace Deenote.Core.GamePlay
         /// We start to track note when note appears as if sudden+ is 0, and sets its
         /// visibility according to <see cref="StageNoteAppearAheadTime"/>
         /// </remarks>
+        [Obsolete("Use GameStageManager.StageNoteActiveAheadTime instead")]
         public float StageNoteActiveAheadTime
         {
             get {
-                return Stage!.Config.NoteAppearAheadTimeFactor / DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed);
+                return App.GameStageManager.StageNoteActiveAheadTime;
             }
         }
 
-        public float GetStageNoteActiveAheadTime(float noteSpeed) => StageNoteActiveAheadTime / GetDisplayNoteSpeed(noteSpeed);
-        public float GetStageNoteActiveTime(IStageNoteNode node) => node.Time - GetStageNoteActiveAheadTime(node.Speed);
+        [Obsolete("Use GameStageManager.GetStageNoteActiveAheadTime instead")]
+        public float GetStageNoteActiveAheadTime(float noteSpeed) => App.GameStageManager.GetStageNoteActiveAheadTime(noteSpeed);
+        [Obsolete("Use GameStageManager.GetStageNoteActiveTime instead")]
+        public float GetStageNoteActiveTime(IStageNoteNode node) => App.GameStageManager.GetStageNoteActiveTime(node);
 
         /// <summary>
         /// The time from a note(speed==1) appears to falls on the judgeline
         /// </summary>
-        public float StageNoteAppearAheadTime => StageNoteActiveAheadTime * VisibleRangePercentage;
-        public float GetStageNoteAppearAheadTime(float noteSpeed) => StageNoteAppearAheadTime / GetDisplayNoteSpeed(noteSpeed);
-        public float GetStageNoteAppearTime(IStageNoteNode node) => node.Time - GetStageNoteAppearAheadTime(node.Speed);
+        [Obsolete("Use GameStageManager.StageNoteAppearAheadTime instead")]
+        public float StageNoteAppearAheadTime => App.GameStageManager.StageNoteAppearAheadTime;
+        [Obsolete("Use GameStageManager.GetStageNoteAppearAheadTime instead")]
+        public float GetStageNoteAppearAheadTime(float noteSpeed) => App.GameStageManager.GetStageNoteAppearAheadTime(noteSpeed);
+        [Obsolete("Use GameStageManager.GetStageNoteAppearTime instead")]
+        public float GetStageNoteAppearTime(IStageNoteNode node) => App.GameStageManager.GetStageNoteAppearTime(node);
 
-        internal float GetDisplayNoteSpeed(float speed) => IsApplySpeedDifference ? speed : 1f;
+        [Obsolete("Use GameStageManager.GetDisplayNoteSpeed instead")]
+        internal float GetDisplayNoteSpeed(float speed) => App.GameStageManager.GetDisplayNoteSpeed(speed);
 
         /// <summary>
         /// Get the time as if the note has speed == 1 and it falls on the current position in world
         /// <br/>
         /// The return value may be useless if note is not active on stage
         /// </summary>
+        [Obsolete("Use GameStageManager.GetNotePseudoTime instead")]
         internal float GetNotePseudoTime(float time, float noteSpeed)
         {
-            var currentTime = MusicPlayer.Time;
-            return currentTime + (time - currentTime) * GetDisplayNoteSpeed(noteSpeed);
+            return App.GameStageManager.GetNotePseudoTime(time, noteSpeed);
         }
 
         #region Converters
 
+        [Obsolete("Use GameStageManager.ConvertWorldXToNoteCoordPosition instead")]
         public float ConvertWorldXToNoteCoordPosition(float x)
-            => x / Stage!.Config.NotePosToWorldXFactor;
-            // => x / (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
+            => App.GameStageManager.ConvertWorldXToNoteCoordPosition(x);
 
+        [Obsolete("Use GameStageManager.ConvertWorldZToNoteCoordTime instead")]
         public float ConvertWorldZToNoteCoordTime(float z, float noteSpeed = 1f)
-            => ConvertWorldZToNoteCoordTimeBase(z) / ActualNoteFallSpeed / GetDisplayNoteSpeed(noteSpeed);
+            => App.GameStageManager.ConvertWorldZToNoteCoordTime(z, noteSpeed);
 
+        [Obsolete("Use GameStageManager.ConvertNoteCoordPositionToWorldX instead")]
         public float ConvertNoteCoordPositionToWorldX(float position)
-            => position * Stage!.Config.NotePosToWorldXFactor;
-            // => position * (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
+            => App.GameStageManager.ConvertNoteCoordPositionToWorldX(position);
 
+        [Obsolete("Use GameStageManager.ConvertNoteCoordTimeToWorldZ instead")]
         public float ConvertNoteCoordTimeToWorldZ(float time, float noteSpeed = 1f)
-            => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time);
+            => App.GameStageManager.ConvertNoteCoordTimeToWorldZ(time, noteSpeed);
 
+        [Obsolete("Use GameStageManager.ConvertNoteCoordTimeToHoldScaleY instead")]
         public float ConvertNoteCoordTimeToHoldScaleY(float time, float noteSpeed = 1f)
-            => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time); // Stage!.Args.HoldSpritePrefab.Sprite.bounds.size.y;
+            => App.GameStageManager.ConvertNoteCoordTimeToHoldScaleY(time, noteSpeed);
 
+        [Obsolete("Use GameStageManager.ConvertNoteCoordToWorldPosition instead")]
         public (float X, float Z) ConvertNoteCoordToWorldPosition(NoteCoord coord, float noteSpeed = 1f)
-            => (ConvertNoteCoordPositionToWorldX(coord.Position), ConvertNoteCoordTimeToWorldZ(coord.Time, noteSpeed));
+            => App.GameStageManager.ConvertNoteCoordToWorldPosition(coord, noteSpeed);
 
+        [Obsolete("Use GameStageManager.TryConvertPerspectiveViewportPointToNoteCoord instead")]
         public bool TryConvertPerspectiveViewportPointToNoteCoord(Vector2 perspectiveViewPanelViewportPoint, float noteSpeed, out NoteCoord coord)
-        {
-            AssertStageLoaded();
+            => App.GameStageManager.TryConvertPerspectiveViewportPointToNoteCoord(perspectiveViewPanelViewportPoint, noteSpeed, out coord);
 
-            if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
-                coord = default;
-                return false;
-            }
-
-            var stage = Stage;
-            var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
-            if (stage.TryConvertRaycastingViewportPointToNotePanelPosition(raycastViewportPoint, out var notePanelPosition)) {
-                coord = new NoteCoord(
-                    ConvertWorldXToNoteCoordPosition(notePanelPosition.X),
-                    ConvertWorldZToNoteCoordTime(notePanelPosition.Z, noteSpeed) + MusicPlayer.Time);
-                return true;
-            }
-
-            coord = default;
-            return false;
-
-            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
-        }
-
+        [Obsolete("Use GameStageManager.TryRaycastPerspectiveViewportPointToNote instead")]
         internal bool TryRaycastPerspectiveViewportPointToNote(Vector2 perspectiveViewPanelViewportPoint, [MaybeNullWhen(false)] out GameStageNoteController note)
-        {
-            AssertStageLoaded();
-
-            if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
-                note = default;
-                return false;
-            }
-            var stage = Stage;
-
-            var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
-            if (stage.TryRaycastRaycastingViewportPointToNote(raycastViewportPoint, out note)) {
-                return true;
-            }
-            return false;
-
-            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
-        }
-
-        private float ConvertNoteCoordTimeToWorldZBase(float time)
-            => time * DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) * Stage!.Config.NoteTimeToWorldZFactor;
-
-        private float ConvertWorldZToNoteCoordTimeBase(float z)
-            => z/ DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) / Stage!.Config.NoteTimeToWorldZFactor;
+            => App.GameStageManager.TryRaycastPerspectiveViewportPointToNote(perspectiveViewPanelViewportPoint, out note);
 
         #endregion
     }
