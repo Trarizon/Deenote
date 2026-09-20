@@ -31,6 +31,8 @@ namespace Deenote.Core.GameStage
 
         public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
 
+        public GameStageNotePlaneController NotePlane => _notePanelTransform.GetComponent<GameStageNotePlaneController>();
+
         [Title("Config")]
         [SerializeField] GameStageConfig _config;
         [SerializeField] GridLineConfig _gridLineConfig;

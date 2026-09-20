@@ -27,6 +27,8 @@ namespace Deenote.Core.Project
             get => _currentProject_bf;
         }
 
+        public ChartModel? CurrentChart => MainSystem.GamePlayManager.CurrentChart;
+
         private AudioClip? _audioClip;
         public AudioClip? AudioClip => _audioClip;
 

@@ -8,14 +8,14 @@ namespace Deenote.Replica
 {
     internal static class DeemoReplica
     {
-        // Stage Effects
+        public static float DisplayFallSpeedToPlaneFallSpeed(float displayFallSpeed)
+            => 3 * Mathf.Pow(1.4f, displayFallSpeed);
+
+        // Stage Animations
 
         // Some Animation is related to frame count rather than time
         // We use 60 fps as frame count here
         private const float Fps = 60;
-
-        public static float DisplayFallSpeedToPlaneFallSpeed(float displayFallSpeed)
-            => 3 * Mathf.Pow(1.4f, displayFallSpeed);
 
         public static float CalcJudgeLineHitEffectScale(float time)
         {

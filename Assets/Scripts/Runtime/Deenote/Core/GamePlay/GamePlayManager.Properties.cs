@@ -3,6 +3,7 @@
 using Deenote.Core.GameStage;
 using Deenote.Entities.Models;
 using Deenote.Library;
+using System;
 using UnityEngine;
 
 namespace Deenote.Core.GamePlay
@@ -30,7 +31,7 @@ namespace Deenote.Core.GamePlay
                 configs.Set("stage/effect", IsStageEffectOn);
                 configs.Set("stage/sudden_plus", SuddenPlus);
                 configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
-                configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
+                // configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
                 configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
 
                 configs.Set("stage/music_speed", MusicSpeed);
@@ -50,7 +51,7 @@ namespace Deenote.Core.GamePlay
                 IsStageEffectOn = configs.GetBoolean("stage/effect", true);
                 SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
                 EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
-                IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
+                // IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
                 PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
 
                 MusicSpeed = configs.GetInt32("stage/music_speed", 10);
@@ -139,83 +140,86 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [5, 95], display [0.5, 9.5]
         /// </summary>
+        [Obsolete("Moved to GameStageManager")]
         public int NoteFallSpeed
         {
-            get => _noteSpeed_bf;
+            get => App.GameStageManager.NoteFallSpeed;
             set {
-                value = Mathf.Clamp(value, MinNoteSpeed, MaxNoteSpeed);
-                if (Utils.SetField(ref _noteSpeed_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                    }
-                    NotifyFlag(NotificationFlag.NoteSpeed);
+                App.GameStageManager.NoteFallSpeed = value;
+
+                if (IsStageLoaded() && IsChartLoaded()) {
+                    NotesManager.RefreshStageActiveNotes();
                 }
+                NotifyFlag(NotificationFlag.NoteSpeed);
             }
         }
 
         public float ActualNoteFallSpeed => ConvertToActualNoteSpeed(NoteFallSpeed);
 
+        [Obsolete("Moved to GameStageManager")]
         public bool IsShowLinkLines
         {
-            get => _showLinkLines_bf;
+            get => App.GameStageManager.IsShowLinkLines;
             set {
-                if (Utils.SetField(ref _showLinkLines_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshLinkLine();
-                        }
+                App.GameStageManager.IsShowLinkLines = value;
+
+                if (IsStageLoaded() && IsChartLoaded()) {
+                    foreach (var note in NotesManager.OnStageNotes) {
+                        note.RefreshLinkLine();
                     }
-                    NotifyFlag(NotificationFlag.IsShowLinkLines);
                 }
+                NotifyFlag(NotificationFlag.IsShowLinkLines);
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public bool IsPianoNotesDistinguished
         {
-            get => _isPianoNotesDistinguished_bf;
+            get => App.GameStageManager.IsPianoNotesDistinguished;
             set {
-                if (Utils.SetField(ref _isPianoNotesDistinguished_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshVisual();
-                        }
+                App.GameStageManager.IsPianoNotesDistinguished = value;
+
+                if (IsStageLoaded() && IsChartLoaded()) {
+                    foreach (var note in NotesManager.OnStageNotes) {
+                        note.RefreshVisual();
                     }
-                    NotifyFlag(NotificationFlag.DistinguishPianoNotes);
                 }
+                NotifyFlag(NotificationFlag.DistinguishPianoNotes);
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public bool IsStageEffectOn
         {
-            get => _isStageEffectOn_bf;
+            get => App.GameStageManager.IsStageEffectOn;
             set {
-                if (Utils.SetField(ref _isStageEffectOn_bf, value)) {
-                    if (IsStageLoaded()) {
-                        Stage.IsStageEffectOn = value;
-                    }
-                    NotifyFlag(NotificationFlag.StageEffectOn);
+                App.GameStageManager.IsStageEffectOn = value;
+
+                if (IsStageLoaded()) {
+                    Stage.IsStageEffectOn = value;
                 }
+                NotifyFlag(NotificationFlag.StageEffectOn);
             }
         }
 
         /// <summary>
         /// Range [0, 1]
         /// </summary>
+        [Obsolete("Moved to GameStageManager")]
         public float SuddenPlus
         {
             get => _suddenPlus_bf;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (Utils.SetField(ref _suddenPlus_bf, value)) {
-                    _cacheVisibleRangePercentage = null;
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
-                        }
+                App.GameStageManager.SuddenPlus = value;
+
+                _cacheVisibleRangePercentage = null;
+                if (IsStageLoaded() && IsChartLoaded()) {
+                    NotesManager.RefreshStageActiveNotes();
+                    foreach (var note in NotesManager.OnStageNotes) {
+                        note.RefreshColorAlpha();
                     }
-                    NotifyFlag(NotificationFlag.SuddenPlus);
                 }
+                NotifyFlag(NotificationFlag.SuddenPlus);
             }
         }
 
@@ -252,30 +256,19 @@ namespace Deenote.Core.GamePlay
         /// <br/>
         /// 
         /// </remarks>
+        [Obsolete("Moved to GameStageManager")]
         public bool EarlyDisplaySlowNotes
         {
-            get => _earlyDisplayLowSpeedNotes_bf;
+            get => App.GameStageManager.IsEarlyDisplaySlowNotes;
             set {
-                if (Utils.SetField(ref _earlyDisplayLowSpeedNotes_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
-                        }
-                    }
-                    NotifyFlag(NotificationFlag.EarlyDisplaySlowNotes);
-                }
-            }
-        }
+                App.GameStageManager.IsEarlyDisplaySlowNotes = value;
 
-        public bool IgnoreNoteSpeed
-        {
-            get => _ignoreNoteSpeed_bf;
-            set {
-                if (Utils.SetField(ref _ignoreNoteSpeed_bf, value)) {
-                    if (IsStageLoaded() && IsChartLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
+                if (IsStageLoaded() && IsChartLoaded()) {
+                    foreach (var note in NotesManager.OnStageNotes) {
+                        note.RefreshColorAlpha();
                     }
                 }
+                NotifyFlag(NotificationFlag.EarlyDisplaySlowNotes);
             }
         }
 
