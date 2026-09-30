@@ -4,6 +4,8 @@ namespace Deenote.CoreB
     {
         public static Application Current { get; private set; } = default!;
 
+        public Deenote.Core.Logging.Logger Logger { get; } = new();
+
         protected static void Apply(Application application)
         {
             Current = application;

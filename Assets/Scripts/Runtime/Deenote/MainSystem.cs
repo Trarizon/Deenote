@@ -43,6 +43,8 @@ namespace Deenote
             GlobalSettings = new();
 
             StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
+        
+            App.GameStageManager.PostConstructor();
         }
 
         private void Start()

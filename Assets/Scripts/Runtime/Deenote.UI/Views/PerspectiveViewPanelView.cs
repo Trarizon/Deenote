@@ -1,9 +1,11 @@
 #nullable enable
 
+using Cysharp.Threading.Tasks;
 using Deenote.Core;
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Unity.UI;
 using Deenote.GamePlay.UI;
+using Deenote.GameStage.UI;
 using Deenote.Library;
 using Deenote.Library.Components;
 using System;
@@ -13,7 +15,7 @@ using UnityEngine.UI;
 
 namespace Deenote.UI.Views
 {
-    public sealed partial class PerspectiveViewPanelView : MonoBehaviour
+    public sealed partial class PerspectiveViewPanelView : MonoBehaviour, IGameStagePerspectiveViewPanel
     {
         [SerializeField] private float _renderScale = 1.0f;
 
@@ -30,7 +32,7 @@ namespace Deenote.UI.Views
 
         private RenderTexture _viewRenderTexture = default!;
 
-        public PerspectiveViewForegroundBase StageForeground { get; private set; } = default!;
+        public GameStageForegroundView StageForeground { get; private set; } = default!;
 
         public RenderTexture ViewRendererTexture => _viewRenderTexture;
 
@@ -116,7 +118,7 @@ namespace Deenote.UI.Views
         {
             InitAspectRatioController();
 
-            MainSystem.GamePlayManager.StageLoaded += _OnStageLoaded;
+            // MainSystem.GamePlayManager.StageLoaded += _OnStageLoaded;
 
             void InitAspectRatioController()
             {
@@ -146,18 +148,18 @@ namespace Deenote.UI.Views
                 });
         }
 
-        private void _OnStageLoaded(GamePlayManager.StageLoadedEventArgs args)
-        {
-            args.Stage.PerspectiveCamera.ApplyToRenderTexture(_viewRenderTexture);
+        // private void _OnStageLoaded(GamePlayManager.StageLoadedEventArgs args)
+        // {
+        //     args.Stage.PerspectiveCamera.ApplyToRenderTexture(_viewRenderTexture);
 
-            var foreground = Instantiate(args.PerspectiveViewForegroundPrefab, _contentTransform);
-            if (StageForeground != null) {
-                Destroy(StageForeground.gameObject);
-            }
-            StageForeground = foreground;
+        //     var foreground = Instantiate(args.PerspectiveViewForegroundPrefab, _contentTransform);
+        //     if (StageForeground != null) {
+        //         Destroy(StageForeground.gameObject);
+        //     }
+        //     StageForeground = foreground;
 
-            _raycaster.enabled = true;
-        }
+        //     _raycaster.enabled = true;
+        // }
 
         public bool TryConvertScreenPointToViewportPoint(Vector2 screenPoint, out Vector2 viewportPoint)
         {
@@ -172,6 +174,17 @@ namespace Deenote.UI.Views
                 localPoint.x / tsfmrect.width,
                 localPoint.y / tsfmrect.height);
             return true;
+        }
+
+        public async UniTask ApplyStageAsync(Func<Transform, UniTask<GameStageForegroundView>> instantiateForegroundViewAsync)
+        {
+            var foreground = await instantiateForegroundViewAsync(_contentTransform);
+            if (StageForeground != null) {
+                Destroy(StageForeground.gameObject);
+            }
+            StageForeground = foreground;
+
+            _raycaster.enabled = true;
         }
 
         #region Pointer

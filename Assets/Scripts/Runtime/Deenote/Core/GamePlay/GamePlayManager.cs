@@ -66,6 +66,25 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        public void OnStageLoaded(GameStageSceneLoader loader)
+        {
+            App.Logger.LogDebug("StageLoaded");
+            Stage = loader.StageController;
+            Stage.OnInstantiate(this);
+            NotesManager.Initialize(
+                UnityUtils.CreateObjectPool(
+                    Stage.Config.NotePrefab,
+                    Stage.NotePanelTransform,
+                    item => item.OnInstantiate(this)));
+            OnStageLoaded_Properties(loader);
+
+            if (IsChartLoaded()) {
+                UpdateNotes(true, true);
+            }
+
+            StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
+        }
+
         private void Awake()
         {
             _gridsManager = new GridsManager(this, MainSystem.StageChartEditor);
@@ -74,24 +93,6 @@ namespace Deenote.Core.GamePlay
 
             RegisterConfigurations();
             RegisterCustomPropertiesConfigurations();
-
-            GameStageSceneLoader.StageLoaded += loader =>
-            {
-                Stage = loader.StageController;
-                Stage.OnInstantiate(this);
-                NotesManager.Initialize(
-                    UnityUtils.CreateObjectPool(
-                        Stage.Config.NotePrefab,
-                        Stage.NotePanelTransform,
-                        item => item.OnInstantiate(this)));
-                OnStageLoaded_Properties(loader);
-
-                if (IsChartLoaded()) {
-                    UpdateNotes(true, true);
-                }
-
-                StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
-            };
 
             MusicPlayer.TimeChanged += args =>
             {

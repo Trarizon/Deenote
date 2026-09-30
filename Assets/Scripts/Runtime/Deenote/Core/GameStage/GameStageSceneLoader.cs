@@ -3,6 +3,7 @@
 using Cysharp.Threading.Tasks;
 using Deenote.GamePlay.UI;
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,15 +29,50 @@ namespace Deenote.Core.GameStage
 
         public static async UniTask<GameStageSceneLoader> LoadAsync(string scene)
         {
+            App.Logger.LogDebug($"LoadAsync {scene}");
             var prevLoadedScene = _loadedStageScene;
-
             var loadOp = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
-            SceneManager.sceneLoaded += static (scene, mode) => _loadedStageScene = scene;
-            await loadOp;
+            loadOp.completed += _ => { Debug.Log("AsyncOperation.completed"); };
+            var utcs = new UniTaskCompletionSource();
+            SceneManager.sceneLoaded += (loadedScene, mode) =>
+            {
+                App.Logger.LogDebug($"sceneLoaded: {loadedScene.name}");
+                utcs.TrySetResult();
+                App.Logger.LogDebug($"sceneLoaded {loadedScene.name} 2");
+            };
+            await UniTask.WaitUntil(() => loadOp.isDone);
+            Debug.Log("isDone!");
+            SceneManager.sceneLoaded += (scene, mode) =>
+            {
+                App.Logger.LogDebug($"sceneLoaded {scene.name} 1");
+                _loadedStageScene = scene;
+            };
+            await UniTask.Yield();
+            App.Logger.LogDebug($"After sceneLoaded: isDone={loadOp.isDone}, progress={loadOp.progress}, allowSceneActivation={loadOp.allowSceneActivation}");
+
+            async UniTaskVoid Await()
+            {
+                await loadOp;
+            }
+            // Await();
+
+            // utcs.Task.GetAwaiter().OnCompleted(() => Debug.Log("after"));
+
+        await utcs.Task;
+
+            Debug.Log("after");
+            // var dele=(loadOp.GetType().GetField("m_completeCallback").GetValue(loadOp) as Delegate).GetInvocationList().Length;
+
+            // Debug.Log($"m_completeCallback: {dele}");
+
+            var awaiter = loadOp.GetAwaiter();
+
             if (prevLoadedScene is { } loadedScene) {
                 _ = SceneManager.UnloadSceneAsync(loadedScene);
             }
+
             StageLoaded?.Invoke(_instance!);
+            App.Logger.LogDebug($"StageLoaded {scene}");
             Debug.Assert(_instance != null);
             return _instance!;
         }

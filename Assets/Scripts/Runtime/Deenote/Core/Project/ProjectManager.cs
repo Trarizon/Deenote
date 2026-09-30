@@ -67,6 +67,7 @@ namespace Deenote.Core.Project
         {
             var (proj, clip) = await Fake.GetProject();
             SetCurrentProject(proj, clip);
+            Debug.Log("Fake Project Loaded");
         }
 #endif
 

@@ -2,15 +2,15 @@ using UnityEngine;
 
 namespace Deenote.Core.Logging
 {
-    public static class Logger
+    public class Logger
     {
-        public static void LogTrace(string message)
-            => Debug.Log(message);
+        public void LogTrace(string message)
+            => Debug.Log($"[{Time.frameCount}] [T] {message}");
 
-        public static void LogDebug(string message)
-            => Debug.Log(message);
+        public void LogDebug(string message)
+            => Debug.Log($"[{Time.frameCount}] [D] {message}");
 
-        public static void LogError(string message)
-            => Debug.LogError(message);
+        public void LogError(string message)
+            => Debug.LogError($"[{Time.frameCount}] [E] {message}");
     }
 }
