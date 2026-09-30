@@ -3,6 +3,7 @@
 using CommunityToolkit.HighPerformance.Buffers;
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
@@ -60,12 +61,12 @@ namespace Deenote.Core.Editing
             Placer = new StageNotePlacer(this);
             Selector = new StageNoteSelector(game);
 
-            _project.RegisterNotification(
-                ProjectManager.NotificationFlag.CurrentProject,
-                manager =>
-                {
+            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentProject))) {
                     _operations.Reset();
-                });
+                }
+            });
 
             /*
             _game.RegisterNotification(

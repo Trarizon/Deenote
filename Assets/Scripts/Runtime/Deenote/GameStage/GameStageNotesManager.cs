@@ -4,6 +4,7 @@ using Deenote.CoreB;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using Deenote.GameStage.Models;
+using Deenote.Project;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Pool;
@@ -17,7 +18,7 @@ namespace Deenote.GameStage
     public sealed partial class GameStageNotesManager
     {
         private readonly GameStageManager _stage;
-        private readonly ProjectManager _project;
+        private readonly ProjectManager2 _project;
 
         private readonly GameStageNodeActiveTimeComparer _comparer;
 
@@ -34,7 +35,7 @@ namespace Deenote.GameStage
 
         public ReadOnlySpan<NoteModel> ActiveNotes => _trackingNotes.AsSpan();
 
-        internal GameStageNotesManager(GameStageManager stage, ProjectManager project)
+        internal GameStageNotesManager(GameStageManager stage, ProjectManager2 project)
         {
             _stage = stage;
             _project = project;

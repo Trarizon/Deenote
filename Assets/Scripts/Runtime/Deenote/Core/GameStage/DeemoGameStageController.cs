@@ -2,6 +2,7 @@
 
 using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.GameStage.World.Deemo;
 using Deenote.Library.Components;
 using TMPro;
@@ -23,10 +24,17 @@ namespace Deenote.Core.GameStage
             _manager.RegisterNotification(
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 _OnActiveNotesUpdated);
+
             MainSystem.ProjectManager.RegisterNotification(
                 ProjectManager.NotificationFlag.ProjectMusicName,
-                ProjectManager.NotificationFlag.CurrentProject,
                 _OnProjectNameChanged);
+            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentProject))) {
+                    if (s.CurrentProject is not null)
+                        _staveMusicNameText.text = s.CurrentProject.MusicName;
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
         }
 
         private void OnDestroy()
@@ -36,7 +44,6 @@ namespace Deenote.Core.GameStage
                 _OnActiveNotesUpdated);
             MainSystem.ProjectManager.UnregisterNotification(
                 ProjectManager.NotificationFlag.ProjectMusicName,
-                ProjectManager.NotificationFlag.CurrentProject,
                 _OnProjectNameChanged);
         }
 

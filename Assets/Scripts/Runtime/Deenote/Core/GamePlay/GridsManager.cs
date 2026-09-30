@@ -4,6 +4,7 @@ using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Library.Components;
 using System;
@@ -19,9 +20,12 @@ namespace Deenote.Core.GamePlay
         {
             _game = manager;
             _editor = editor;
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.CurrentProject,
-                _OnCurrentProjectChanged);
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentProject))) {
+                    UpdateTimeGrids();
+                }
+            });
             _game.RegisterNotification(
                 GamePlayManager.NotificationFlag.SuddenPlus,
                 _OnSuddenPlusChanged);
@@ -67,7 +71,6 @@ namespace Deenote.Core.GamePlay
 
         #region Registrations
 
-        private void _OnCurrentProjectChanged(ProjectManager manager) => UpdateTimeGrids();
         private void _OnSuddenPlusChanged(GamePlayManager manager) => UpdatePositionGrids();
         private void _OnPlacingNoteSpeedChanged(StageNotePlacer _)
         {

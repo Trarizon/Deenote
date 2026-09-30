@@ -38,11 +38,14 @@ namespace Deenote.UI.Views
         public void SetStatusMessage(LocalizableText message, ReadOnlySpan<string> args = default, float duration = -1f)
             => SetStatusMessageInternal(message, args, duration);
 
-        public void SetLocalizedStatusMessage(string key, ReadOnlySpan<string> args = default, float duration = -1f)
+        public void SetLocalizedStatusMessage(string key, ReadOnlySpan<string> args, float duration = -1f)
             => SetStatusMessage(LocalizableText.Localized(key), args, duration);
 
         public void SetLocalizedStatusMessage(string key, string arg, float duration = -1f)
             => SetLocalizedStatusMessage(key, MemoryMarshal.CreateReadOnlySpan(ref arg, 1), duration);
+
+        public void SetLocalizedStatusMessage(string key, float duration = -1f)
+            => SetLocalizedStatusMessage(key, ReadOnlySpan<string>.Empty, duration);
 
         public void SetRawTextStatusMessage(string text, float duration = -1f) => SetStatusMessage(LocalizableText.Raw(text), default, duration);
 

@@ -19,6 +19,7 @@ using System.IO;
 using UnityEngine;
 using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Helpers;
+using Deenote.CoreB.Notification;
 
 namespace Deenote.UI.Views
 {
@@ -159,9 +160,9 @@ namespace Deenote.UI.Views
                 });
 
                 var manager = MainSystem.ProjectManager;
-                manager.RegisterNotificationAndInvoke(ProjectManager.NotificationFlag.CurrentProject,
-                    manager =>
-                    {
+                App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.Match(nameof(s.CurrentProject))) {
                         if (!manager.IsProjectLoaded()) {
                             _projectInfoGroup.gameObject.SetActive(false);
                         }
@@ -174,7 +175,8 @@ namespace Deenote.UI.Views
                             SetCharter(proj.ChartDesigner);
                             SetCharts(proj.Charts);
                         }
-                    });
+                    }
+                });
                 manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectAudio,
                     manager =>
                     {
@@ -338,7 +340,7 @@ namespace Deenote.UI.Views
                     if (!MainSystem.GamePlayManager.IsChartLoaded())
                         return;
 
-                    Reselect:
+                Reselect:
                     var fileRes = await MainWindow.DialogManager.OpenFileExplorerSelectFileAsync(
                         LocalizableText.Raw("Select file to concatenate"),
                         MainSystem.Args.SupportLoadChartFileExtensions);

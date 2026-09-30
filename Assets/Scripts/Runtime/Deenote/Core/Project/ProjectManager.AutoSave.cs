@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Library;
+using Deenote.Systems;
 using System;
 using UnityEngine.Profiling;
 
@@ -28,12 +29,8 @@ namespace Deenote.Core.Project
         private ProjectAutoSaveOption _autoSave_bf;
         public ProjectAutoSaveOption AutoSave
         {
-            get => _autoSave_bf;
-            set {
-                if (Utils.SetField(ref _autoSave_bf, value)) {
-                    NotifyFlag(NotificationFlag.AutoSave);
-                }
-            }
+            get => (ProjectAutoSaveOption)App.Environment.AutoSaveOptions;
+            set => App.Environment.AutoSaveOptions = (AutoSaveOptions)value;
         }
 
         public event Action<ProjectSaveEventArgs>? ProjectSaved;

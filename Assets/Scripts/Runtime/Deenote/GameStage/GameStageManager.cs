@@ -56,7 +56,7 @@ namespace Deenote.GameStage
 
         public void PostConstructor()
         {
-            NotesManager = new(this, MainSystem.ProjectManager);
+            NotesManager = new(this, App.ProjectManager);
 
             Ctor_Notes();
         }

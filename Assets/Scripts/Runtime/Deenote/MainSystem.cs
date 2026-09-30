@@ -34,6 +34,8 @@ namespace Deenote
 
         protected override void Awake()
         {
+            Debug.Log("MainSystem Awake");
+
             base.Awake();
 
             _unhandledExceptionHandler = new();

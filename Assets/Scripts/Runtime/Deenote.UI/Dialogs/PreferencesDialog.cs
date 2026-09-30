@@ -12,6 +12,8 @@ using System;
 using System.Collections.Immutable;
 using UnityEngine;
 using Deenote.Library.Mathematics;
+using Deenote.CoreB.Notification;
+using Deenote.Systems;
 
 namespace Deenote.UI.Dialogs
 {
@@ -148,15 +150,20 @@ namespace Deenote.UI.Dialogs
             _languageDropdown.SetValueWithoutNotify(_languageDropdown.FindIndex(text => text == LocalizationSystem.CurrentLanguage.LanguageDisplayName));
 
             _autoSaveDropdown.ResetOptions(_autoSaveDropdownOptions.AsSpan());
-            _autoSaveDropdown.SelectedIndexChanged += val => MainSystem.ProjectManager.AutoSave = GetAutoSaveDropdownOption(val);
-            MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                ProjectManager.NotificationFlag.AutoSave,
-                manager => _autoSaveDropdown.SetValueWithoutNotify(GetAutoSaveDropdownIndex(manager.AutoSave)));
+            _autoSaveDropdown.SelectedIndexChanged += val => App.Environment.AutoSaveOptions = GetAutoSaveDropdownOption(val);
+            
             _autoSaveIntervalDropdown.ResetOptions(_autoSaveIntervals.AsSpan(), time => LocalizableText.Localized(AutoSaveIntervalMinutesKey, (time / 60).ToString()));
-            _autoSaveIntervalDropdown.SelectedIndexChanged += val => MainSystem.ProjectManager.AutoSaveIntervalTime = GetAutoSaveIntervalDropdownOption(val);
-            MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                ProjectManager.NotificationFlag.AutoSaveInterval,
-                manager => _autoSaveIntervalDropdown.SetValueWithoutNotify(GetAutoSaveIntervalDropdownIndex(manager.AutoSaveIntervalTime)));
+            _autoSaveIntervalDropdown.SelectedIndexChanged += val => App.Environment.AutoSaveIntervalSeconds = GetAutoSaveIntervalDropdownOption(val);
+
+            App.Environment.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.AutoSaveOptions))) {
+                    _autoSaveDropdown.SetValueWithoutNotify(GetAutoSaveDropdownIndex(s.AutoSaveOptions));
+                }
+                if (e.Match(nameof(s.AutoSaveIntervalSeconds))) {
+                    _autoSaveIntervalDropdown.SetValueWithoutNotify(GetAutoSaveIntervalDropdownIndex(s.AutoSaveIntervalSeconds));
+                }
+            });
 
             _checkUpdateToggle.IsCheckedChanged += val => MainSystem.GlobalSettings.CheckUpdateOnStartup = val;
             MainSystem.GlobalSettings.RegisterNotificationAndInvoke(
@@ -212,19 +219,19 @@ namespace Deenote.UI.Dialogs
             LocalizableText.Localized("Dialog_PreferencesAutoSaveOn_Option"),
             LocalizableText.Localized("Dialog_PreferencesAutoSaveOnAndSaveJson_Option"));
 
-        private static ProjectAutoSaveOption GetAutoSaveDropdownOption(int optionIndex)
+        private static AutoSaveOptions GetAutoSaveDropdownOption(int optionIndex)
             => optionIndex switch {
-                0 => ProjectAutoSaveOption.Off,
-                1 => ProjectAutoSaveOption.On,
-                2 => ProjectAutoSaveOption.OnAndSaveJson,
-                _ => ThrowHelper.ThrowInvalidOperationException<ProjectAutoSaveOption>(),
+                0 => AutoSaveOptions.Off,
+                1 => AutoSaveOptions.Project,
+                2 => AutoSaveOptions.All,
+                _ => ThrowHelper.ThrowInvalidOperationException<AutoSaveOptions>(),
             };
 
-        private static int GetAutoSaveDropdownIndex(ProjectAutoSaveOption option)
+        private static int GetAutoSaveDropdownIndex(AutoSaveOptions option)
             => option switch {
-                ProjectAutoSaveOption.Off => 0,
-                ProjectAutoSaveOption.On => 1,
-                ProjectAutoSaveOption.OnAndSaveJson => 2,
+                AutoSaveOptions.Off => 0,
+                AutoSaveOptions.Project => 1,
+                AutoSaveOptions.All => 2,
                 _ => ThrowHelper.ThrowInvalidOperationException<int>(),
             };
 

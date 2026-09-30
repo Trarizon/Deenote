@@ -70,8 +70,8 @@ namespace Deenote.UI.Views.Elements
                 // Load project
                 if (File.Exists(FilePath)) {
                     MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadingStatusKey);
-                    MainSystem.ProjectManager.UnloadCurrentProject();
-                    bool res = await MainSystem.ProjectManager.OpenLoadProjectFileAsync(FilePath);
+                    App.ProjectManager.UnloadCurrentProject();
+                    bool res = await App.ProjectManager.OpenLoadProjectFileAsync(FilePath);
                     if (res) {
                         MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadedStatusKey);
                         Parent.TouchRecentFile(this);
@@ -97,7 +97,7 @@ namespace Deenote.UI.Views.Elements
                             Path.GetDirectoryName(FilePath));
                         if (res.IsCancelled)
                             return;
-                        bool openRes = await MainSystem.ProjectManager.OpenLoadProjectFileAsync(res.Path);
+                        bool openRes = await App.ProjectManager.OpenLoadProjectFileAsync(res.Path);
                         if (!openRes) {
                             MainWindow.DialogManager.OpenMessageBoxAsync(_loadProjFailedMsgBoxArgs).Forget();
                             Parent.RemoveRecentFile(this);

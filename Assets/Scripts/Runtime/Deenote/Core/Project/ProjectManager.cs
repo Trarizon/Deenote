@@ -21,16 +21,11 @@ namespace Deenote.Core.Project
 {
     public sealed partial class ProjectManager : FlagNotifiableMonoBehaviour<ProjectManager, ProjectManager.NotificationFlag>
     {
-        private ProjectModel? _currentProject_bf;
-        public ProjectModel? CurrentProject
-        {
-            get => _currentProject_bf;
-        }
+        public ProjectModel? CurrentProject => App.ProjectManager.CurrentProject;
 
         public ChartModel? CurrentChart => MainSystem.GamePlayManager.CurrentChart;
 
-        private AudioClip? _audioClip;
-        public AudioClip? AudioClip => _audioClip;
+        public AudioClip? AudioClip => App.ProjectManager.CurrentAudioClip;
 
         private bool _isLoading_bf;
         private bool _isSaving_bf;
@@ -62,110 +57,44 @@ namespace Deenote.Core.Project
             RegisterAutoSaveConfigurations();
         }
 
-#if  UNITY_EDITOR
-        private async void Start()
-        {
-            var (proj, clip) = await Fake.GetProject();
-            SetCurrentProject(proj, clip);
-            Debug.Log("Fake Project Loaded");
-        }
-#endif
-
         public void SetCurrentProject(ProjectModel project, AudioClip audio)
         {
-            if (Utils.SetField(ref _currentProject_bf, project)) {
-                _audioClip = audio;
-                if (project is not null)
-                    project.AudioLength = audio.length;
-                NotifyFlag(NotificationFlag.CurrentProject);
-            }
+            App.ProjectManager.OpenProject(project, audio);
+            NotifyFlag(NotificationFlag.CurrentProject);
         }
 
         public async UniTask<bool> OpenLoadProjectFileAsync(string filePath)
         {
-            using var loadingScope = new LoadingScope(this);
-
-            var proj = await ProjectIO.LoadAsync(filePath);
-            if (proj is null)
-                return false;
-
-            using var ms = new MemoryStream(proj.AudioFileData);
-            var clip = await AudioUtils.TryLoadAsync(ms, Path.GetExtension(proj.AudioFileRelativePath));
-            if (clip is null)
-                return false;
-
-            SetCurrentProject(proj, clip);
-            return true;
+            return await App.ProjectManager.OpenLoadProjectFileAsync(filePath);
         }
 
         public void UnloadCurrentProject()
         {
-            SetCurrentProject(null!, null!);
+            App.ProjectManager.UnloadCurrentProject();
         }
 
         public async UniTask SaveCurrentProjectAsync()
         {
-            ValidateProject();
-
-            _saveCts.Reset();
-            await SaveCurrentProjectToAsyncInternal(CurrentProject.ProjectFilePath, _saveCts.Token);
+            await App.ProjectManager.SaveCurrentProjectAsync();
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
         }
 
         public async UniTask SaveCurrentProjectToAsync(string targetFilePath)
         {
-            ValidateProject();
-
-            _saveCts.Reset();
-            await SaveCurrentProjectToAsyncInternal(targetFilePath, _saveCts.Token);
+            await App.ProjectManager.SaveCurrentProjectToAsync(targetFilePath);
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
-        }
-
-        private async UniTask SaveCurrentProjectToAsyncInternal(string targetFilePath, CancellationToken cancellationToken)
-        {
-            using var scope = new SavingScope(this);
-
-            AssertProjectLoaded();
-            await ProjectIO.SaveAsync(CurrentProject, targetFilePath, cancellationToken);
         }
 
         public async UniTask SaveCurrentProjectChartJsonsAsync()
         {
-            ValidateProject();
-            await SaveCurrentProjectChartJsonsToAsyncInternal(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
+            await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
         }
 
         public async UniTask SaveCurrentProjectChartJsonsToAsync(string targetDirectory)
         {
-            ValidateProject();
-            await SaveCurrentProjectChartJsonsToAsyncInternal(targetDirectory);
+            await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(targetDirectory);
             ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
-        }
-
-        private async UniTask SaveCurrentProjectChartJsonsToAsyncInternal(string targetDirectory)
-        {
-            AssertProjectLoaded();
-
-            _saveChartsCts.Reset();
-
-            var time = DateTime.Now;
-            string dir = Path.Combine(Path.GetDirectoryName(CurrentProject.ProjectFilePath), AutoSaveJsonDirName);
-            string filename = Path.GetFileNameWithoutExtension(CurrentProject.ProjectFilePath);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            var tasks = new Task[CurrentProject.Charts.Count];
-            for (int i = 0; i < CurrentProject.Charts.Count; i++) {
-                ChartModel? chart = CurrentProject.Charts[i];
-                var chartname = string.IsNullOrEmpty(chart.Name) ? chart.Difficulty.ToLowerCaseString() : chart.Name;
-
-                tasks[i] = File.WriteAllTextAsync(
-                    Path.Combine(dir, $"{filename}.{chartname}.{time:yyMMddHHmmss}.json"),
-                    chart.ToJsonString(), _saveChartsCts.Token);
-            }
-
-            await Task.WhenAll(tasks);
         }
 
         #region Validation

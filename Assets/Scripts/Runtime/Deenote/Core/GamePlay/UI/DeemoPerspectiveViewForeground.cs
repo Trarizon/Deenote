@@ -10,6 +10,7 @@ using Deenote.Library.Mathematics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Deenote.CoreB.Notification;
 
 namespace Deenote.GamePlay.UI
 {
@@ -102,13 +103,13 @@ namespace Deenote.GamePlay.UI
                     Difficulty = manager.CurrentChart.Difficulty;
                 });
 
-            MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                ProjectManager.NotificationFlag.CurrentProject,
-                manager =>
-                {
-                    if (manager.IsProjectLoaded())
-                        _musicNameText.text = manager.CurrentProject.MusicName;
-                });
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentProject))) {
+                    if (s.CurrentProject is not null)
+                        _musicNameText.text = s.CurrentProject.MusicName;
+                }
+            });
 
             MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
                 GamePlayManager.NotificationFlag.CurrentChart,

@@ -5,6 +5,7 @@ using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.GamePlay.UI;
@@ -109,11 +110,10 @@ namespace Deenote.Core.GamePlay
                 // if (args.IsManuallyChanged) RefreshNotesTimeState();
             };
 
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.CurrentProject,
-                manager =>
-                {
-                    var proj = manager.CurrentProject;
+            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentProject))) {
+                    var proj = s.CurrentProject;
                     if (proj is null) {
                         UnloadChart();
                         return;
@@ -125,10 +125,12 @@ namespace Deenote.Core.GamePlay
                     else {
                         LoadChartInCurrentProject(proj.Charts[0]);
                     }
-
+                }
+                if (e.Match(nameof(s.CurrentAudioClip))) {
                     // TODO: try out streaming clip provider
-                    _musicPlayer.ReplaceClip(new DecodedClipProvider(manager.AudioClip!));
-                });
+                    _musicPlayer.ReplaceClip(new DecodedClipProvider(s.CurrentAudioClip!));
+                }
+            });
             MainSystem.ProjectManager.RegisterNotification(
                 ProjectManager.NotificationFlag.ProjectAudio,
                 manager =>

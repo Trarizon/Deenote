@@ -8,39 +8,6 @@ namespace Deenote.Core
 {
     public static class ApplicationManager
     {
-        #region Quitting
-
-        public static event Action<CancelEventArgs>? Quitting;
-
-        [RuntimeInitializeOnLoadMethod]
-        private static void _RegisterQuitting()
-        {
-            Application.wantsToQuit += () =>
-            {
-                var args = new CancelEventArgs();
-                Quitting?.Invoke(args);
-                if (!args.Cancel) {
-                    MainSystem.SaveSystem.SaveConfigurations();
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            };
-        }
-
-        public static void Quit()
-        {
-            MainSystem.SaveSystem.SaveConfigurations();
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
-
-        #endregion
-
         #region Resolution
 
         private static Vector2Int? _resolution;

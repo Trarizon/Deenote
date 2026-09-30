@@ -110,6 +110,15 @@ namespace Deenote.UI
             {
                 ToastManager.ShowLocalizedToastAsync(UnhandledExceptionToastKey, 3f);
             };
+
+            App.Current.ProjectAutoSaveTrigger.AutoSaving += e =>
+            {
+                StatusBar.SetLocalizedStatusMessage("AutoSaveProject_Status_Saving", $"{e.Time:HH:mm}", 10f);
+            };
+            App.Current.ProjectAutoSaveTrigger.AutoSaved += e =>
+            {
+                StatusBar.SetLocalizedStatusMessage("AutoSaveProject_Status_Saved", $"{e.Time:HH:mm}", 10f);
+            };
         }
 
         public static class Args
