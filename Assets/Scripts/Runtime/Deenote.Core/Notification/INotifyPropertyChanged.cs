@@ -43,6 +43,13 @@ namespace Deenote.CoreB.Notification
             where T : INotifyPropertyChanged<T>
             => action(self, new PropertyChangedEventArgs(propertyName));
 
+        public static void Invoke<T>(this Action<T, PropertyChangedEventArgs> action, T self, string propertyName, string propertyName2)
+            where T : INotifyPropertyChanged<T>
+        {
+            action(self, new PropertyChangedEventArgs(propertyName));
+            action(self, new PropertyChangedEventArgs(propertyName2));
+        }
+        
         public static PropertyChangedRegistration<T> RegisterPropertyChanged<T>(this T self, Action<T, PropertyChangedEventArgs> action) where T : INotifyPropertyChanged<T>
         {
             self.PropertyChanged += action;
@@ -63,7 +70,7 @@ namespace Deenote.CoreB.Notification
                 var box = (StrongBox<PropertyChangedRegistration<T>>)state;
                 box.Value._self.PropertyChanged -= box.Value._action;
             }, new StrongBox<PropertyChangedRegistration<T>>(registration));
-            
+
             return registration;
         }
 

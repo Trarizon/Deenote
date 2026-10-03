@@ -8,9 +8,11 @@ using Deenote.Library;
 using Deenote.CoreB.Unity;
 using Deenote.Library.Mathematics;
 using UnityEngine;
+using TriInspector;
 
 namespace Deenote.Core.GameStage
 {
+    [DeclareFoldoutGroup("Note", Expanded = true)]
     internal abstract class GameStageNoteController : MonoBehaviour
     {
         protected GamePlayManager _game = default!;
@@ -26,9 +28,10 @@ namespace Deenote.Core.GameStage
         // Appear ahead time of note when sudden+ is 0,
         // The value may be affected if the note is following a high-speed note
         private float _appearAheadTime0SuddenPlus;
-        private float _stageDeltaTime;
+        [ShowInInspector] private float _stageDeltaTime;
 
         // The actual appear ahead time, the value 
+        [ShowInInspector]
         private float AppearAheadTime
         {
             get {
@@ -45,6 +48,12 @@ namespace Deenote.Core.GameStage
                 return aheadTime;
             }
         }
+
+        [ShowInInspector, Group("Note")]
+        float Time => NoteModel?.Time ?? 0;
+
+        [ShowInInspector, Group("Note")]
+        float Uid => ((IStageNoteNode?)NoteModel)?.Uid ?? 0;
 
         internal void OnInstantiate(GamePlayManager gamePlayManager)
         {
@@ -137,7 +146,7 @@ namespace Deenote.Core.GameStage
 
                 if (!_game.EarlyDisplaySlowNotes) {
                     // In TimeOrder mode, the note should display only after its previous note displayed
-                    if (_game.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
+                    if (App.GameStageManager.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
                         if (NodeTimeUniqueComparer.Instance.Compare(NoteModel, next) >= 0) {
                             return true;
                         }

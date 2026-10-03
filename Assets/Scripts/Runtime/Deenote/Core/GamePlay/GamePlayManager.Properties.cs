@@ -272,13 +272,13 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete("Moved to GamePlayManager")]
         public bool PauseWhenLoseFocus
         {
-            get => _pauseWhenLoseFocus_bf;
+            get => App.GamePlayManager.PauseWhenLoseFocus;
             set {
-                if (Utils.SetField(ref _pauseWhenLoseFocus_bf, value)) {
-                    NotifyFlag(NotificationFlag.PauseWhenLoseFocus);
-                }
+                App.GamePlayManager.PauseWhenLoseFocus = value;
+                NotifyFlag(NotificationFlag.PauseWhenLoseFocus);
             }
         }
 
@@ -295,20 +295,21 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [1, 30], representing [0.1, 3.0]
         /// </summary>
+        [Obsolete("Moved to GamePlayManager")]
         public int MusicSpeed
         {
-            get => _musicSpeed_bf;
+            get => App.GamePlayManager.MusicSpeed;
             set {
-                value = Mathf.Clamp(value, MinMusicSpeed, MaxMusicSpeed);
-                if (Utils.SetField(ref _musicSpeed_bf, value)) {
-                    var actualVal = ConvertToActualMusicSpeed(value);
-                    MusicPlayer.Pitch = actualVal;
-                    PianoSoundPlayer.Speed = actualVal;
-                    NotifyFlag(NotificationFlag.MusicSpeed);
-                }
+                App.GamePlayManager.MusicSpeed = value;
+
+                var actualVal = ConvertToActualMusicSpeed(value);
+                MusicPlayer.Pitch = actualVal;
+                PianoSoundPlayer.Speed = actualVal;
+                NotifyFlag(NotificationFlag.MusicSpeed);
             }
         }
 
+        [Obsolete("Moved to GamePlayManager")]
         public float ActualMusicSpeed => ConvertToActualMusicSpeed(MusicSpeed);
 
         /// <summary>

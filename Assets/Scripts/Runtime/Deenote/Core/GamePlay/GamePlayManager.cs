@@ -31,7 +31,7 @@ namespace Deenote.Core.GamePlay
         public NotesManager NotesManager => _notesManager;
         public GridsManager Grids => _gridsManager;
         public GameMusicPlayer MusicPlayer => _musicPlayer;
-        public StagePianoSoundPlayer PianoSoundPlayer => _pianoSoundPlayer;
+        public StagePianoSoundPlayer PianoSoundPlayer => App.GamePlayManager.PianoSoundPlayer;
         public HitSoundPlayer HitSoundPlayer => _hitSoundPlayer;
 
         public event Action<StageLoadedEventArgs>? StageLoaded;
@@ -51,20 +51,7 @@ namespace Deenote.Core.GamePlay
 
         public void SetManualPlaySpeed(float? manualPlaySpeed)
         {
-            if (manualPlaySpeed is { } speed) {
-                if (speed == 0f) {
-                    MusicPlayer.Pitch = ActualMusicSpeed;
-                    MusicPlayer.Stop();
-                }
-                else {
-                    _musicPlayer.Pitch = speed;
-                }
-                _manualPlaySpeedMultiplier = speed;
-            }
-            else {
-                _musicPlayer.Pitch = ActualMusicSpeed;
-                _manualPlaySpeedMultiplier = null;
-            }
+            App.GamePlayManager.SetManualPlaySpeed(manualPlaySpeed);
         }
 
         public void OnStageLoaded(GameStageSceneLoader loader)
@@ -100,8 +87,10 @@ namespace Deenote.Core.GamePlay
                 if (!IsChartLoaded())
                     return;
 
+                App.GameStageManager.NotesManager.RefreshActiveNotes();
+
                 var forward = args.NewTime > args.OldTime;
-                NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
+                // NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
                 NotifyFlag(NotificationFlag.ActiveNoteUpdated);
                 // In previous version, note time was controlled by StageNoteController.Update,
                 // so we have to manually call update when manually change music time.
@@ -164,20 +153,20 @@ namespace Deenote.Core.GamePlay
             if (!IsChartLoaded())
                 return;
 
-            if (!MusicPlayer.IsPlaying && _manualPlaySpeedMultiplier is { } manuallPlaySpeed) {
-                MusicPlayer.Nudge(Time.deltaTime * manuallPlaySpeed);
-            }
+            // if (!MusicPlayer.IsPlaying && _manualPlaySpeedMultiplier is { } manuallPlaySpeed) {
+            //     MusicPlayer.Nudge(Time.deltaTime * manuallPlaySpeed);
+            // }
 
             if (IsStageLoaded()) {
                 NotesManager.RefreshStageNoteTimeDisplay();
             }
         }
-        private void OnApplicationFocus(bool focus)
-        {
-            if (!focus && PauseWhenLoseFocus) {
-                MusicPlayer.Stop();
-            }
-        }
+        // private void OnApplicationFocus(bool focus)
+        // {
+        //     if (!focus && PauseWhenLoseFocus) {
+        //         MusicPlayer.Stop();
+        //     }
+        // }
 
         public void UpdateNotes(bool noteCollectionChangedOrNoteTimeRelatedPropertyChanged, bool notesVisualDataChanged)
         {

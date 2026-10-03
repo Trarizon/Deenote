@@ -52,7 +52,7 @@ namespace Deenote.Core.GameStage
             manager.AssertChartLoaded();
 
             // Update judge line hit effect
-            var previousHitNode = _manager.NotesManager.GetPreviousHitNote();
+            var previousHitNode = App.GameStageManager.NotesManager.GetPreviousHitNote();
             if (previousHitNode is null) {
                 _judgeLineEffect.SetHitEffect(null);
                 return;

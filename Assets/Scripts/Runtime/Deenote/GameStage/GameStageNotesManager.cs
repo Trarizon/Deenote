@@ -1,4 +1,5 @@
 using CommunityToolkit.Diagnostics;
+using Deenote.Core.GamePlay;
 using Deenote.Core.Project;
 using Deenote.CoreB;
 using Deenote.Entities.Comparisons;
@@ -18,6 +19,7 @@ namespace Deenote.GameStage
     public sealed partial class GameStageNotesManager
     {
         private readonly GameStageManager _stage;
+        private readonly GamePlayManager _gamePlay;
         private readonly ProjectManager2 _project;
 
         private readonly GameStageNodeActiveTimeComparer _comparer;
@@ -35,9 +37,10 @@ namespace Deenote.GameStage
 
         public ReadOnlySpan<NoteModel> ActiveNotes => _trackingNotes.AsSpan();
 
-        internal GameStageNotesManager(GameStageManager stage, ProjectManager2 project)
+        internal GameStageNotesManager(GameStageManager stage, GamePlayManager gamePlay, ProjectManager2 project)
         {
             _stage = stage;
+            _gamePlay = gamePlay;
             _project = project;
             _comparer = new(_stage);
         }
@@ -52,13 +55,30 @@ namespace Deenote.GameStage
         /// </returns>
         public IStageNoteNode? GetPreviousHitComboNode()
         {
-            if (_project.CurrentChart is null)
+            if (_project.CurrentChart is null) {
+                App.Logger.LogWarning("Chart is null");
                 return null;
+            }
 
             for (int i = _nextHitNoteIndex - 1; i >= 0; i--) {
                 var note = _project.CurrentChart.NoteNodes[i];
                 if (note.IsComboNode)
                     return note;
+            }
+            return null;
+        }
+
+        public NoteModel? GetPreviousHitNote()
+        {
+            if (_project.CurrentChart is null) {
+                App.Logger.LogWarning("Chart is null");
+                return null;
+            }
+
+            for (int i = _nextHitNoteIndex - 1; i >= 0; i--) {
+                var note = _project.CurrentChart.NoteNodes[i];
+                if (note is NoteModel noteModel)
+                    return noteModel;
             }
             return null;
         }
@@ -76,7 +96,7 @@ namespace Deenote.GameStage
 
         #endregion
 
-        internal void RefreshActiveVisibleNotes(float currentTime)
+        private void RefreshActiveVisibleNotes(float currentTime)
         {
             var chart = _project.CurrentChart;
             if (chart is null)
@@ -165,6 +185,19 @@ namespace Deenote.GameStage
                     AddTrackNote(note);
                 }
             }
+        }
+
+        public void RefreshActiveNotes()
+        {
+            RefreshActiveVisibleNotes(_gamePlay.MusicPlayer.Time);
+        }
+
+        /// <summary>
+        /// Called when music time changed
+        /// </summary>
+        public void ShiftActiveNotes(bool playSounds)
+        {
+            RefreshActiveNotes();
         }
 
         #region Collection

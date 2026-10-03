@@ -1,4 +1,6 @@
 using Cysharp.Threading.Tasks;
+using Deenote.Audio;
+using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Localization;
 using Deenote.UI;
 using Deenote.UI.Dialogs.Elements;
@@ -11,6 +13,9 @@ namespace Deenote
     [DefaultExecutionOrder(-99)]
     internal sealed class Bootstrapper : MonoBehaviour
     {
+        [SerializeField] GameMusicPlayer _gameMusicPlayer;
+        [SerializeField] PianoSoundSource _pianoSoundSource;
+        [SerializeField] HitSoundPlayer _hitSoundPlayer;
         [SerializeField] PerspectiveViewPanelView _perspectiveViewPanel;
 
         private static readonly MessageBoxArgs _quitUnsavedMsgBoxArgs = new(
@@ -21,7 +26,7 @@ namespace Deenote
 
         void Awake()
         {
-            var app = App.Create(_perspectiveViewPanel);
+            var app = App.Create(_perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundPlayer);
 
             Debug.Log("Bootstrapper Awake");
         }

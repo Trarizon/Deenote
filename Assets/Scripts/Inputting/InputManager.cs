@@ -103,7 +103,7 @@ namespace Deenote.Inputting
         private void RegisterStageGamePlay()
         {
             var actions = _inputActions.StageGamePlay;
-            actions.PauseResume.started += _ => _game.MusicPlayer.TogglePlayingState();
+            actions.PauseResume.started += _ => App.GamePlayManager.TogglePlayingState();
             actions.AutoResetPlay.started += _ =>
             {
                 _musicResetTime = _game.MusicPlayer.Time;

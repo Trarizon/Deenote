@@ -7,7 +7,18 @@ namespace Deenote.CoreB
 {
     public abstract class Application
     {
-        public static Application Current { get; private set; } = default!;
+        private static Application _current;
+        public static Application Current
+        {
+            get => _current!;
+            protected set {
+                if (_current is not null) {
+                    Debug.LogError("Application.Current is already set");
+                    return;
+                }
+                _current = value;
+            }
+        }
 
         public Deenote.Core.Logging.Logger Logger { get; } = new();
 
@@ -30,14 +41,9 @@ namespace Deenote.CoreB
             UnityEngine.Application.quitting += () => Quitted?.Invoke();
         }
 
-        protected static void Apply(Application application)
-        {
-            Current = application;
-        }
-
         internal static void OnDomainReloaded()
         {
-            Current = null!;
+            _current = null!;
         }
 
         public event Action<bool>? FocusChanged

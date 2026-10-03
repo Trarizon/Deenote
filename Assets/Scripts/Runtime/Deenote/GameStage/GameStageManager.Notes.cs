@@ -20,6 +20,7 @@ namespace Deenote.GameStage
 
         private void RefreshStageVisibleNotes(ReadOnlySpan<NoteModel> notes)
         {
+            App.Logger.LogDebug($"RefreshStageVisibleNotes: {notes.Length}");
             if (NoteFactory is null) {
                 _notes.Clear();
                 return;

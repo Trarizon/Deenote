@@ -72,12 +72,12 @@ namespace Deenote.GamePlay.UI
         private void Start()
         {
             _timeSlider.onValueChanged.AddListener(val => MainSystem.GamePlayManager.MusicPlayer.Time = val);
-            _pauseButton.onClick.AddListener(() => MainSystem.GamePlayManager.MusicPlayer.TogglePlayingState());
+            _pauseButton.onClick.AddListener(() => App.GamePlayManager.TogglePlayingState());
 
             MainSystem.GamePlayManager.MusicPlayer.ClipChanged += clip => _timeSlider.maxValue = clip.length;
             MainSystem.GamePlayManager.MusicPlayer.TimeChanged += args => _timeSlider.SetValueWithoutNotify(args.NewTime);
-            _timeSlider.maxValue = MainSystem.GamePlayManager.MusicPlayer.ClipLength;
-            _timeSlider.SetValueWithoutNotify(MainSystem.GamePlayManager.MusicPlayer.Time);
+            _timeSlider.maxValue = App.GamePlayManager.CurrentAudioClip?.length ?? 0f;
+            _timeSlider.SetValueWithoutNotify(App.GamePlayManager.CurrentTime);
 
             MainSystem.ProjectManager.RegisterNotification(
                 ProjectManager.NotificationFlag.ProjectMusicName,

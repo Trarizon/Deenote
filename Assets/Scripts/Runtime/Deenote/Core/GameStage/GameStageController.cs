@@ -16,6 +16,7 @@ namespace Deenote.Core.GameStage
         [SerializeField] GameStagePerspectiveCamera _perspectiveCamera = default!;
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
         [SerializeField] Transform _notePanelTransform = default!;
+        [SerializeField] GameStageNotePlaneController _notePlane;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
         [SerializeField] Material _holdBodyCullMaterial = default!;
@@ -31,7 +32,7 @@ namespace Deenote.Core.GameStage
 
         public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
 
-        public GameStageNotePlaneController NotePlane => _notePanelTransform.GetComponent<GameStageNotePlaneController>();
+        public GameStageNotePlaneController NotePlane => _notePlane;
 
         [Title("Config")]
         [SerializeField] GameStageConfig _config;

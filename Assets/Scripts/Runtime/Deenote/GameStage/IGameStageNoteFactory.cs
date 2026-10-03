@@ -25,8 +25,8 @@ namespace Deenote.GameStage
             _plane = plane;
             _pool = UnityUtils.CreateObjectPool(() =>
             {
-                var item=Object.Instantiate(_prefab,_plane.ContentTransform);
-                // item.OnInstantiate(_conte);
+                var item = Object.Instantiate(_prefab, _plane.ContentTransform);
+                item.OnInstantiate(MainSystem.GamePlayManager);
                 return item;
             });
         }

@@ -17124,6 +17124,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dbe778e7cfe9c347946cbc79fff88a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _gameMusicPlayer: {fileID: 1285348179}
+  _pianoSoundSource: {fileID: 295354312}
+  _hitSoundPlayer: {fileID: 1655424727}
   _perspectiveViewPanel: {fileID: 1591708233}
 --- !u!4 &965332283
 Transform:

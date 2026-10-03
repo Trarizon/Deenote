@@ -16,8 +16,8 @@ namespace Deenote.Entities.Models
 
         bool IsComboNode { get; }
 
-        internal uint Uid { get; }
+        uint Uid { get; }
 
-        internal static void InitUid(ref uint uid) => uid = s_uid++;
+        internal static void InitUid(ref uint uid) => uid = ++s_uid;
     }
 }

@@ -19,6 +19,7 @@ using UnityEngine;
 
 namespace Deenote.Core.Project
 {
+    [Obsolete]
     public sealed partial class ProjectManager : FlagNotifiableMonoBehaviour<ProjectManager, ProjectManager.NotificationFlag>
     {
         public ProjectModel? CurrentProject => App.ProjectManager.CurrentProject;
