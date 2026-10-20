@@ -7,6 +7,9 @@ namespace Deenote.Core.Logging
         public void LogTrace(string message)
             => Debug.Log($"[{Time.frameCount}] [T] {message}");
 
+        public void LogInfo(string message)
+            => Debug.Log($"[{Time.frameCount}] [I] {message}");
+
         public void LogDebug(string message)
             => Debug.Log($"[{Time.frameCount}] [D] {message}");
 

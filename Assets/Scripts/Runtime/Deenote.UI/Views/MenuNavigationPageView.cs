@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using Deenote.CoreB.Notification;
+using Deenote.Systems;
 
 namespace Deenote.UI.Views
 {
@@ -154,7 +155,7 @@ namespace Deenote.UI.Views
                     MainWindow.StatusBar.SetLocalizedStatusMessage(VersionCheckingStatusKey);
 
                     try {
-                        var res = await VersionManager.CheckUpdateAsync();
+                        var res = await App.Current.VersionManager.CheckUpdateAsync();
                         switch (res.Kind) {
                             case VersionManager.UpdateCheckResultKind.NoInternet:
                                 _ = MainWindow.ToastManager.ShowLocalizedToastAsync(VersionCheckNoInternetToastKey, 3f);
@@ -163,10 +164,10 @@ namespace Deenote.UI.Views
                                 _ = MainWindow.ToastManager.ShowLocalizedToastAsync(VersionCheckUpdateToDateToastKey, 3f);
                                 break;
                             case VersionManager.UpdateCheckResultKind.UpdateAvailable:
-                                var clicked = await MainWindow.DialogManager.OpenMessageBoxAsync(_verUpdMsgBoxArgs, VersionManager.CurrentVersion.ToString(), res.LatestVersion.ToString());
+                                var clicked = await MainWindow.DialogManager.OpenMessageBoxAsync(_verUpdMsgBoxArgs, App.Current.VersionManager.CurrentVersion.ToString(), res.LatestVersion.ToString());
                                 switch (clicked) {
-                                    case 0: VersionManager.OpenReleasePage(); break;
-                                    case 1: VersionManager.OpenDownloadPage(res.LatestVersion); break;
+                                    case 0: App.Current.VersionManager.OpenReleasePage(); break;
+                                    case 1: App.Current.VersionManager.OpenDownloadPage(res.LatestVersion); break;
                                 }
                                 break;
                         }

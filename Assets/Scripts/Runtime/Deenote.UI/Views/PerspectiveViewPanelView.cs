@@ -60,9 +60,9 @@ namespace Deenote.UI.Views
         {
             if (Utils.SetField(ref _isFullScreen_bf, full)) {
                 if (full)
-                    ApplicationManager.SetAspectRatio(AspectRatio, true);
+                    App.Current.ResolutionManager.SetForceAspectRatio(AspectRatio);
                 else
-                    ApplicationManager.RecoverResolution();
+                    App.Current.ResolutionManager.RecoverForceAspectRatio();
                 _contentTransform.SetParent(full ? _fullScreenParentTransform : _windowScreenParentTransform, false);
                 _fullScreenParentTransform.gameObject.SetActive(full);
                 _windowScreenParentTransform.gameObject.SetActive(!full);

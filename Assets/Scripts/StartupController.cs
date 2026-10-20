@@ -3,6 +3,7 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core;
 using Deenote.CoreB.Localization;
+using Deenote.Systems;
 using Deenote.UI;
 using Deenote.UI.Dialogs.Elements;
 using System;
@@ -32,14 +33,6 @@ namespace Deenote
         private void Start()
         {
 #if UNITY_EDITOR
-            Debug.Log("Ignored update check in editor mode");
-#else
-            if (MainSystem.GlobalSettings.CheckUpdateOnStartup) {
-                _ = CheckUpdateAsync();
-            }
-#endif
-
-#if UNITY_EDITOR
             Debug.Log("Ignored command line args in editor mode");
 #else
             if (GetCommandLineArg0() is { } clfile) {
@@ -48,20 +41,6 @@ namespace Deenote
 #endif
         }
 
-        private async UniTaskVoid CheckUpdateAsync()
-        {
-            var res = await VersionManager.CheckUpdateAsync();
-            if (res.Kind is VersionManager.UpdateCheckResultKind.UpdateAvailable) {
-                var clicked = await MainWindow.DialogManager.OpenMessageBoxAsync(_verUpdMsgBoxArgs,
-                    VersionManager.CurrentVersion.ToString(),
-                    res.LatestVersion.ToString());
-                switch (clicked) {
-                    case 0: VersionManager.OpenReleasePage(); break;
-                    case 1: VersionManager.OpenDownloadPage(res.LatestVersion); break;
-                }
-            }
-            // We do not pop up any fail message on startup-check
-        }
 
         private async UniTaskVoid OpenProjectFromCommandLineAsync(string filePath)
         {

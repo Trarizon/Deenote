@@ -1,16 +1,14 @@
-#nullable enable
-
+using Cysharp.Threading.Tasks;
 using Octokit;
 using Semver;
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using UnityEngine;
 using Application = UnityEngine.Application;
 
-namespace Deenote.Core
+namespace Deenote.Systems
 {
-    public static class VersionManager
+    public class VersionManager
     {
         private const SemVersionStyles VersionStyles = SemVersionStyles.AllowV | SemVersionStyles.OptionalPatch;
         private const string RepoUrl = "https://github.com/Chlorie/Deenote";
@@ -18,10 +16,10 @@ namespace Deenote.Core
         private const string RepoDownloadUrl =
             "https://github.com/Chlorie/Deenote/releases/download/v{0}/Deenote-{0}{1}.zip";
 
-        private static SemVersion? _current_bf;
-        public static SemVersion CurrentVersion => _current_bf ??= SemVersion.Parse(Application.version, VersionStyles);
+        private SemVersion? _current_bf;
+        public SemVersion CurrentVersion => _current_bf ??= SemVersion.Parse(Application.version, VersionStyles);
 
-        public static async Task<UpdateCheckResult> CheckUpdateAsync()
+        public async UniTask<UpdateCheckResult> CheckUpdateAsync()
         {
             if (Application.internetReachability == NetworkReachability.NotReachable) {
                 return new(UpdateCheckResultKind.NoInternet, null!);
@@ -37,10 +35,10 @@ namespace Deenote.Core
             return new(UpdateCheckResultKind.UpdateAvailable, latest);
         }
 
-        public static void OpenReleasePage()
+        public void OpenReleasePage()
             => Process.Start(RepoLatestReleaseUrl);
 
-        public static void OpenDownloadPage(SemVersion version)
+        public void OpenDownloadPage(SemVersion version)
             => Process.Start(string.Format(RepoDownloadUrl, version, IntPtr.Size == 8 ? "" : "-32bit"));
 
         public enum UpdateCheckResultKind
@@ -51,7 +49,7 @@ namespace Deenote.Core
         }
 
         /// <param name="LatestVersion">
-        /// Availabe when Internet connection is available
+        /// Available when Internet connection is available
         /// </param>
         public readonly record struct UpdateCheckResult(
             UpdateCheckResultKind Kind,

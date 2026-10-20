@@ -134,9 +134,9 @@ namespace Deenote.UI.Dialogs
             // System
 
             _resolutionDropdown.ResetOptions(_resolutionDropdownOptions.AsSpan());
-            _resolutionDropdown.SelectedIndexChanged += index => ApplicationManager.SetResolution(GetResolutionDropdownOption(index));
-            ApplicationManager.ResolutionChanged += vector => _resolutionDropdown.SetValueWithoutNotify(GetResolutionDropdownIndex(vector));
-            _resolutionDropdown.SetValueWithoutNotify(GetResolutionDropdownIndex(ApplicationManager.GetResolution()));
+            _resolutionDropdown.SelectedIndexChanged += index => App.Current.ResolutionManager.Resolution = GetResolutionDropdownOption(index);
+            App.Current.ResolutionManager.ResolutionChanged += value => _resolutionDropdown.SetValueWithoutNotify(GetResolutionDropdownIndex(value));
+            _resolutionDropdown.SetValueWithoutNotify(GetResolutionDropdownIndex(App.Current.ResolutionManager.Resolution));
 
             _vSyncToggle.IsCheckedChanged += val => MainSystem.GlobalSettings.IsVSyncOn = val;
             MainSystem.GlobalSettings.RegisterNotificationAndInvoke(
@@ -151,7 +151,7 @@ namespace Deenote.UI.Dialogs
 
             _autoSaveDropdown.ResetOptions(_autoSaveDropdownOptions.AsSpan());
             _autoSaveDropdown.SelectedIndexChanged += val => App.Environment.AutoSaveOptions = GetAutoSaveDropdownOption(val);
-            
+
             _autoSaveIntervalDropdown.ResetOptions(_autoSaveIntervals.AsSpan(), time => LocalizableText.Localized(AutoSaveIntervalMinutesKey, (time / 60).ToString()));
             _autoSaveIntervalDropdown.SelectedIndexChanged += val => App.Environment.AutoSaveIntervalSeconds = GetAutoSaveIntervalDropdownOption(val);
 
@@ -243,7 +243,7 @@ namespace Deenote.UI.Dialogs
 
         // options: 1, 5, 10, 20, 30
         private static readonly ImmutableArray<int> _autoSaveIntervals = ImmutableArray.Create(
-            60, 5 * 60, 10 * 60,30 * 60);
+            60, 5 * 60, 10 * 60, 30 * 60);
 
         private static int GetAutoSaveIntervalDropdownOption(int optionIndex)
             => _autoSaveIntervals[optionIndex];

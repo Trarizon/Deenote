@@ -34,6 +34,18 @@ namespace Deenote.Systems
             }
         }
 
+        private bool _checkUpdateOnStartup_bf;
+        public bool CheckUpdateOnStartup
+        {
+            get => _checkUpdateOnStartup_bf;
+            set {
+                if (_checkUpdateOnStartup_bf != value) {
+                    _checkUpdateOnStartup_bf = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CheckUpdateOnStartup)));
+                }
+            }
+        }
+
         public event Action<EnvironmentContext, PropertyChangedEventArgs>? PropertyChanged;
     }
 }

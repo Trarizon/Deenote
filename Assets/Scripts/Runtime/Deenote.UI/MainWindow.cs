@@ -106,7 +106,7 @@ namespace Deenote.UI
                 }
             };
 
-            UnhandledExceptionHandler.UnhandledExceptionOccurred += args =>
+            App.Current.ExceptionHandler.UnhandledExceptionOccurred += args =>
             {
                 ToastManager.ShowLocalizedToastAsync(UnhandledExceptionToastKey, 3f);
             };

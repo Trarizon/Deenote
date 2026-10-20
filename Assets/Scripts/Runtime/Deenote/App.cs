@@ -10,10 +10,9 @@ using Deenote.Systems;
 
 namespace Deenote
 {
-    public class App : Application
+    public partial class App : Application
     {
         public static new App Current { get; private set; } = default!;
-        public static new Logger Logger => ((Application)Current).Logger;
 
         private GamePlayerManager2 _gamePlayerManager;
         public static GamePlayerManager2 GamePlayManager => Current._gamePlayerManager;
@@ -31,7 +30,9 @@ namespace Deenote
 
         public ProjectAutoSaveTrigger ProjectAutoSaveTrigger { get; private set; }
 
-        private App() { }
+        private App()
+        {
+        }
 
         public static App Create(
             IGameStagePerspectiveViewPanel foreground,
