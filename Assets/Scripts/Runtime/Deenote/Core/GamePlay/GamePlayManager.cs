@@ -31,8 +31,8 @@ namespace Deenote.Core.GamePlay
         public NotesManager NotesManager => _notesManager;
         public GridsManager Grids => _gridsManager;
         public GameMusicPlayer MusicPlayer => _musicPlayer;
-        public StagePianoSoundPlayer PianoSoundPlayer => App.GamePlayManager.PianoSoundPlayer;
-        public HitSoundPlayer HitSoundPlayer => _hitSoundPlayer;
+        public StagePianoSoundPlayer PianoSoundPlayer => App.Current.PianoSoundPlayer;
+        public HitSoundPlayer HitSoundPlayer => App.Current.HitSoundPlayer;
 
         public event Action<StageLoadedEventArgs>? StageLoaded;
 

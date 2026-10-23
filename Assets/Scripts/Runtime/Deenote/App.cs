@@ -3,6 +3,7 @@ using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.Logging;
 using Deenote.CoreB;
 using Deenote.GamePlay;
+using Deenote.GamePlay.Audio;
 using Deenote.GameStage;
 using Deenote.GameStage.UI;
 using Deenote.Project;
@@ -14,8 +15,8 @@ namespace Deenote
     {
         public static new App Current { get; private set; } = default!;
 
-        private GamePlayerManager2 _gamePlayerManager;
-        public static GamePlayerManager2 GamePlayManager => Current._gamePlayerManager;
+        private GamePlayManager2 _gamePlayerManager;
+        public static GamePlayManager2 GamePlayManager => Current._gamePlayerManager;
 
         private GameStageManager _gameStageManager;
         public static GameStageManager GameStageManager => Current._gameStageManager;
@@ -30,6 +31,9 @@ namespace Deenote
 
         public ProjectAutoSaveTrigger ProjectAutoSaveTrigger { get; private set; }
 
+        public StagePianoSoundPlayer PianoSoundPlayer;
+        public HitSoundPlayer HitSoundPlayer;
+
         private App()
         {
         }
@@ -38,16 +42,21 @@ namespace Deenote
             IGameStagePerspectiveViewPanel foreground,
             GameMusicPlayer gameMusicPlayer,
             PianoSoundSource pianoSoundSource,
+            HitSoundSource hitSoundSource,
             HitSoundPlayer hitSoundPlayer)
         {
             Current = new App();
             Application.Current = Current;
-            var stagePianoSoundPlayer = new StagePianoSoundPlayer(pianoSoundSource);
-            Current._gamePlayerManager = new GamePlayerManager2(gameMusicPlayer, stagePianoSoundPlayer, hitSoundPlayer);
+            Current._gamePlayerManager = new GamePlayManager2(gameMusicPlayer, pianoSoundSource, hitSoundSource);
             Current._projectManager = new ProjectManager2();
             Current._gameStageManager = new GameStageManager(foreground);
             Current._environment = new EnvironmentContext();
             Current.ProjectAutoSaveTrigger = new ProjectAutoSaveTrigger();
+
+            var stagePianoSoundPlayer = new StagePianoSoundPlayer(pianoSoundSource);
+            Current.PianoSoundPlayer = stagePianoSoundPlayer;
+            Current.HitSoundPlayer = hitSoundPlayer;
+
             return Current;
         }
     }

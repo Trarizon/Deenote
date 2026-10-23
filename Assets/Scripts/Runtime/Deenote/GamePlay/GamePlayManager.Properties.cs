@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Deenote.GamePlay
 {
-    partial class GamePlayerManager2 : INotifyPropertyChanged<GamePlayerManager2>
+    partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>
     {
-        public event Action<GamePlayerManager2, PropertyChangedEventArgs>? PropertyChanged;
+        public event Action<GamePlayManager2, PropertyChangedEventArgs>? PropertyChanged;
 
         public const int MinMusicSpeed = 1;
         public const int MaxMusicSpeed = 30;
@@ -23,7 +23,9 @@ namespace Deenote.GamePlay
                 if (_musicSpeed_bf != value) {
                     _musicSpeed_bf = value;
 
-                    _musicPlayer.Pitch = ConvertToActualMusicSpeed(value);
+                    var actual = ConvertToActualMusicSpeed(value);
+                    _musicPlayer.Pitch = actual;
+                    _noteSoundsPlayer.SoundSpeed = actual;
                     PropertyChanged?.Invoke(this, nameof(MusicSpeed), nameof(ActualMusicSpeed));
                 }
             }
@@ -55,7 +57,7 @@ namespace Deenote.GamePlay
                 if (_pianoVolume_bf != value) {
                     _pianoVolume_bf = value;
 
-                    _pianoSoundPlayer.Volume = value;
+                    _noteSoundsPlayer.PianoSoundVolume = value;
                     PropertyChanged?.Invoke(this, nameof(PianoVolume));
                 }
             }
@@ -70,7 +72,7 @@ namespace Deenote.GamePlay
                 if (_hitSoundVolume_bf != value) {
                     _hitSoundVolume_bf = value;
 
-                    _hitSoundPlayer.Volume = value;
+                    _noteSoundsPlayer.HitSoundVolume = value;
                     PropertyChanged?.Invoke(this, nameof(HitSoundVolume));
                 }
             }

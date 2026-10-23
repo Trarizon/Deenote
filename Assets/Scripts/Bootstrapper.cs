@@ -2,13 +2,13 @@ using Cysharp.Threading.Tasks;
 using Deenote.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Localization;
+using Deenote.GamePlay.Audio;
 using Deenote.Systems;
 using Deenote.UI;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.UI.Views;
 using System.ComponentModel;
 using System.IO;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Deenote
@@ -18,6 +18,7 @@ namespace Deenote
     {
         [SerializeField] GameMusicPlayer _gameMusicPlayer;
         [SerializeField] PianoSoundSource _pianoSoundSource;
+        [SerializeField] HitSoundSource _hitSoundSource;
         [SerializeField] HitSoundPlayer _hitSoundPlayer;
         [SerializeField] PerspectiveViewPanelView _perspectiveViewPanel;
 
@@ -38,8 +39,8 @@ namespace Deenote
 
         void Awake()
         {
-            var app = App.Create(_perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundPlayer);
-
+            var app = App.Create(_perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundSource, _hitSoundPlayer);
+            
             Debug.Log("Bootstrapper Awake");
         }
 

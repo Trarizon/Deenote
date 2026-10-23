@@ -1,11 +1,9 @@
-using Deenote.CoreB.Notification;
-
 namespace Deenote.GamePlay
 {
-    partial class GamePlayerManager2 : INotifyPropertyChanged<GamePlayerManager2>
+    partial class GamePlayManager2
     {
         /// <remarks>
-        /// If music is paused, maually set music time by this value,
+        /// If music is paused, manually set music time by this value,
         /// <br />
         /// If playing, this value should sync to _musicSource.velocity
         /// </remarks>

@@ -1,27 +1,24 @@
+using Deenote.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Notification;
-using System;
+using Deenote.GamePlay.Audio;
 using UnityEngine;
 
 namespace Deenote.GamePlay
 {
-    public sealed partial class GamePlayerManager2 : INotifyPropertyChanged<GamePlayerManager2>
+    public sealed partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>
     {
         private readonly GameMusicPlayer _musicPlayer;
-        private readonly StagePianoSoundPlayer _pianoSoundPlayer;
-        private readonly HitSoundPlayer _hitSoundPlayer;
+        private readonly GameNoteSoundsPlayer _noteSoundsPlayer;
 
         public float CurrentTime => _musicPlayer.Time;
 
         public AudioClip? CurrentAudioClip => App.ProjectManager.CurrentAudioClip;
 
-        internal StagePianoSoundPlayer PianoSoundPlayer => _pianoSoundPlayer;
-
-        public GamePlayerManager2(GameMusicPlayer musicPlayer, StagePianoSoundPlayer pianoSoundPlayer, HitSoundPlayer hitSoundPlayer)
+        public GamePlayManager2(GameMusicPlayer musicPlayer, PianoSoundSource pianoSoundSource, HitSoundSource hitSoundSource)
         {
             _musicPlayer = musicPlayer;
-            _pianoSoundPlayer = pianoSoundPlayer;
-            _hitSoundPlayer = hitSoundPlayer;
+            _noteSoundsPlayer = new GameNoteSoundsPlayer(pianoSoundSource, hitSoundSource);
 
             App.Current.UnscaledTick += delta =>
             {
@@ -29,6 +26,7 @@ namespace Deenote.GamePlay
                     return;
 
                 Update_ManualPlay(delta);
+                _noteSoundsPlayer.UpdateTime(CurrentTime);
             };
 
             App.Current.FocusChanged += focus =>

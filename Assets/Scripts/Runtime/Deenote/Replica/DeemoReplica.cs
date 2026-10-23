@@ -210,7 +210,7 @@ namespace Deenote.Replica
                 playerHigh.volume = (float)(velocity - lowSound.Velocity) / velDiff * volume;
 
                 PlayPianoSoundAsync(playerHigh, pitch, duration, delay, speed, clearPitchFlags)
-                    .ContinueWith((playerHigh, returnAudioSource), tpl => tpl.returnAudioSource(playerHigh))
+                    .ContinueWith((playerHigh, returnAudioSource), static tpl => tpl.returnAudioSource(tpl.playerHigh))
                     .Forget();
 
                 if (lowSound.Clip is null)
@@ -222,7 +222,7 @@ namespace Deenote.Replica
                 playerLow.volume = (float)(highSound.Velocity - velocity) / velDiff * volume;
 
                 PlayPianoSoundAsync(playerLow, pitch, duration, delay, speed, clearPitchFlags)
-                    .ContinueWith((playerLow, returnAudioSource), tpl => tpl.returnAudioSource(playerLow))
+                    .ContinueWith((playerLow, returnAudioSource), static tpl => tpl.returnAudioSource(tpl.playerLow))
                     .Forget();
             }
             else {
@@ -232,7 +232,7 @@ namespace Deenote.Replica
                 player.volume = (float)velocity / highSound.Velocity * volume;
 
                 PlayPianoSoundAsync(player, pitch, duration, delay, speed, clearPitchFlags)
-                    .ContinueWith((player, returnAudioSource), tpl => tpl.returnAudioSource(player))
+                    .ContinueWith((player, returnAudioSource), static tpl => tpl.returnAudioSource(tpl.player))
                     .Forget();
             }
 
