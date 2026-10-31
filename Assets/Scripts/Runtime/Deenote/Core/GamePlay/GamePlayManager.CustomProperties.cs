@@ -1,7 +1,7 @@
 #nullable enable
 
-using Deenote.Library;
 using Deenote.Library.Mathematics;
+using System;
 using UnityEngine;
 
 namespace Deenote.Core.GamePlay
@@ -10,54 +10,53 @@ namespace Deenote.Core.GamePlay
     {
         private void RegisterCustomPropertiesConfigurations()
         {
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("stage/line-color-subbeat", CustomSubBeatLineColor?.ToRGBAString());
-                configs.Set("stage/line-color-beat", CustomBeatLineColor?.ToRGBAString());
-                configs.Set("stage/line-color-tempo", CustomTempoLineColor?.ToRGBAString());
-            };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                if (ColorUtils.TryParse(configs.GetString("stage/line-color-subbeat"), out var sbc)) {
-                    CustomSubBeatLineColor = sbc;
-                }
-                if (ColorUtils.TryParse(configs.GetString("stage/line-color-beat"), out var bc)) {
-                    CustomBeatLineColor = bc;
-                }
-                if (ColorUtils.TryParse(configs.GetString("stage/line-color-tempo"), out var tc)) {
-                    CustomTempoLineColor = tc;
-                }
-            };
+            // MainSystem.SaveSystem.SavingConfigurations += configs =>
+            // {
+            //     configs.Set("stage/line-color-subbeat", CustomSubBeatLineColor?.ToRGBAString());
+            //     configs.Set("stage/line-color-beat", CustomBeatLineColor?.ToRGBAString());
+            //     configs.Set("stage/line-color-tempo", CustomTempoLineColor?.ToRGBAString());
+            // };
+            // MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            // {
+            //     if (ColorUtils.TryParse(configs.GetString("stage/line-color-subbeat"), out var sbc)) {
+            //         CustomSubBeatLineColor = sbc;
+            //     }
+            //     if (ColorUtils.TryParse(configs.GetString("stage/line-color-beat"), out var bc)) {
+            //         CustomBeatLineColor = bc;
+            //     }
+            //     if (ColorUtils.TryParse(configs.GetString("stage/line-color-tempo"), out var tc)) {
+            //         CustomTempoLineColor = tc;
+            //     }
+            // };
         }
 
-        private Color? _customSubBeatLineColor;
-        private Color? _customBeatLineColor;
-        private Color? _customTempoLineColor;
+        [Obsolete("Moved to GameStageManager")]
         public Color? CustomSubBeatLineColor
         {
-            get => _customSubBeatLineColor;
+            get => App.GameStageManager.CustomSubdivisionLineColor;
             set {
-                if (Utils.SetField(ref _customSubBeatLineColor, value)) {
-                    NotifyFlag(NotificationFlag.CustomSubBeatLineColor);
-                }
+                App.GameStageManager.CustomSubdivisionLineColor = value;
+                NotifyFlag(NotificationFlag.CustomSubBeatLineColor);
             }
         }
+
+        [Obsolete("Moved to GameStageManager")]
         public Color? CustomBeatLineColor
         {
-            get => _customBeatLineColor;
+            get => App.GameStageManager.CustomBeatLineColor;
             set {
-                if (Utils.SetField(ref _customBeatLineColor, value)) {
-                    NotifyFlag(NotificationFlag.CustomBeatLineColor);
-                }
+                App.GameStageManager.CustomBeatLineColor = value;
+                NotifyFlag(NotificationFlag.CustomBeatLineColor);
             }
         }
+
+        [Obsolete("Moved to GameStageManager")]
         public Color? CustomTempoLineColor
         {
-            get => _customTempoLineColor;
+            get => App.GameStageManager.CustomTempoLineColor;
             set {
-                if (Utils.SetField(ref _customTempoLineColor, value)) {
-                    NotifyFlag(NotificationFlag.CustomTempoLineColor);
-                }
+                App.GameStageManager.CustomTempoLineColor = value;
+                NotifyFlag(NotificationFlag.CustomTempoLineColor);
             }
         }
     }

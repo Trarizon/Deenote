@@ -1,12 +1,11 @@
 using Deenote.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Notification;
-using Deenote.GamePlay.Audio;
 using UnityEngine;
 
 namespace Deenote.GamePlay
 {
-    public sealed partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>
+    public sealed partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>, INotifyPropertyChanging<GamePlayManager2>
     {
         private readonly GameMusicPlayer _musicPlayer;
         private readonly GameNoteSoundsPlayer _noteSoundsPlayer;

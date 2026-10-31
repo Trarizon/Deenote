@@ -8,5 +8,7 @@ namespace Deenote.GameStage.UI
     {
         RenderTexture ViewRendererTexture { get; }
         UniTask ApplyStageAsync(Func<Transform, UniTask<GameStageForegroundView>> instantiateForegroundViewAsync);
+        
+        event Action<IGameStagePerspectiveViewPanel>? ViewSizeChanged;
     }
 }

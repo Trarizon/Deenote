@@ -1,5 +1,7 @@
 using Deenote.CoreB.Notification;
+using Deenote.Entities.Models;
 using Deenote.Library;
+using Deenote.Library.Mathematics;
 using System;
 using UnityEngine;
 
@@ -93,18 +95,46 @@ namespace Deenote.GameStage
             }
         }
 
-        // HighlightedNoteSpeed
+        private const float ZeroAvoidHighlightedSpeed = 0.1f;
 
-        // ActualPlacementNoteSpeed;
-
-        // TODO: arch: 似乎可以和HighlightedNoteSpeed合并起来
-        private bool _filterNoteSpeed_bf;
-        public bool IsFilterNoteSpeed
+        private float? _highlightedNoteSpeed_bf;
+        /// <summary>
+        /// Highlighted note
+        /// </summary>
+        /// <remarks>
+        /// This controls whether notes are highlighted/downplayed.<br/>
+        /// If null, no note downplayed. If have value, the notes has different speed will be downplayed<br/>
+        /// Downplayed notes are not selectable.
+        /// </remarks>
+        public float? HighlightedNoteSpeed
         {
-            get => _filterNoteSpeed_bf;
+            get => _highlightedNoteSpeed_bf;
             set {
-                if (Utils.SetField(ref _filterNoteSpeed_bf, value)) {
-                    PropertyChanged?.Invoke(this, nameof(IsFilterNoteSpeed));
+                if (value <= 0f)
+                    value = ZeroAvoidHighlightedSpeed;
+                if (Utils.SetField(ref _highlightedNoteSpeed_bf, value)) {
+                    PropertyChanged?.Invoke(this, nameof(HighlightedNoteSpeed));
+                }
+            }
+        }
+
+        public bool IsNoteHighlighted(NoteModel note)
+            => HighlightedNoteSpeed is not { } speed || Mathf.Approximately(note.Speed, speed);
+
+        private float _placementNoteSpeed_bf;
+        /// <summary>
+        /// Placement note speed
+        /// </summary>
+        /// <remarks>
+        /// This controls the grids on stage.<br/>
+        /// Most of time this is same with HighlightedNoteSpeed.
+        /// </remarks>
+        public float PlacementNoteSpeed
+        {
+            get => _placementNoteSpeed_bf;
+            set {
+                if (Utils.SetField(ref _placementNoteSpeed_bf, value)) {
+                    PropertyChanged?.Invoke(this, nameof(PlacementNoteSpeed));
                 }
             }
         }
@@ -196,6 +226,28 @@ namespace Deenote.GameStage
                     PropertyChanged?.Invoke(this, nameof(CustomTempoLineColor));
                 }
             }
+        }
+
+        private void RegisterCustomPropertiesConfigurations()
+        {
+            MainSystem.SaveSystem.SavingConfigurations += configs =>
+            {
+                configs.Set("stage/line-color-subbeat", CustomSubdivisionLineColor?.ToRGBAString());
+                configs.Set("stage/line-color-beat", CustomBeatLineColor?.ToRGBAString());
+                configs.Set("stage/line-color-tempo", CustomTempoLineColor?.ToRGBAString());
+            };
+            MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            {
+                if (ColorUtils.TryParse(configs.GetString("stage/line-color-subbeat"), out var sbc)) {
+                    CustomSubdivisionLineColor = sbc;
+                }
+                if (ColorUtils.TryParse(configs.GetString("stage/line-color-beat"), out var bc)) {
+                    CustomBeatLineColor = bc;
+                }
+                if (ColorUtils.TryParse(configs.GetString("stage/line-color-tempo"), out var tc)) {
+                    CustomTempoLineColor = tc;
+                }
+            };
         }
 
         #endregion

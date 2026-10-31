@@ -48,12 +48,12 @@ namespace Deenote.Core.GameStage
 
             for (int i = prevHitNoteIndex; i < _nextHitSoundNoteIndex; i++) {
                 if (chart.NoteNodes[i] is NoteModel note) {
-                    _game.HitSoundPlayer.PlaySound(note.Kind);
-                    _game.PianoSoundPlayer.PlaySounds(note.Sounds.AsSpan());
+                    _game.HitSoundPlayer?.PlaySound(note.Kind);
+                    _game.PianoSoundPlayer?.PlaySounds(note.Sounds.AsSpan());
                 }
             }
             for (int i = prevHitBackgroundNoteIndex; i < _nextHitBackgroundNoteIndex; i++) {
-                _game.PianoSoundPlayer.PlaySounds(chart.BackgroundSoundNotes[i].Sounds);
+                _game.PianoSoundPlayer?.PlaySounds(chart.BackgroundSoundNotes[i].Sounds);
             }
         }
 

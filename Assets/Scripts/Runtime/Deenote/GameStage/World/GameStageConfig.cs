@@ -10,7 +10,7 @@ namespace Deenote.GameStage.World
         menuName = "Deenote/GameStage/GameStageConfig"
     )]
     [DeclareBoxGroup("Prefabs")]
-    public sealed class GameStageConfig : ScriptableObject
+    public class GameStageConfig : ScriptableObject
     {
         public float NotePosToWorldXFactor = 1;
         public float NoteTimeToWorldZFactor = 1;

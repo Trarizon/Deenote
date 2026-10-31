@@ -73,48 +73,49 @@ namespace Deenote.Core.GamePlay
         /// <br/>
         /// The value is also the default value when place note by editor
         /// </summary>
+        [Obsolete("Moved to GameStageManager")]
         public float HighlightedNoteSpeed
         {
-            get => _highlightedNoteSpeed_bf;
+            get => App.GameStageManager.HighlightedNoteSpeed ?? 1;
             set {
-                if (value <= 0f)
-                    value = ZeroAvoidHighlightedSpeed;
-                if (Utils.SetField(ref _highlightedNoteSpeed_bf, value)) {
-                    if (IsChartLoaded() && IsStageLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
-                        }
+                App.GameStageManager.HighlightedNoteSpeed = value;
+
+                if (IsChartLoaded() && IsStageLoaded()) {
+                    foreach (var note in NotesManager.OnStageNotes) {
+                        note.RefreshColorAlpha();
                     }
-                    NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
                 }
+                NotifyFlag(NotificationFlag.HighlightedNoteSpeed);
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public bool IsApplySpeedDifference
         {
-            get => _applySpeedDifference_bf;
+            get => App.GameStageManager.IsApplySpeedDifference;
             set {
-                if (Utils.SetField(ref _applySpeedDifference_bf, value)) {
-                    if (IsChartLoaded() && IsStageLoaded()) {
-                        NotesManager.RefreshStageActiveNotes();
-                    }
-                    NotifyFlag(NotificationFlag.IsApplySpeedDifference);
+                App.GameStageManager.IsApplySpeedDifference = value;
+
+                if (IsChartLoaded() && IsStageLoaded()) {
+                    NotesManager.RefreshStageActiveNotes();
                 }
+                NotifyFlag(NotificationFlag.IsApplySpeedDifference);
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public bool IsFilterNoteSpeed
         {
-            get => _filterNoteSpeed_bf;
+            get => App.GameStageManager.HighlightedNoteSpeed is not null;
             set {
-                if (Utils.SetField(ref _filterNoteSpeed_bf, value)) {
-                    if (IsChartLoaded() && IsStageLoaded()) {
-                        foreach (var note in NotesManager.OnStageNotes) {
-                            note.RefreshColorAlpha();
-                        }
+                App.GameStageManager.HighlightedNoteSpeed = value ? null : App.GameStageManager.PlacementNoteSpeed;
+
+                if (IsChartLoaded() && IsStageLoaded()) {
+                    foreach (var note in NotesManager.OnStageNotes) {
+                        note.RefreshColorAlpha();
                     }
-                    NotifyFlag(NotificationFlag.IsFilterNoteSpeed);
                 }
+                NotifyFlag(NotificationFlag.IsFilterNoteSpeed);
             }
         }
 
@@ -208,7 +209,7 @@ namespace Deenote.Core.GamePlay
         [Obsolete("Moved to GameStageManager")]
         public float SuddenPlus
         {
-            get => _suddenPlus_bf;
+            get => App.GameStageManager.SuddenPlus;
             set {
                 App.GameStageManager.SuddenPlus = value;
 
@@ -302,9 +303,9 @@ namespace Deenote.Core.GamePlay
             set {
                 App.GamePlayManager.MusicSpeed = value;
 
-                var actualVal = ConvertToActualMusicSpeed(value);
-                MusicPlayer.Pitch = actualVal;
-                PianoSoundPlayer.Speed = actualVal;
+                // var actualVal = ConvertToActualMusicSpeed(value);
+                // MusicPlayer.Pitch = actualVal;
+                // PianoSoundPlayer.Speed = actualVal;
                 NotifyFlag(NotificationFlag.MusicSpeed);
             }
         }
@@ -315,45 +316,54 @@ namespace Deenote.Core.GamePlay
         /// <summary>
         /// Range [0,1]
         /// </summary>
+        [Obsolete("Moved to GamePlayManager")]
         public float HitSoundVolume
         {
-            get => HitSoundPlayer.Volume;
+            get => App.GamePlayManager.HitSoundVolume;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (HitSoundPlayer.Volume != value) {
-                    HitSoundPlayer.Volume = value;
+                App.GamePlayManager.HitSoundVolume = value;
+
+                // value = Mathf.Clamp(value, 0f, 1f);
+                // if (HitSoundPlayer.Volume != value) {
+                //     HitSoundPlayer.Volume = value;
                     NotifyFlag(NotificationFlag.HitSoundVolume);
-                }
+                // }
             }
         }
 
         /// <summary>
         /// Range [0,1]
         /// </summary>
+        [Obsolete("Moved to GamePlayManager")]
         public float MusicVolume
         {
-            get => MusicPlayer.Volume;
+            get => App.GamePlayManager.MusicVolume;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (MusicPlayer.Volume != value) {
-                    MusicPlayer.Volume = value;
+                App.GamePlayManager.MusicVolume = value;
+
+                // value = Mathf.Clamp(value, 0f, 1f);
+                // if (MusicPlayer.Volume != value) {
+                //     MusicPlayer.Volume = value;
                     NotifyFlag(NotificationFlag.MusicVolume);
-                }
+                // }
             }
         }
 
         /// <summary>
         /// Range [0,1]
         /// </summary>
+        [Obsolete("Moved to GamePlayManager")]
         public float PianoVolume
         {
-            get => PianoSoundPlayer.Volume;
+            get => App.GamePlayManager.PianoVolume;
             set {
-                value = Mathf.Clamp(value, 0f, 1f);
-                if (PianoSoundPlayer.Volume != value) {
-                    PianoSoundPlayer.Volume = value;
+                App.GamePlayManager.PianoVolume = value;
+
+                // value = Mathf.Clamp(value, 0f, 1f);
+                // if (PianoSoundPlayer.Volume != value) {
+                //     PianoSoundPlayer.Volume = value;
                     NotifyFlag(NotificationFlag.PianoVolume);
-                }
+                // }
             }
         }
 

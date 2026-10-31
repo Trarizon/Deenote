@@ -1867,19 +1867,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43df871793f322647a15b0c7d2d646ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _perspectiveCamera: {fileID: 3771442345784415223}
   _perspectiveLineRenderer: {fileID: 3048834464407272512}
   _notePanelTransform: {fileID: 3822971740223594642}
   _notePlane: {fileID: 6824105575207004586}
   _noteIndicatorPanelTransform: {fileID: 466338838105563907}
   _noteDragSelectionPanelTransform: {fileID: 2153447970756827747}
-  _holdBodyCullMaterial: {fileID: 2100000, guid: 919dd3b629e4fb64c9774a646b1a058e,
-    type: 2}
   _config: {fileID: 11400000, guid: b6418790971b3634f9a0a4ea3c38e25f, type: 2}
   _gridLineConfig: {fileID: 11400000, guid: cf9bad0af6df57943be84caaa500007c, type: 2}
+  _perspectiveCamera: {fileID: 1356150517582111379}
+  _backgroundCamera: {fileID: 8502391528799722158}
   _staveMusicNameText: {fileID: 3798957992778705542}
   _backgroundAnimation: {fileID: 6138470144613939462}
   _judgeLineEffect: {fileID: 6200646096303864112}
+  _holdBodyCullMaterial: {fileID: 2100000, guid: 919dd3b629e4fb64c9774a646b1a058e,
+    type: 2}
 --- !u!1 &9065392707686970931
 GameObject:
   m_ObjectHideFlags: 0

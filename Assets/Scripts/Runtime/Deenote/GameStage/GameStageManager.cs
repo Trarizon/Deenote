@@ -14,6 +14,7 @@ namespace Deenote.GameStage
     {
         private readonly IGameStagePerspectiveViewPanel _foreground;
 
+        public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
         public GameStageGridsManager GridsManager { get; }
         public GameStageNotesManager NotesManager { get; private set; } = default;
 
@@ -42,8 +43,6 @@ namespace Deenote.GameStage
                     MainSystem.GamePlayManager.OnStageLoaded(loader);
                     OnGameStageLoaded(loader.StageController);
 
-                    GameStage.PerspectiveCamera.ApplyToRenderTexture(_foreground.ViewRendererTexture);
-
                     await _foreground.ApplyStageAsync(parent =>
                     {
                         return UniTask.FromResult<GameStageForegroundView>(UnityEngine.Object.Instantiate(loader.PerspectiveViewForeground, parent));
@@ -56,7 +55,9 @@ namespace Deenote.GameStage
 
         public void PostConstructor()
         {
-            NotesManager = new(this, MainSystem.GamePlayManager, App.ProjectManager);
+            NotesManager = new(this, App.GamePlayManager, App.ProjectManager);
+
+            RegisterCustomPropertiesConfigurations();
 
             Ctor_Notes();
         }

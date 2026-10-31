@@ -35,6 +35,9 @@ namespace Deenote.Core.GameStage
         private float AppearAheadTime
         {
             get {
+#if UNITY_EDITOR
+                if (_game is null) return 0;
+#endif
                 _game.AssertStageLoaded();
 
                 var suddenPlusAheadTime = _game.GetStageNoteAppearAheadTime(NoteModel.Speed);

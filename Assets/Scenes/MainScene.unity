@@ -4657,7 +4657,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 224336612}
-  - component: {fileID: 224336613}
+  - component: {fileID: 224336614}
   m_Layer: 0
   m_Name: HitSoundSource
   m_TagString: Untagged
@@ -4681,7 +4681,7 @@ Transform:
   - {fileID: 393798490}
   m_Father: {fileID: 1074414941}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &224336613
+--- !u!114 &224336614
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4690,7 +4690,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 224336611}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f3819aade1db4d41ade5cde3e047e27, type: 3}
+  m_Script: {fileID: 11500000, guid: a790e6304ed18eb4c8adcf612e6aaee4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _source: {fileID: 393798491}
@@ -17306,7 +17306,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameMusicPlayer: {fileID: 1285348179}
   _pianoSoundSource: {fileID: 295354312}
-  _hitSoundSource: {fileID: 224336613}
+  _hitSoundSource: {fileID: 224336614}
   _hitSoundPlayer: {fileID: 1655424727}
   _perspectiveViewPanel: {fileID: 1591708233}
 --- !u!4 &965332283

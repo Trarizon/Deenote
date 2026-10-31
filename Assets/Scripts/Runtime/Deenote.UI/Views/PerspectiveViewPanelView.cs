@@ -110,9 +110,7 @@ namespace Deenote.UI.Views
 
             _viewRenderTexture.Resize(rtSize);
 
-            MainSystem.GamePlayManager.Stage?
-                .PerspectiveCamera
-                .ApplyToRenderTexture(_viewRenderTexture);
+            ViewSizeChanged?.Invoke(this);
         }
         private void Awake()
         {
@@ -193,6 +191,8 @@ namespace Deenote.UI.Views
         /// InputManager requires this to judge if mouse actions should be enabled.
         /// </summary>
         public bool IsHovering => _contentHoveringTrigger.IsHovering;
+
+        public event Action<IGameStagePerspectiveViewPanel>? ViewSizeChanged;
 
         #endregion
     }

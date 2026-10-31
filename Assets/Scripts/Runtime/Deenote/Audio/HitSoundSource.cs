@@ -1,9 +1,11 @@
 using System;
 using TriInspector;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.GamePlay.Audio
+namespace Deenote.Audio
 {
+    [MovedFrom("Deenote.GamePlay.Audio")]
     public class HitSoundSource : MonoBehaviour
     {
         [Required][SerializeField] AudioSource _source;

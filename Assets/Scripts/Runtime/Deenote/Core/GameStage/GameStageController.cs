@@ -13,15 +13,13 @@ namespace Deenote.Core.GameStage
 {
     public abstract class GameStageController : MonoBehaviour
     {
-        [SerializeField] GameStagePerspectiveCamera _perspectiveCamera = default!;
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
         [SerializeField] Transform _notePanelTransform = default!;
         [SerializeField] GameStageNotePlaneController _notePlane;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
-        [SerializeField] Material _holdBodyCullMaterial = default!;
 
-        public GameStagePerspectiveCamera PerspectiveCamera => _perspectiveCamera;
+        protected abstract Camera PerspectiveCamera { get; }
 
         public PerspectiveLinesRenderer PerspectiveLinesRenderer => _perspectiveLineRenderer;
 
@@ -65,7 +63,6 @@ namespace Deenote.Core.GameStage
             }
         }
 
-        private static readonly int HoldCullMaxZPropertyId = Shader.PropertyToID("_CullMaxZ");
 
         protected internal virtual void OnInstantiate(GamePlayManager manager)
         {
@@ -96,16 +93,13 @@ namespace Deenote.Core.GameStage
 
         protected virtual void OnVisibleRangePercentageChanged(float value)
         {
-            var time = _manager.StageNoteActiveAheadTime * value;
-            var z = _manager.ConvertNoteCoordTimeToWorldZ(time);
-            _holdBodyCullMaterial.SetFloat(HoldCullMaxZPropertyId, z);
         }
 
         #region Perspective Converters
 
         internal Vector2 ConvertPerspectiveViewportPointToRaycastingViewportPoint(Vector2 perspectiveViewPanelViewportPoint)
         {
-            var camera = _perspectiveCamera.Camera;
+            var camera = PerspectiveCamera;
             return perspectiveViewPanelViewportPoint with {
                 y = perspectiveViewPanelViewportPoint.y / camera.rect.height
             };
@@ -113,7 +107,7 @@ namespace Deenote.Core.GameStage
 
         internal bool TryRaycastRaycastingViewportPointToNote(Vector2 raycastingViewportPoint, [NotNullWhen(true)] out GameStageNoteController? note)
         {
-            var camera = _perspectiveCamera.Camera;
+            var camera = PerspectiveCamera;
             var ray = camera.ViewportPointToRay(raycastingViewportPoint);
             if (Physics.Raycast(ray, out var hitInfo)) {
                 var c = hitInfo.collider;
@@ -130,7 +124,7 @@ namespace Deenote.Core.GameStage
         internal bool TryConvertNotePanelPositionToRaycastingViewportPoint((float X, float Z) notePanelPosition, out Vector2 viewportPoint)
         {
             var y = _notePanelTransform.position.y;
-            var camera = _perspectiveCamera.Camera;
+            var camera = PerspectiveCamera;
             var position = new Vector3(notePanelPosition.X, y, notePanelPosition.Z);
             var vp = camera.WorldToViewportPoint(position);
 
@@ -144,7 +138,7 @@ namespace Deenote.Core.GameStage
 
         internal bool TryConvertRaycastingViewportPointToNotePanelPosition(Vector2 raycastingViewportPoint, out (float X, float Z) notePanelPosition)
         {
-            var camera = _perspectiveCamera.Camera;
+            var camera = PerspectiveCamera;
             var ray = camera.ViewportPointToRay(raycastingViewportPoint);
             var plane = new Plane(_notePanelTransform.up, _notePanelTransform.position);
             if (plane.Raycast(ray, out var distance)) {

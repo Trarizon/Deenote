@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Triggers;
+using Deenote.CoreB.Notification;
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -26,18 +27,7 @@ namespace Deenote.CoreB.Notification
             => string.IsNullOrEmpty(PropertyName) || PropertyName == propertyName0 || PropertyName == propertyName1;
     }
 
-    public readonly struct PropertyChangedRegistration<T>
-    {
-        internal readonly T _self;
-        internal readonly Action<T, PropertyChangedEventArgs> _action;
-        internal PropertyChangedRegistration(T self, Action<T, PropertyChangedEventArgs> action)
-        {
-            _self = self;
-            _action = action;
-        }
-    }
-
-    public static class INotifyPropertyChangedExtensions
+    public static partial class INotifyPropertyChangedExtensions
     {
         public static void Invoke<T>(this Action<T, PropertyChangedEventArgs> action, T self, string propertyName)
             where T : INotifyPropertyChanged<T>
@@ -49,7 +39,7 @@ namespace Deenote.CoreB.Notification
             action(self, new PropertyChangedEventArgs(propertyName));
             action(self, new PropertyChangedEventArgs(propertyName2));
         }
-        
+
         public static PropertyChangedRegistration<T> RegisterPropertyChanged<T>(this T self, Action<T, PropertyChangedEventArgs> action) where T : INotifyPropertyChanged<T>
         {
             self.PropertyChanged += action;
@@ -62,19 +52,70 @@ namespace Deenote.CoreB.Notification
             self.PropertyChanged += action;
             return new PropertyChangedRegistration<T>(self, action);
         }
+    }
+}
 
-        public static PropertyChangedRegistration<T> UnregisterWhenGameObjectDestroyed<T>(this PropertyChangedRegistration<T> registration, GameObject gameObject) where T : INotifyPropertyChanged<T>
+
+static class Design
+{
+    static void Run()
+    {
+        var parent = new Parent();
+
+        parent.RegisterPropertyChanged((s, e) =>
         {
-            gameObject.GetAsyncDestroyTrigger().CancellationToken.RegisterWithoutCaptureExecutionContext((state) =>
-            {
-                var box = (StrongBox<PropertyChangedRegistration<T>>)state;
-                box.Value._self.PropertyChanged -= box.Value._action;
-            }, new StrongBox<PropertyChangedRegistration<T>>(registration));
+            if (e.Match(nameof(s.Name))) {
+                // ...
+            }
+            if (e.Match(nameof(s.Desc))) {
+                // ...
+            }
+        });//.UnregisterWhenGameObjectDestroyed(this);
 
-            return registration;
-        }
+        parent.RegisterPropertyChanged((s, e, r) =>
+        {
+            if (e.Match(nameof(s.Child))) {
+                s.Child.RegisterAsNestedPropertyChanged(s, nameof(s.Child), r, (s, e, r) =>
+                {
+                    if (e.Match(nameof(s.Name))) {
+                        // ...
+                    }
+                    if (e.Match(nameof(s.GrandChild))) {
+                        s.GrandChild.RegisterAsNestedPropertyChanged(s, nameof(s.GrandChild), r, (s, e, r) =>
+                        {
+                            if (e.Match(nameof(s.Name))) {
+                                // ...
+                            }
+                        });
+                    }
+                });
+            }
+        });//.UnregisterWhenGameObjectDestroyed(this);
 
-        public static PropertyChangedRegistration<T> UnregisterWhenGameObjectDestroyed<T>(this PropertyChangedRegistration<T> registration, Component component) where T : INotifyPropertyChanged<T>
-            => registration.UnregisterWhenGameObjectDestroyed(component.gameObject);
+    }
+
+
+    class Parent : INotifyPropertyChanged<Parent>, INotifyPropertyChanging<Parent>
+    {
+        public string Name { get; }
+        public string Desc { get; }
+        public Child Child { get; set; } = default!;
+        public event Action<Parent, PropertyChangedEventArgs>? PropertyChanged;
+        public event Action<Parent, PropertyChangingEventArgs>? PropertyChanging;
+    }
+
+    class Child : INotifyPropertyChanged<Child>, INotifyPropertyChanging<Child>
+    {
+        public string Name { get; }
+        public GrandChild GrandChild { get; set; } = default!;
+        public event Action<Child, PropertyChangedEventArgs>? PropertyChanged;
+        public event Action<Child, PropertyChangingEventArgs>? PropertyChanging;
+    }
+
+    class GrandChild : INotifyPropertyChanged<GrandChild>, INotifyPropertyChanging<GrandChild>
+    {
+        public string Name { get; }
+        public event Action<GrandChild, PropertyChangedEventArgs>? PropertyChanged;
+        public event Action<GrandChild, PropertyChangingEventArgs>? PropertyChanging;
     }
 }
