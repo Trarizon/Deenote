@@ -6,7 +6,6 @@ namespace Deenote.GamePlay
 {
     partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>
     {
-        public event Action<GamePlayManager2, PropertyChangingEventArgs>? PropertyChanging;
         public event Action<GamePlayManager2, PropertyChangedEventArgs>? PropertyChanged;
 
         public const int MinMusicSpeed = 1;
@@ -22,7 +21,6 @@ namespace Deenote.GamePlay
             set {
                 value = Mathf.Clamp(value, MinMusicSpeed, MaxMusicSpeed);
                 if (_musicSpeed_bf != value) {
-                    PropertyChanging?.Invoke(this, nameof(MusicSpeed), nameof(ActualMusicSpeed));
                     _musicSpeed_bf = value;
 
                     var actual = ConvertToActualMusicSpeed(value);
@@ -42,7 +40,6 @@ namespace Deenote.GamePlay
             set {
                 value = Mathf.Clamp01(value);
                 if (_musicVolume_bf != value) {
-                    PropertyChanging?.Invoke(this, nameof(MusicVolume));
                     _musicVolume_bf = value;
 
                     _musicPlayer.Volume = value;
@@ -58,7 +55,6 @@ namespace Deenote.GamePlay
             set {
                 value = Mathf.Clamp01(value);
                 if (_pianoVolume_bf != value) {
-                    PropertyChanging?.Invoke(this, nameof(PianoVolume));
                     _pianoVolume_bf = value;
 
                     _noteSoundsPlayer.PianoSoundVolume = value;
@@ -74,7 +70,6 @@ namespace Deenote.GamePlay
             set {
                 value = Mathf.Clamp01(value);
                 if (_hitSoundVolume_bf != value) {
-                    PropertyChanging?.Invoke(this, nameof(HitSoundVolume));
                     _hitSoundVolume_bf = value;
 
                     _noteSoundsPlayer.HitSoundVolume = value;
@@ -91,7 +86,6 @@ namespace Deenote.GamePlay
             get => _pauseWhenLoseFocus_bf;
             set {
                 if (_pauseWhenLoseFocus_bf != value) {
-                    PropertyChanging?.Invoke(this, nameof(PauseWhenLoseFocus));
                     _pauseWhenLoseFocus_bf = value;
                     PropertyChanged?.Invoke(this, nameof(PauseWhenLoseFocus));
                 }

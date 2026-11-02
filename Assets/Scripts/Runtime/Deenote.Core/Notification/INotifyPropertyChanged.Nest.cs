@@ -1,200 +1,181 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Deenote.CoreB.Notification
 {
-    public interface INestPropertyChangedRegistrationBranch : IPropertyChangedRegistration
+    public struct NestPropertyRegistrationHandle
     {
-        internal void Add(NestedPropertyRegistrationNonRoot nest);
-        internal void Remove(NestedPropertyRegistrationNonRoot nest);
-
-        internal struct ChildrenLinkedList
-        {
-            NestedPropertyRegistrationNonRoot? _head;
-
-            public void Add(NestedPropertyRegistrationNonRoot nest)
-            {
-                nest.Next = _head;
-                _head = nest;
-            }
-
-            public void Remove(NestedPropertyRegistrationNonRoot unregister)
-            {
-                if (_head is null)
-                    return;
-                if (_head == unregister) {
-                    _head = _head.Next;
-                    return;
-                }
-                var prev = _head;
-                var cur = prev.Next;
-            Loop:
-                if (cur is null)
-                    return;
-                else if (cur == unregister) {
-                    prev.Next = cur.Next;
-                    return;
-                }
-                else {
-                    prev = cur;
-                    cur = cur.Next;
-                    goto Loop;
-                }
-            }
-
-            public void UnregisterAll()
-            {
-                var head = _head;
-                while (head != null) {
-                    var cur = head;
-                    head = cur.Next;
-                    cur.Next = null;
-                    cur.Unregister();
-                }
-                _head = null;
-            }
-        }
+        internal ObservableBindings Bindings;
+        internal ushort Version;
     }
 
-    internal abstract class NestedPropertyRegistrationNonRoot : IPropertyChangedRegistration
+    internal abstract class ObservableBindings : IPropertyChangedRegistration
     {
-        public NestedPropertyRegistrationNonRoot? Next;
+        private readonly List<(string PropName, ObservableBindings? Bindings)> _listeners = new();
+        // Version incremented when PropertyChanged is called, so we can know if we should replace or append to _listeners when call Reuse()
+        protected ushort _version;
+
+        [return: NotNullIfNotNull("propertyValue")]
+        public ObservableBindings? AddOrUpdateBindings<T>(string propertyName, T? propertyValue, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action, ushort version)
+            where T : class?, INotifyPropertyChanged<T>?
+        {
+            var span = _listeners.AsSpan();
+            foreach (ref var item in span) {
+                if (item.PropName == propertyName) {
+                    if (item.Bindings == null) {
+                        if (propertyValue is not null)
+                            return item.Bindings = new ObservableBindings<T>(propertyValue, action);
+                        // if self is null, we needn't register any event handler, so keep item.Bindings as null
+                        return null;
+                    }
+                    else {
+                        // A type's defined property will always be the same type, so we directly cast it to ObservableBindings<T>
+                        var typed = (ObservableBindings<T>)item.Bindings;
+                        if (this._version == version) {
+                            typed.Append(action);
+                        }
+                        else {
+                            typed.Replace(propertyValue, action);
+                        }
+                        return item.Bindings;
+                    }
+                }
+            }
+            // if self is null, we needn't register any event handler, so keep item.Bindings as null
+            if (propertyValue is null)
+                return null;
+
+            var result = new ObservableBindings<T>(propertyValue, action);
+            _listeners.Add((propertyName, result));
+            return result;
+        }
+
+        protected void UnregisterChildren()
+        {
+            foreach (var item in _listeners) {
+                item.Bindings?.Unregister();
+            }
+            _listeners.Clear();
+        }
+
         public abstract void Unregister();
     }
 
-    internal sealed class NestedPropertyRegistrationRoot<T> : INestPropertyChangedRegistrationBranch
-        where T : INotifyPropertyChanged<T>, INotifyPropertyChanging<T>
+    internal sealed class ObservableBindings<T> : ObservableBindings where T : class?, INotifyPropertyChanged<T>?
     {
-        private readonly T _self;
-        private readonly Action<T, PropertyChangedEventArgs, INestPropertyChangedRegistrationBranch> _listener;
-        private INestPropertyChangedRegistrationBranch.ChildrenLinkedList _head;
+        internal T? _sender;
+        private Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle>? _listeners;
 
-        internal NestedPropertyRegistrationRoot(T self, Action<T, PropertyChangedEventArgs, INestPropertyChangedRegistrationBranch> action)
+        public ObservableBindings(T sender, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
         {
-            _self = self;
-            _listener = action;
-
-            _self.PropertyChanged += PropertyChanged;
+            _sender = sender;
+            _listeners = action;
+            if (_sender is not null)
+                _sender.PropertyChanged += PropertyChanged;
         }
 
-        private void PropertyChanged(T s, PropertyChangedEventArgs e) => _listener(s, e, this);
-        public void Add(NestedPropertyRegistrationNonRoot unregister) => _head.Add(unregister);
-        public void Remove(NestedPropertyRegistrationNonRoot unregister) => _head.Remove(unregister);
-        public void Unregister()
+        public void Replace(T? sender, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
         {
-            _self.PropertyChanged -= PropertyChanged;
-            _head.UnregisterAll();
-        }
-    }
-
-    internal sealed class NestedPropertyRegistrationLeaf<T, TOwner> : NestedPropertyRegistrationNonRoot
-        where T : INotifyPropertyChanged<T>
-        where TOwner : INotifyPropertyChanged<TOwner>, INotifyPropertyChanging<TOwner>
-    {
-        private readonly TOwner _owner;
-        private readonly string _propertyName;
-        private readonly T _value;
-        private readonly INestPropertyChangedRegistrationBranch _registration;
-        private readonly Action<T, PropertyChangedEventArgs> _listener;
-
-        public NestedPropertyRegistrationLeaf(T value, TOwner owner, string propertyName, INestPropertyChangedRegistrationBranch registration, Action<T, PropertyChangedEventArgs> action)
-        {
-            _value = value;
-            _owner = owner;
-            _propertyName = propertyName;
-            _registration = registration;
-            _listener = action;
-
-            _owner.PropertyChanging += Owner_PropertyChanging;
-            _value.PropertyChanged += _listener;
-            _registration.Add(this);
-        }
-
-        private void Owner_PropertyChanging(TOwner s, PropertyChangingEventArgs e)
-        {
-            if (e.Match(_propertyName)) {
-                Unregister();
+            UnregisterChildren();
+            if (_sender != null) {
+                _sender.PropertyChanged -= PropertyChanged;
             }
+            _sender = sender;
+            _listeners = action;
+            if (_sender is not null)
+                _sender.PropertyChanged += PropertyChanged;
+        }
+
+        public void Append(Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
+        {
+            _listeners += action;
+        }
+
+        private void PropertyChanged(T sender, PropertyChangedEventArgs e)
+        {
+            ushort version;
+            unchecked {
+                version = (ushort)(_version + 2);
+                _version++;
+            }
+            // We pass _version + 2 to listener, and set _version to _version + 1, and so that we ensure the first registration use Replace instead of Append
+            // And before Replace, we set _version to version.
+            // 
+            // Take _version = 0 as example.
+            // We pass version = 2 to listener, and set _version to 1.
+            // When AsNestedRegisterPropertyChanged is called, and we find a existing binding with propertyName, this moment, _version = 1 and version from parameter = 2
+            // So we forced to call Replace. And before call Replace, we set _version to version(2), so that the next time we call AsNestedRegisterPropertyChanged in same scope, we get _version == version == 2, and use Append instead of Replace.
+            // And the next time PropertyChanged calls, we set _version = 3 and pass version = 4 ...
+            _listeners?.Invoke(sender, e, new NestPropertyRegistrationHandle {
+                Bindings = this,
+                Version = unchecked(version),
+            });
         }
 
         public override void Unregister()
         {
-            _owner.PropertyChanging -= Owner_PropertyChanging;
-            _value.PropertyChanged -= _listener;
-            _registration.Remove(this);
-        }
-    }
-
-    internal sealed class NestedPropertyRegistrationBranch<T, TOwner> : NestedPropertyRegistrationNonRoot, INestPropertyChangedRegistrationBranch
-        where T : INotifyPropertyChanged<T>
-        where TOwner : INotifyPropertyChanged<TOwner>, INotifyPropertyChanging<TOwner>
-    {
-        private readonly TOwner _owner;
-        private readonly string _propertyName;
-        private readonly T _value;
-        private readonly INestPropertyChangedRegistrationBranch _registration;
-        private readonly Action<T, PropertyChangedEventArgs, INestPropertyChangedRegistrationBranch> _listener;
-
-        private INestPropertyChangedRegistrationBranch.ChildrenLinkedList _head;
-
-        public NestedPropertyRegistrationBranch(T value, TOwner owner, string propertyName, INestPropertyChangedRegistrationBranch registration, Action<T, PropertyChangedEventArgs, INestPropertyChangedRegistrationBranch> action)
-        {
-            _value = value;
-            _owner = owner;
-            _propertyName = propertyName;
-            _registration = registration;
-            _listener = action;
-
-            _owner.PropertyChanging += Owner_PropertyChanging;
-            _value.PropertyChanged += Value_PropertyChanged;
-            _registration.Add(this);
-        }
-
-        private void Owner_PropertyChanging(TOwner s, PropertyChangingEventArgs e)
-        {
-            if (e.Match(_propertyName)) {
-                Unregister();
+            UnregisterChildren();
+            if (_sender is not null) {
+                _sender.PropertyChanged -= PropertyChanged;
+                _sender = default;
             }
-        }
-
-        private void Value_PropertyChanged(T s, PropertyChangedEventArgs e)
-        {
-            _listener(s, e, this);
-        }
-
-        public void Add(NestedPropertyRegistrationNonRoot unregister) => _head.Add(unregister);
-
-        public void Remove(NestedPropertyRegistrationNonRoot unregister) => _head.Remove(unregister);
-
-        public override void Unregister()
-        {
-            _owner.PropertyChanging -= Owner_PropertyChanging;
-            _value.PropertyChanged -= Value_PropertyChanged;
-            _registration.Remove(this);
-
-            _head.UnregisterAll();
+            _listeners = null;
         }
     }
 
     partial class INotifyPropertyChangedExtensions
     {
-        public static void RegisterAsNestedPropertyChanged<T, TOwner>(this T value, TOwner owner, string propertyName, INestPropertyChangedRegistrationBranch registration, Action<T, PropertyChangedEventArgs> action)
-            where T : INotifyPropertyChanged<T>
-            where TOwner : INotifyPropertyChanged<TOwner>, INotifyPropertyChanging<TOwner>
+        public static IPropertyChangedRegistration RegisterPropertyChanged<T>(this T self, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
+            where T : class, INotifyPropertyChanged<T>
         {
-            new NestedPropertyRegistrationLeaf<T, TOwner>(value, owner, propertyName, registration, action);
+            var bindings = new ObservableBindings<T>(self, action);
+            return bindings;
         }
 
-        public static void RegisterAsNestedPropertyChanged<T, TOwner>(this T value, TOwner owner, string propertyName, INestPropertyChangedRegistrationBranch registration, Action<T, PropertyChangedEventArgs, INestPropertyChangedRegistrationBranch> action)
-            where T : INotifyPropertyChanged<T>, INotifyPropertyChanging<T>
-            where TOwner : INotifyPropertyChanged<TOwner>, INotifyPropertyChanging<TOwner>
+        public static IPropertyChangedRegistration RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
+            where T : class, INotifyPropertyChanged<T>
         {
-            new NestedPropertyRegistrationBranch<T, TOwner>(value, owner, propertyName, registration, action);
+            var bindings = new ObservableBindings<T>(self, action);
+            action.Invoke(self, PropertyChangedEventArgs.All, new NestPropertyRegistrationHandle {
+                Bindings = bindings,
+            });
+            return bindings;
         }
 
-        public static IPropertyChangedRegistration RegisterPropertyChanged<T>(this T self, Action<T, PropertyChangedEventArgs, INestPropertyChangedRegistrationBranch> action) where T : INotifyPropertyChanged<T>, INotifyPropertyChanging<T>
+        public static void AsNestedRegisterPropertyChanged<T>(this T? self, string propertyName, NestPropertyRegistrationHandle handle, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
+            where T : class, INotifyPropertyChanged<T>
         {
-            var nr = new NestedPropertyRegistrationRoot<T>(self, action);
-            return nr;
+            // Assert handle._sender.[propertyName] == self
+            var bindings = handle.Bindings.AddOrUpdateBindings(propertyName, self, action, handle.Version);
+        }
+
+        public static void AsNestedRegisterPropertyChangedAndInvoke<T>(this T self, string propertyName, NestPropertyRegistrationHandle handle, Action<T, PropertyChangedEventArgs, NestPropertyRegistrationHandle> action)
+            where T : class?, INotifyPropertyChanged<T>?
+        {
+            // Assert handle._sender.[propertyName] == self
+            var bindings = handle.Bindings.AddOrUpdateBindings(propertyName, self, action, handle.Version);
+
+            action.Invoke(self, PropertyChangedEventArgs.All, new NestPropertyRegistrationHandle {
+                // When self is null, the call site won't able to access any property of self,
+                // and then the handle is useless, so its safe to just use default(NestPropertyRegistrationHandle)
+                Bindings = bindings!,
+            });
+        }
+
+        public static void RegisterNestedPropertyChangedAndInvoke<T, TProperty>(this T self, string propertyName, Func<T, TProperty> getter, Action<TProperty, PropertyChangedEventArgs> action)
+            where T : class, INotifyPropertyChanged<T>
+            where TProperty : class, INotifyPropertyChanged<TProperty>
+        {
+            self.RegisterPropertyChanged((s, e, h) =>
+            {
+                if (e.Match(propertyName)) {
+                    getter(s).AsNestedRegisterPropertyChangedAndInvoke(propertyName, h, (p, e, h) =>
+                    {
+                        action.Invoke(p, e);
+                    });
+                }
+            });
         }
     }
 }

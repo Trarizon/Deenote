@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Deenote.GamePlay
 {
-    public sealed partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>, INotifyPropertyChanging<GamePlayManager2>
+    public sealed partial class GamePlayManager2 : INotifyPropertyChanged<GamePlayManager2>
     {
         private readonly GameMusicPlayer _musicPlayer;
         private readonly GameNoteSoundsPlayer _noteSoundsPlayer;
