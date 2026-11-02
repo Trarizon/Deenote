@@ -1,4 +1,4 @@
-using Deenote.Core;
+using Deenote.Core.IO;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using System;

@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using System;
 
-namespace Deenote.CoreB
+namespace Deenote.Core.Unity
 {
     public static class UniTaskUtils
     {
@@ -10,5 +10,8 @@ namespace Deenote.CoreB
             await task;
             action(state);
         }
+
+        public static Action Action(Func<UniTask> asyncAction) => asyncAction._ActionExt;
+        private static void _ActionExt(this Func<UniTask> asyncAction) => asyncAction().Forget();
     }
 }

@@ -17,6 +17,7 @@ using System.Linq;
 using UnityEngine;
 using Deenote.CoreB.Notification;
 using Deenote.Systems;
+using Deenote.Core.Unity;
 
 namespace Deenote.UI.Views
 {
@@ -115,7 +116,7 @@ namespace Deenote.UI.Views
 
         private void Awake()
         {
-            _recentFiles = new(UnityUtils.CreateObjectPool(
+            _recentFiles = new(Deenote.Library.UnityUtils.CreateObjectPool(
                 _recentFilePrefab, _recentFilesCollapsable.Content,
                 item => item.OnInstantiate(this), defaultCapacity: 0, maxSize: MaxRecentFilesCount));
         }
@@ -130,8 +131,8 @@ namespace Deenote.UI.Views
             }
             // Register
             {
-                _newButton.Clicked += UnityUtils.Action(MenuCreateNewProjectAsync);
-                _openButton.Clicked += UnityUtils.Action(MenuOpenProjectAsync);
+                _newButton.Clicked += UniTaskUtils.Action(MenuCreateNewProjectAsync);
+                _openButton.Clicked += UniTaskUtils.Action(MenuOpenProjectAsync);
                 _saveButton.Clicked += () =>
                 {
                     _ = MenuSaveProjectAsync();

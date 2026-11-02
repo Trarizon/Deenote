@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using UnityEngine;
 using Deenote.Library.Collections;
-using Deenote.Library.IO;
+using Deenote.Core.IO;
 
 namespace Deenote.UI.Dialogs
 {

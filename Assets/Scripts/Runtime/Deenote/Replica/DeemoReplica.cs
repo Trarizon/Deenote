@@ -1,5 +1,5 @@
 using Cysharp.Threading.Tasks;
-using Deenote.CoreB;
+using Deenote.Core.Unity;
 using System;
 using UnityEngine;
 using UnityEngine.UIElements.Experimental;

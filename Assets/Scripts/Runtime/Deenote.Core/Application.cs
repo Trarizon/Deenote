@@ -1,13 +1,12 @@
 using Deenote.CoreB.Unity;
 using System;
-using System.ComponentModel;
 using UnityEngine;
 
 namespace Deenote.CoreB
 {
     public abstract class Application
     {
-        private static Application _current;
+        private static Application _current = default!;
         public static Application Current
         {
             get => _current!;
@@ -34,12 +33,16 @@ namespace Deenote.CoreB
 
             UnityEngine.Application.wantsToQuit += () =>
             {
-                var args = new CancelEventArgs();
+                var args = new System.ComponentModel.CancelEventArgs();
                 Quitting?.Invoke(args);
                 return !args.Cancel;
             };
             UnityEngine.Application.quitting += () => Quitted?.Invoke();
         }
+
+        public T AddGlobalComponent<T>() where T : Component
+            => _unity.SharedGameObject.AddComponent<T>();
+
 
         internal static void OnDomainReloaded()
         {
@@ -60,7 +63,7 @@ namespace Deenote.CoreB
 
         public event Action<float>? UnscaledTick;
 
-        public event Action<CancelEventArgs>? Quitting;
+        public event Action<System.ComponentModel.CancelEventArgs>? Quitting;
         public event Action? Quitted;
 
         public void Quit()
