@@ -77,7 +77,8 @@ namespace Deenote.Entities.Models
                 ChartSerializationVersion.DeemoIIV2 => ChartSerializationVersions.DeemoIIV2,
                 _ => throw new NotImplementedException(),
             };
-            this.GenerateSpeedLines();
+            GenerateSpeedLines();
+
             return ChartSerializer.Serialize(this, versions);
         }
     }

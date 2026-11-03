@@ -33,6 +33,7 @@ namespace Deenote.Core.GamePlay
                 configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
                 // configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
                 configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
+                configs.Set("stage/warning_note_display", (int)WarningNoteVisibility);
 
                 configs.Set("stage/music_speed", MusicSpeed);
                 configs.Set("stage/hitsound_volume", HitSoundVolume);
@@ -53,6 +54,7 @@ namespace Deenote.Core.GamePlay
                 EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
                 // IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
                 PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
+                WarningNoteVisibility = (SpeedWarningNoteVisibility)configs.GetInt32("stage/warning_note_display", (int)SpeedWarningNoteVisibility.ShowNoteLine);
 
                 MusicSpeed = configs.GetInt32("stage/music_speed", 10);
                 HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
@@ -98,6 +100,7 @@ namespace Deenote.Core.GamePlay
 
                 if (IsChartLoaded() && IsStageLoaded()) {
                     NotesManager.RefreshStageActiveNotes();
+                        SpeedChangeWarningsManager.RefreshStageActiveWarnings();
                 }
                 NotifyFlag(NotificationFlag.IsApplySpeedDifference);
             }
@@ -137,6 +140,7 @@ namespace Deenote.Core.GamePlay
         private bool _earlyDisplayLowSpeedNotes_bf;
         private bool _ignoreNoteSpeed_bf;
         private bool _pauseWhenLoseFocus_bf;
+        private SpeedWarningNoteVisibility _warningNoteDisplay_bf;
 
         /// <summary>
         /// Range [5, 95], display [0.5, 9.5]
@@ -150,6 +154,7 @@ namespace Deenote.Core.GamePlay
 
                 if (IsStageLoaded() && IsChartLoaded()) {
                     NotesManager.RefreshStageActiveNotes();
+                        SpeedChangeWarningsManager.RefreshStageActiveWarnings();
                 }
                 NotifyFlag(NotificationFlag.NoteSpeed);
             }
@@ -216,6 +221,7 @@ namespace Deenote.Core.GamePlay
                 _cacheVisibleRangePercentage = null;
                 if (IsStageLoaded() && IsChartLoaded()) {
                     NotesManager.RefreshStageActiveNotes();
+                        SpeedChangeWarningsManager.RefreshStageActiveWarnings();
                     foreach (var note in NotesManager.OnStageNotes) {
                         note.RefreshColorAlpha();
                     }
@@ -282,6 +288,21 @@ namespace Deenote.Core.GamePlay
                 NotifyFlag(NotificationFlag.PauseWhenLoseFocus);
             }
         }
+
+        public SpeedWarningNoteVisibility WarningNoteVisibility
+        {
+            get => _warningNoteDisplay_bf;
+            set {
+                if (Utils.SetField(ref _warningNoteDisplay_bf, value)) {
+                    foreach (var note in _speedChangeWarningsManager.OnStageWarnings) {
+                        note.RefreshVisual();
+                    }
+                    NotifyFlag(NotificationFlag.WarningNoteDisplay);
+                }
+            }
+        }
+
+        public enum SpeedWarningNoteVisibility { Hide, ShowNote = 1, ShowLine = 2, ShowNoteLine = ShowNote | ShowLine }
 
         #endregion
 

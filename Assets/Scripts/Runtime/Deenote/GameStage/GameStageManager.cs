@@ -80,6 +80,13 @@ namespace Deenote.GameStage
                 stage.NotePlane
             );
             RefreshStageVisibleNotes(NotesManager.ActiveNotes);
+
+            // TODO: merge
+                // SpeedChangeWarningsManager.Initialize(
+                //     UnityUtils.CreateObjectPool(
+                //         Stage.Args.SpeedChangeWarningNotePrefab,
+                //         Stage.NotePanelTransform,
+                //         item => item.OnInstantiate(this)));
         }
     }
 }
