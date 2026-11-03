@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Deenote.Core.GameStage.Args
 {
+    [Obsolete]
     [CreateAssetMenu(fileName = nameof(GameStageArgs), menuName = $"{nameof(Deenote)}/{nameof(GameStageArgs)}")]
     public sealed class GameStageArgs : ScriptableObject
     {
@@ -19,20 +20,20 @@ namespace Deenote.Core.GameStage.Args
         [SerializeField, Tooltip("Actual multipliers for every speed from 1.0 ~ 9.5, with interval 0.5")]
         private float[] NoteTimeToZBaseMultipliers = default!;
 
-        private PiecewiseLinearFunction? _noteTimeToZBaseMultiplierFunc;
-        public PiecewiseLinearFunction NoteTimeToZBaseMultiplierFunction
-        {
-            get {
-                if (_noteTimeToZBaseMultiplierFunc is null) {
-                    var nodes = (stackalloc (float Speed, float Multiplier)[NoteTimeToZBaseMultipliers.Length]);
-                    for (int i = 0; i < NoteTimeToZBaseMultipliers.Length; i++) {
-                        nodes[i] = (i * 0.5f + 1.0f, NoteTimeToZBaseMultipliers[i]);
-                    }
-                    _noteTimeToZBaseMultiplierFunc = new PiecewiseLinearFunction(nodes, fillHorizontalBothSide: true);
-                }
-                return _noteTimeToZBaseMultiplierFunc;
-            }
-        }
+        // private PiecewiseLinearFunction? _noteTimeToZBaseMultiplierFunc;
+        // public PiecewiseLinearFunction NoteTimeToZBaseMultiplierFunction
+        // {
+        //     get {
+        //         if (_noteTimeToZBaseMultiplierFunc is null) {
+        //             var nodes = (stackalloc (float Speed, float Multiplier)[NoteTimeToZBaseMultipliers.Length]);
+        //             for (int i = 0; i < NoteTimeToZBaseMultipliers.Length; i++) {
+        //                 nodes[i] = (i * 0.5f + 1.0f, NoteTimeToZBaseMultipliers[i]);
+        //             }
+        //             _noteTimeToZBaseMultiplierFunc = new PiecewiseLinearFunction(nodes, fillHorizontalBothSide: true);
+        //         }
+        //         return _noteTimeToZBaseMultiplierFunc;
+        //     }
+        // }
 
         [Range(0f, 1f)] public float NoteFadeInRangePercent;
         //public float NoteFadeInZRange;=42.8

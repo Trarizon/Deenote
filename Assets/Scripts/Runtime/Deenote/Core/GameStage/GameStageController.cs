@@ -1,10 +1,12 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.Core.GameStage.Args;
 using Deenote.Entities;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.World;
 using Deenote.Library;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using TriInspector;
 using UnityEngine;
@@ -18,6 +20,12 @@ namespace Deenote.Core.GameStage
         [SerializeField] GameStageNotePlaneController _notePlane;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
+
+
+        [Obsolete("Deprecated")]
+        public GridLineArgs GridLineArgs { get; }
+        [Obsolete("Deprecated")] 
+        public GameStageArgs Args { get; }
 
         protected abstract Camera PerspectiveCamera { get; }
 
@@ -124,7 +132,7 @@ namespace Deenote.Core.GameStage
         internal bool TryRaycastRaycastingViewportPointToWarning(Vector2 raycastingViewportPoint,
             [NotNullWhen(true)] out GameStageSpeedChangeWarningNoteController? warning)
         {
-            var camera = _perspectiveCamera.Camera;
+            var camera = PerspectiveCamera;
             var ray = camera.ViewportPointToRay(raycastingViewportPoint);
             if (Physics.Raycast(ray, out var hitInfo)) {
                 var c = hitInfo.collider;

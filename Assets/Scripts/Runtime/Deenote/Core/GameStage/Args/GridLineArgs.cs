@@ -1,9 +1,11 @@
 #nullable enable
 
+using System;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage.Args
 {
+    [Obsolete]
     [CreateAssetMenu(
         fileName = nameof(GridLineArgs),
         menuName = $"{nameof(Deenote)}/{nameof(GamePlay)}/{nameof(GridLineArgs)}")]
