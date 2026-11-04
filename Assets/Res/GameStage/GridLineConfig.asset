@@ -33,3 +33,6 @@ MonoBehaviour:
   CurveLineData:
     Color: {r: 0.33333334, g: 0.75294125, b: 1, a: 1}
     Width: 2
+  WarningLineData:
+    Color: {r: 0.33333334, g: 0.75294125, b: 1, a: 1}
+    Width: 2

@@ -17,6 +17,7 @@ namespace Deenote.GameStage
         public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
         public GameStageGridsManager GridsManager { get; }
         public GameStageNotesManager NotesManager { get; private set; } = default;
+        public GameStageWarningNotesManager WarningNotesManager { get; private set; } = default!;
 
         public GameStageConfig Config => GameStage!.Config;
         public IGameStageStrategy Strategy { get; } = new DeemoGameStageStrategy();
@@ -56,6 +57,7 @@ namespace Deenote.GameStage
         public void PostConstructor()
         {
             NotesManager = new(this, App.GamePlayManager, App.ProjectManager);
+            WarningNotesManager = new(this, App.GamePlayManager, App.ProjectManager);
 
             RegisterCustomPropertiesConfigurations();
 
@@ -73,20 +75,16 @@ namespace Deenote.GameStage
             }
         }
 
+        public float GetNoteActiveAheadTime(float noteSpeed) => StandardNoteActiveAheadTime / noteSpeed;
+
         private void OnGameStageLoaded(GameStageController stage)
         {
             NoteFactory = new DefaultGameStageNoteFactory(
-                Config.NotePrefab,
+                Config,
                 stage.NotePlane
             );
             RefreshStageVisibleNotes(NotesManager.ActiveNotes);
-
-            // TODO: merge
-                // SpeedChangeWarningsManager.Initialize(
-                //     UnityUtils.CreateObjectPool(
-                //         Stage.Args.SpeedChangeWarningNotePrefab,
-                //         Stage.NotePanelTransform,
-                //         item => item.OnInstantiate(this)));
+            RefreshStageVisibleWarningNotes(WarningNotesManager.ActiveNotes);
         }
     }
 }

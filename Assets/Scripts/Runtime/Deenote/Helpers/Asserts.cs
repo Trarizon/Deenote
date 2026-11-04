@@ -17,6 +17,10 @@ namespace Deenote.Helpers
             where T : class, IStageNoteNode
             => AssertInOrder(notes.ToArray(), NodeTimeUniqueComparer.Instance, additionalMessage);
 
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void NotesInOrderViaTime<T>(ReadOnlySpan<T> notes, string? additionalMessage = null)
+            where T : class, IStageTimeNode
+            => AssertInOrder(notes.ToArray(), NodeTimeComparer.Instance, additionalMessage);
 
         private static void AssertInOrder<T>(IEnumerable<T> times, IComparer<T> comparer, string? additionalMessage = null)
         {

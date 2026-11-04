@@ -20,7 +20,7 @@ namespace Deenote.Core.GamePlay
     public sealed partial class GamePlayManager : FlagNotifiableMonoBehaviour<GamePlayManager, GamePlayManager.NotificationFlag>
     {
         private NotesManager _notesManager = default!;
-        private SpeedChangeWarningsManager _speedChangeWarningsManager = default!;
+        // private SpeedChangeWarningsManager _speedChangeWarningsManager = default!;
         private GridsManager _gridsManager = default!;
         [SerializeField] GameMusicPlayer _musicPlayer = default!;
         private StagePianoSoundPlayer _pianoSoundPlayer = default!;
@@ -30,7 +30,6 @@ namespace Deenote.Core.GamePlay
         public GameStageController? Stage { get; private set; }
 
         public NotesManager NotesManager => _notesManager;
-        public SpeedChangeWarningsManager SpeedChangeWarningsManager => _speedChangeWarningsManager;
         public GridsManager Grids => _gridsManager;
         public GameMusicPlayer MusicPlayer => _musicPlayer;
         public StagePianoSoundPlayer PianoSoundPlayer => null;// App.Current.PianoSoundPlayer;
@@ -80,7 +79,7 @@ namespace Deenote.Core.GamePlay
             _gridsManager = new GridsManager(this, MainSystem.StageChartEditor);
             _pianoSoundPlayer = new StagePianoSoundPlayer(MainSystem.PianoSoundSource);
             _notesManager = new NotesManager(this);
-            _speedChangeWarningsManager = new SpeedChangeWarningsManager(this);
+            // _speedChangeWarningsManager = new SpeedChangeWarningsManager(this);
 
             RegisterConfigurations();
             RegisterCustomPropertiesConfigurations();
@@ -90,11 +89,11 @@ namespace Deenote.Core.GamePlay
                 if (!IsChartLoaded())
                     return;
 
-                App.GameStageManager.NotesManager.RefreshActiveNotes();
+                App.GameStageManager.NotesManager.ShiftActiveNotes(playSounds: !args.IsByJump);
 
                 var forward = args.NewTime > args.OldTime;
                 // NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
-                SpeedChangeWarningsManager.ShiftStageActiveWarnings();
+                App.GameStageManager.WarningNotesManager.ShiftActiveNotes();
                 NotifyFlag(NotificationFlag.ActiveNoteUpdated);
                 // In previous version, note time was controlled by StageNoteController.Update,
                 // so we have to manually call update when manually change music time.
@@ -163,7 +162,7 @@ namespace Deenote.Core.GamePlay
 
             if (IsStageLoaded()) {
                 NotesManager.RefreshStageNoteTimeDisplay();
-                SpeedChangeWarningsManager.RefreshStageWarningTimeDisplay();
+                App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
             }
         }
         // private void OnApplicationFocus(bool focus)
@@ -200,7 +199,7 @@ namespace Deenote.Core.GamePlay
         {
             AssertChartLoaded();
             if (IsStageLoaded()) {
-                SpeedChangeWarningsManager.RefreshStageActiveWarnings();
+                App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
             }
             NotifyFlag(NotificationFlag.ActiveSpeedChangeWarningUpdated);
         }
@@ -249,7 +248,6 @@ namespace Deenote.Core.GamePlay
                 return;
             CurrentChart = null;
             MusicPlayer.Stop();
-            SpeedChangeWarningsManager.ClearTrackingWarnings();
             NotifyFlag(NotificationFlag.CurrentChart);
         }
 

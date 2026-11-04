@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace Deenote.GameStage
 {
+    public enum GameStageWarningNoteVisibility { Hide = 0, ShowNote = 1, ShowLine = 2, ShowNoteAndLine = 3 }
+
     partial class GameStageManager : INotifyPropertyChanged<GameStageManager>
     {
         public event Action<GameStageManager, PropertyChangedEventArgs>? PropertyChanged;
@@ -161,6 +163,17 @@ namespace Deenote.GameStage
             set {
                 if (Utils.SetField(ref _indicatorsVisible_bf, value)) {
                     PropertyChanged?.Invoke(this, nameof(IsIndicatorsVisible));
+                }
+            }
+        }
+
+        private GameStageWarningNoteVisibility _warningNoteVisibility_bf;
+        public GameStageWarningNoteVisibility WarningNoteVisibility
+        {
+            get => _warningNoteVisibility_bf;
+            set {
+                if (Utils.SetField(ref _warningNoteVisibility_bf, value)) {
+                    PropertyChanged?.Invoke(this, nameof(WarningNoteVisibility));
                 }
             }
         }

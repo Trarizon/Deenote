@@ -94,8 +94,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _lineRenderer: {fileID: 4193476707503258552}
   _selectionCollider: {fileID: 7451463576638208463}
-  _noteObj: {fileID: 4278545380221085179}
   _noteSpriteRenderer: {fileID: 5040793046721004696}
+  _config: {fileID: 11400000, guid: 22af035a99c16c441af8bad4e321fcb5, type: 2}
 --- !u!1 &4278545380221085179
 GameObject:
   m_ObjectHideFlags: 0

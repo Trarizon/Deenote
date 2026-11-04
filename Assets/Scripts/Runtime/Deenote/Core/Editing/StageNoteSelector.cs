@@ -509,8 +509,9 @@ namespace Deenote.Core.Editing
         private void OnSelectedWarningsChanging() => SelectedWarningsChanging?.Invoke(this);
         private void OnSelectedWarningsChanged()
         {
-            foreach (var warning in _game.SpeedChangeWarningsManager.OnStageWarnings)
-                warning.RefreshColoring();
+            App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
+            // foreach (var warning in App.GameStageManager.WarningNotesManager.ActiveNotes)
+            //     warning.RefreshColoring();
             SelectedWarningsChanged?.Invoke(this);
         }
 

@@ -114,8 +114,7 @@ namespace Deenote.Core.GameStage
             if (!_isActive)
                 return;
 
-            Color color = Model.IsSelected ? _game.Stage.Args.NoteSelectedColor : Color.white;
-            SetNoteSpriteColorRGB(color);
+            SetNoteSpriteEditorStatus(selected:Model.IsSelected);
         }
 
         private void OnStateChanged(bool active)
@@ -138,7 +137,7 @@ namespace Deenote.Core.GameStage
             }
 
             var appearAheadTime = AppearAheadTime;
-            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Args.NoteFadeInRangePercent);
+            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Config.NoteFadeInRatio);
 
             var alpha = MathUtils.MapTo(_stageDeltaTime, appearAheadTime, noteFadeInEndTime, 0f, 1f);
             SetNoteSpriteRendererAlpha(alpha);
@@ -148,7 +147,7 @@ namespace Deenote.Core.GameStage
 
         protected abstract void SetNoteSize();
 
-        protected abstract void SetNoteSpriteColorRGB(Color color);
+        protected abstract void SetNoteSpriteEditorStatus(bool selected);
 
         protected abstract void SetNoteSpriteRendererAlpha(float alpha);
 

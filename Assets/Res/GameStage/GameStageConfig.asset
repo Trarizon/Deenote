@@ -22,3 +22,7 @@ MonoBehaviour:
     type: 3}
   NoteIndicatorPrefab: {fileID: 3287208875695698390, guid: d258ceafb7b62de4ba218040a2b6f8eb,
     type: 3}
+  WarningNotePrefab: {fileID: 8149453575187749862, guid: 60f031f0b2b235841826cc4e7010517a,
+    type: 3}
+  WarningNoteIndicatorPrefab: {fileID: 4034772007280929675, guid: 3977324161e803a439fb4c8fdab17a6b,
+    type: 3}

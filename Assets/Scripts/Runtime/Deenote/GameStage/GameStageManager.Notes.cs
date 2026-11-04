@@ -8,13 +8,18 @@ namespace Deenote.GameStage
 {
     partial class GameStageManager
     {
-        private List<GameStageNoteController> _notes = new();
+        private readonly List<GameStageNoteController> _notes = new();
+        private readonly List<GameStageSpeedChangeWarningNoteController> _warningNotes = new();
 
         private void Ctor_Notes()
         {
             NotesManager.ActiveNotesChanged += (s, e) =>
             {
                 RefreshStageVisibleNotes(e.ActiveNotes);
+            };
+            WarningNotesManager.ActiveNotesChanged += (s, e) =>
+            {
+                RefreshStageVisibleWarningNotes(e.ActiveNotes);
             };
         }
 
@@ -41,6 +46,26 @@ namespace Deenote.GameStage
                 note.PostInitialize(prevNote);
                 prevNote = note;
             }
+        }
+
+        private void RefreshStageVisibleWarningNotes(ReadOnlySpan<SpeedChangeWarningModel> notes)
+        {
+            // App.Logger.LogDebug($"RefreshStageVisibleWarningNotes: {notes.Length}");
+            if (NoteFactory is null) {
+                _warningNotes.Clear();
+                return;
+            }
+
+            foreach (var note in _warningNotes) {
+                NoteFactory.Release(note);
+            }
+            _warningNotes.Clear();
+            foreach (var note in notes) {
+                var controller = NoteFactory.CreateWarningNote();
+                controller.Initialize(note);
+                _warningNotes.Add(controller);
+            }
+            Asserts.NotesInOrderViaTime(notes);
         }
     }
 }

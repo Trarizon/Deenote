@@ -228,7 +228,7 @@ namespace Deenote.GameStage
             private readonly List<NoteModel> _notes;
             public ReadOnlySpan<NoteModel> ActiveNotes => _notes.AsSpan();
 
-            public ActiveNotesChangedEventArgs(List<NoteModel> activeNotes)
+            internal ActiveNotesChangedEventArgs(List<NoteModel> activeNotes)
             {
                 _notes = activeNotes;
             }

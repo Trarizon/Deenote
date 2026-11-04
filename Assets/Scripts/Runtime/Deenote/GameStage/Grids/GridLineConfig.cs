@@ -15,6 +15,7 @@ namespace Deenote.GameStage.Grids
         public LineData PositionGridLineData;
         public LineData PositionGridBorderData;
         public LineData CurveLineData;
+        public LineData WarningLineData;
 
         [Serializable]
         public struct LineData

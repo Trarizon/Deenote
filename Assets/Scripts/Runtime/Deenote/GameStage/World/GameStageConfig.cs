@@ -26,5 +26,7 @@ namespace Deenote.GameStage.World
 
         [Group("Prefabs")][SerializeField] internal GameStageNoteController NotePrefab;
         [Group("Prefabs")][SerializeField] internal PlacementNoteIndicatorController NoteIndicatorPrefab;
+        [Group("Prefabs")][SerializeField] internal GameStageSpeedChangeWarningNoteController WarningNotePrefab;
+        [Group("Prefabs")][SerializeField] internal SpeedChangeWarningIndicatorController WarningNoteIndicatorPrefab;
     }
 }

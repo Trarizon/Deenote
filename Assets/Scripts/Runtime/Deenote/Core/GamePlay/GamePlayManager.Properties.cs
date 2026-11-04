@@ -2,6 +2,7 @@
 
 using Deenote.Core.GameStage;
 using Deenote.Entities.Models;
+using Deenote.GameStage;
 using Deenote.Library;
 using System;
 using UnityEngine;
@@ -100,7 +101,7 @@ namespace Deenote.Core.GamePlay
 
                 if (IsChartLoaded() && IsStageLoaded()) {
                     NotesManager.RefreshStageActiveNotes();
-                        SpeedChangeWarningsManager.RefreshStageActiveWarnings();
+                    App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
                 }
                 NotifyFlag(NotificationFlag.IsApplySpeedDifference);
             }
@@ -154,7 +155,7 @@ namespace Deenote.Core.GamePlay
 
                 if (IsStageLoaded() && IsChartLoaded()) {
                     NotesManager.RefreshStageActiveNotes();
-                        SpeedChangeWarningsManager.RefreshStageActiveWarnings();
+                    App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
                 }
                 NotifyFlag(NotificationFlag.NoteSpeed);
             }
@@ -221,7 +222,7 @@ namespace Deenote.Core.GamePlay
                 _cacheVisibleRangePercentage = null;
                 if (IsStageLoaded() && IsChartLoaded()) {
                     NotesManager.RefreshStageActiveNotes();
-                        SpeedChangeWarningsManager.RefreshStageActiveWarnings();
+                    App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
                     foreach (var note in NotesManager.OnStageNotes) {
                         note.RefreshColorAlpha();
                     }
@@ -289,16 +290,18 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public SpeedWarningNoteVisibility WarningNoteVisibility
         {
-            get => _warningNoteDisplay_bf;
+            get => (SpeedWarningNoteVisibility)App.GameStageManager.WarningNoteVisibility;
             set {
-                if (Utils.SetField(ref _warningNoteDisplay_bf, value)) {
-                    foreach (var note in _speedChangeWarningsManager.OnStageWarnings) {
-                        note.RefreshVisual();
-                    }
-                    NotifyFlag(NotificationFlag.WarningNoteDisplay);
-                }
+                App.GameStageManager.WarningNoteVisibility = (GameStageWarningNoteVisibility)value;
+                
+                App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
+                // foreach (var note in _speedChangeWarningsManager.OnStageWarnings) {
+                //     note.RefreshVisual();
+                // }
+                NotifyFlag(NotificationFlag.WarningNoteDisplay);
             }
         }
 
@@ -347,7 +350,7 @@ namespace Deenote.Core.GamePlay
                 // value = Mathf.Clamp(value, 0f, 1f);
                 // if (HitSoundPlayer.Volume != value) {
                 //     HitSoundPlayer.Volume = value;
-                    NotifyFlag(NotificationFlag.HitSoundVolume);
+                NotifyFlag(NotificationFlag.HitSoundVolume);
                 // }
             }
         }
@@ -365,7 +368,7 @@ namespace Deenote.Core.GamePlay
                 // value = Mathf.Clamp(value, 0f, 1f);
                 // if (MusicPlayer.Volume != value) {
                 //     MusicPlayer.Volume = value;
-                    NotifyFlag(NotificationFlag.MusicVolume);
+                NotifyFlag(NotificationFlag.MusicVolume);
                 // }
             }
         }
@@ -383,7 +386,7 @@ namespace Deenote.Core.GamePlay
                 // value = Mathf.Clamp(value, 0f, 1f);
                 // if (PianoSoundPlayer.Volume != value) {
                 //     PianoSoundPlayer.Volume = value;
-                    NotifyFlag(NotificationFlag.PianoVolume);
+                NotifyFlag(NotificationFlag.PianoVolume);
                 // }
             }
         }

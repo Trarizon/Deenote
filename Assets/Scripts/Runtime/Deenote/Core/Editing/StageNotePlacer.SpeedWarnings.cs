@@ -12,7 +12,7 @@ namespace Deenote.Core.Editing
 
         private void InitializeSpeedChangeWarningIndicator(GameStageController stage)
         {
-            var prefab = stage.Args.SpeedChangeWarningIndicatorPrefab;
+            var prefab = stage.Config.WarningNoteIndicatorPrefab;
             if (_speedChangeWarningIndicator is not null) {
                 Object.Destroy(_speedChangeWarningIndicator.gameObject);
             }

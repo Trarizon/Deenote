@@ -1,12 +1,10 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
-using Deenote.Core.GameStage.Args;
 using Deenote.Entities;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.World;
 using Deenote.Library;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using TriInspector;
 using UnityEngine;
@@ -20,12 +18,6 @@ namespace Deenote.Core.GameStage
         [SerializeField] GameStageNotePlaneController _notePlane;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
-
-
-        [Obsolete("Deprecated")]
-        public GridLineArgs GridLineArgs { get; }
-        [Obsolete("Deprecated")] 
-        public GameStageArgs Args { get; }
 
         protected abstract Camera PerspectiveCamera { get; }
 

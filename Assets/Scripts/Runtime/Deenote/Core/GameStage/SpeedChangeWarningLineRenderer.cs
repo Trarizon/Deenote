@@ -55,12 +55,12 @@ namespace Deenote.Core.GameStage
             var z = _game.ConvertNoteCoordTimeToWorldZ(_localTime, _speed);
             var xl = _game.ConvertNoteCoordPositionToWorldX(_lineStartPosition);
             var xr = _game.ConvertNoteCoordPositionToWorldX(_lineEndPosition);
-            var args = _game.Stage.GridLineArgs;
+            var args = _game.Stage.GridLineConfig;
             collector.AddLine(
                 new Vector2(xl, z),
                 new Vector2(xr, z),
-                args.SpeedChangeWarningLineColor with { a = args.SpeedChangeWarningLineColor.a * _alpha },
-                args.SpeedChangeWarningLineWidth);
+                args.WarningLineData.Color with { a = args.WarningLineData.Color.a * _alpha },
+                args.WarningLineData.Width);
         }
     }
 }
