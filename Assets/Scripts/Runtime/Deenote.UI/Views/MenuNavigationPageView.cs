@@ -18,6 +18,7 @@ using UnityEngine;
 using Deenote.CoreB.Notification;
 using Deenote.Systems;
 using Deenote.Core.Unity;
+using Deenote.Project;
 
 namespace Deenote.UI.Views
 {
@@ -114,11 +115,14 @@ namespace Deenote.UI.Views
 
         private const float SaveStatusMessageDuration = 10f;
 
+        private ProjectManager2 _projectManager;
+
         private void Awake()
         {
             _recentFiles = new(Deenote.Library.UnityUtils.CreateObjectPool(
                 _recentFilePrefab, _recentFilesCollapsable.Content,
                 item => item.OnInstantiate(this), defaultCapacity: 0, maxSize: MaxRecentFilesCount));
+            _projectManager = App.ProjectManager;
         }
 
         private void Start()
@@ -177,22 +181,19 @@ namespace Deenote.UI.Views
                     }
                 });
 
-                App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                _projectManager.RegisterPropertyChangedAndInvoke((s, e) =>
                 {
                     if (e.Match(nameof(s.CurrentProject))) {
                         bool active = s.CurrentProject is not null;
                         _saveButton.IsInteractable = active;
                         _saveAsButton.IsInteractable = active;
                     }
-                });
-                MainSystem.ProjectManager.RegisterNotificationAndInvoke(
-                    ProjectManager.NotificationFlag.IsLoading,
-                    manager =>
-                    {
-                        bool active = !manager.IsLoading;
+                    if (e.Match(nameof(s.IsProjectLoading))) {
+                        bool active = !s.IsProjectLoading;
                         _newButton.IsInteractable = active;
                         _openButton.IsInteractable = active;
-                    });
+                    }
+                }).UnregisterWhenGameObjectDestroyed(this);
             }
         }
 
@@ -210,7 +211,7 @@ namespace Deenote.UI.Views
             }
             var nresult = await MainWindow.DialogManager.NewProjectDialog.OpenCreateNewAsync();
             if (nresult is { } result) {
-                App.ProjectManager.OpenProject(result.Project, result.AudioClip);
+                _projectManager.OpenProject(result.Project, result.AudioClip);
             }
         }
 
@@ -232,8 +233,8 @@ namespace Deenote.UI.Views
                 return;
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadingStatusKey);
-            App.ProjectManager.UnloadCurrentProject();
-            bool isLoaded = await App.ProjectManager.OpenLoadProjectFileAsync(feRes.Path);
+            _projectManager.UnloadCurrentProject();
+            bool isLoaded = await _projectManager.OpenLoadProjectFileAsync(feRes.Path);
             if (isLoaded) {
                 AddOrTouchRecentFiles(feRes.Path);
                 MainWindow.StatusBar.SetLocalizedStatusMessage(OpenProjectLoadedStatusKey);
@@ -250,22 +251,23 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuSaveProjectAsync()
         {
-            MainSystem.ProjectManager.AssertProjectLoaded("Unexpected interactable save button when current project is null");
-            var proj = MainSystem.ProjectManager.CurrentProject;
+            Asserts.NotNull(_projectManager.CurrentProject, "Unexpected interactable save button when current project is null");
+            var proj = _projectManager.CurrentProject;
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
-            await App.ProjectManager.SaveCurrentProjectAsync();
+            await _projectManager.SaveCurrentProjectAsync();
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavedStatusKey, duration: SaveStatusMessageDuration);
             AddOrTouchRecentFiles(proj.ProjectFilePath);
         }
 
         public async UniTask MenuSaveProjectAsAsync()
         {
-            MainSystem.ProjectManager.AssertProjectLoaded("Unexpected interactable save button when current project is not loaded");
+            Asserts.NotNull(_projectManager.CurrentProject, "Unexpected interactable save button when current project is null");
         SelectFile:
+            var proj = _projectManager.CurrentProject;
             var feRes = await MainWindow.DialogManager.OpenFileExplorerInputFileAsync(
                 LocalizableText.Localized(SaveAsFileExplorerTitleKey),
-                MainSystem.ProjectManager.CurrentProject.MusicName,
+                proj.MusicName,
                 MainSystem.Args.DeenotePreferFileExtension);
             if (feRes.IsCancelled)
                 return;
@@ -280,9 +282,9 @@ namespace Deenote.UI.Views
             }
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
-            await App.ProjectManager.SaveCurrentProjectToAsync(feRes.Path);
+            await _projectManager.SaveCurrentProjectToAsync(feRes.Path);
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavedStatusKey, duration: SaveStatusMessageDuration);
-            AddOrTouchRecentFiles(MainSystem.ProjectManager.CurrentProject.ProjectFilePath);
+            AddOrTouchRecentFiles(proj.ProjectFilePath);
         }
 
         #endregion

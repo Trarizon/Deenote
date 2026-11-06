@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.CoreB.Notification;
 using Deenote.Library.Collections;
 using System;
 using System.Collections.Generic;
@@ -7,19 +8,61 @@ using UnityEngine;
 
 namespace Deenote.Entities.Models
 {
-    public sealed partial class ProjectModel
+    public sealed partial class ProjectModel : INotifyPropertyChanged<ProjectModel?>
     {
-        public string MusicName { get; set; } = "";
-        public string Composer { get; set; } = "";
-        public string ChartDesigner { get; set; } = "";
+        public event Action<ProjectModel, PropertyChangedEventArgs>? PropertyChanged;
+
+        private string _musicName_bf = "";
+        public string MusicName
+        {
+            get => _musicName_bf;
+            set {
+                if (_musicName_bf != value) {
+                    _musicName_bf = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MusicName)));
+                }
+            }
+        }
+        private string _composer_bf = "";
+        public string Composer
+        {
+            get => _composer_bf;
+            set {
+                if (_composer_bf != value) {
+                    _composer_bf = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Composer)));
+                }
+            }
+        }
+        private string _chartDesigner_bf = "";
+        public string ChartDesigner
+        {
+            get => _chartDesigner_bf;
+            set {
+                if (_chartDesigner_bf != value) {
+                    _chartDesigner_bf = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ChartDesigner)));
+                }
+            }
+        }
 
         public byte[] AudioFileData { get; set; }
 
+        private string _audioFileRelativePath_bf = "";
         /// <summary>
         /// Relative to ProjectFilePath, is not used if not <see cref="SaveAsRefPath"/>, but
         /// still requires this to get the audio type (file extension)
         /// </summary>
-        public string AudioFileRelativePath { get; set; }
+        public string AudioFileRelativePath
+        {
+            get => _audioFileRelativePath_bf;
+            set {
+                if (_audioFileRelativePath_bf != value) {
+                    _audioFileRelativePath_bf = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AudioFileRelativePath)));
+                }
+            }
+        }
 
         public List<ChartModel> Charts { get; } = new();
         internal List<Tempo> _tempos = new();
@@ -28,7 +71,17 @@ namespace Deenote.Entities.Models
 
         // Non Serialize
 
-        public string ProjectFilePath { get; internal set; }
+        private string _projectFilePath_bf = "";
+        public string ProjectFilePath
+        {
+            get => _projectFilePath_bf;
+            internal set {
+                if (_projectFilePath_bf != value) {
+                    _projectFilePath_bf = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProjectFilePath)));
+                }
+            }
+        }
 
         public float? AudioLength { get; set; }
 

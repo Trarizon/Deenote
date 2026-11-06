@@ -65,7 +65,7 @@ namespace Deenote.Core.Editing
                 return;
 
             float clipLength = _game.MusicPlayer.ClipLength;
-            IUndoableOperation? notesOperation = notes.IsEmpty 
+            IUndoableOperation? notesOperation = notes.IsEmpty
                 ? null
                 : _game.CurrentChart
                     .EditNotesTime(notes, v => EntityArgs.ClampTime(valueSelector(v), clipLength))
@@ -357,10 +357,10 @@ namespace Deenote.Core.Editing
 
         public void InsertTempo(TempoRange range)
         {
-            if (!_project.IsProjectLoaded())
+            if (App.ProjectManager.CurrentProject is null)
                 return;
 
-            _operations.Do(_project.CurrentProject.InsertTempo(range)
+            _operations.Do(App.ProjectManager.CurrentProject.InsertTempo(range)
                 .OnDone(() => NotifyFlag(NotificationFlag.ProjectTempo)));
         }
     }

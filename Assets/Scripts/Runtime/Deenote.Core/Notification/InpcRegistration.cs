@@ -35,8 +35,8 @@ namespace Deenote.CoreB.Notification
             where T : IPropertyChangedRegistration
             => registration.UnregisterWhenGameObjectDestroyed(component.gameObject);
 
-        public static IPropertyChangedRegistration RegisterPropertyChanged<T>(this T self, Action<T, PropertyChangedEventArgs, ObservableBindingToken> action)
-    where T : class, INotifyPropertyChanged<T>
+        public static IPropertyChangedRegistration RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyChangedEventArgs, ObservableBindingToken> action)
+            where T : class, INotifyPropertyChanged<T>
         {
 #pragma warning disable CS8631 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.
             var binding = new ObservableBinding<T>();
@@ -47,7 +47,7 @@ namespace Deenote.CoreB.Notification
         }
 
         public static void AsNestedRegisterPropertyChangedAndInvoke<T>(this T self, string propertyName, PropertyChangedEventArgs e, ObservableBindingToken token, Action<T, PropertyChangedEventArgs, ObservableBindingToken> action)
-            where T : class?, INotifyPropertyChanged<T?>?
+            where T : INotifyPropertyChanged<T?>?
         {
             if (e.Match(propertyName)) {
                 token.Binding.AddOrUpdate(propertyName, self, action);

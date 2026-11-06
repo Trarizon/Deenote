@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Deenote.UI.Dialogs.Elements;
+using Deenote.Core;
 
 namespace Deenote.UI.Views.Elements
 {
@@ -56,9 +57,9 @@ namespace Deenote.UI.Views.Elements
             });
             _exportButton.Clicked += UniTask.Action(async () =>
             {
-                MainSystem.ProjectManager.AssertProjectLoaded();
+                Asserts.NotNull(App.ProjectManager.CurrentProject);
 
-                var projFilePath = MainSystem.ProjectManager.CurrentProject.ProjectFilePath;
+                var projFilePath = App.ProjectManager.CurrentProject.ProjectFilePath;
 
                 var suffix = string.IsNullOrEmpty(ChartModel.Name)
                     ? ChartModel.Difficulty.ToLowerCaseString()

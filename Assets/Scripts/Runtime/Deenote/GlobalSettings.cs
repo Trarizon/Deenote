@@ -2,6 +2,7 @@ using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.CoreB.Localization;
 using UnityEngine;
+using System;
 
 namespace Deenote
 {
@@ -18,11 +19,11 @@ namespace Deenote
             MainSystem.SaveSystem.SavingConfigurations += configs =>
             {
                 configs.Set("language", LocalizationSystem.CurrentLanguage.LanguageCode);
-                configs.Set("vsync", IsVSyncOn);
+                // configs.Set("vsync", IsVSyncOn);
                 configs.Set("ineffective_prop_visible", IsIneffectivePropertiesVisible);
                 configs.Set("fps_shown", IsFpsShown);
                 configs.Set("scroll_sensitivity", GameViewScrollSensitivity);
-                configs.Set("check_update", CheckUpdateOnStartup);
+                // configs.Set("check_update", CheckUpdateOnStartup);
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
@@ -30,14 +31,15 @@ namespace Deenote
                     var res = LocalizationSystem.TrySetLanguage(LocalizationSystem.DefaultLanguageCode);
                     Debug.Assert(res, "Failed to set default langeuage");
                 }
-                IsVSyncOn = configs.GetBoolean("vsync");
+                // IsVSyncOn = configs.GetBoolean("vsync");
                 IsIneffectivePropertiesVisible = configs.GetBoolean("ineffective_prop_visible");
                 IsFpsShown = configs.GetBoolean("fps_shown");
                 GameViewScrollSensitivity = configs.GetSingle("scroll_sensitivity", 1f);
-                CheckUpdateOnStartup = configs.GetBoolean("check_update", true);
+                // CheckUpdateOnStartup = configs.GetBoolean("check_update", true);
             };
         }
 
+        [Obsolete("Use App.Environment.IsVSyncOn instead")]
         public bool IsVSyncOn
         {
             get => _isVSyncOn;
@@ -84,6 +86,7 @@ namespace Deenote
             }
         }
 
+        [Obsolete("Use App.Environment.CheckUpdateOnStartup instead")]
         public bool CheckUpdateOnStartup
         {
             get => _checkUpdateOnStartup;

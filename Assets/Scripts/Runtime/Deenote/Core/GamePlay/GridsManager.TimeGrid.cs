@@ -75,8 +75,8 @@ namespace Deenote.Core.GamePlay
         // Distance between beatLines and subBeatLines >= MinBeatLineIntterval / TimeGridSubBeatCount
         private void UpdateTimeGrids()
         {
-            var projManager = MainSystem.ProjectManager;
-            if (!projManager.IsProjectLoaded())
+            var projManager = App.ProjectManager;
+            if (projManager.CurrentProject is null)
                 return;
             if (!_game.IsStageLoaded())
                 return;
@@ -140,8 +140,8 @@ namespace Deenote.Core.GamePlay
             if (TimeGridSubBeatCount == 0)
                 return null;
 
-            MainSystem.ProjectManager.AssertProjectLoaded();
-            var project = MainSystem.ProjectManager.CurrentProject;
+            Asserts.NotNull(App.ProjectManager.CurrentProject);
+            var project = App.ProjectManager.CurrentProject;
             var tempoIndex = project.GetTempoIndex(time);
             if (tempoIndex < 0)
                 return null;
@@ -194,8 +194,8 @@ namespace Deenote.Core.GamePlay
             if (TimeGridSubBeatCount == 0)
                 return null;
 
-            MainSystem.ProjectManager.AssertProjectLoaded();
-            var project = MainSystem.ProjectManager.CurrentProject;
+            Asserts.NotNull(App.ProjectManager.CurrentProject);
+            var project = App.ProjectManager.CurrentProject;
             var tempoIndex = project.GetCeilingTempoIndex(time) - 1;
             if (tempoIndex < 0)
                 return null;
@@ -251,8 +251,8 @@ namespace Deenote.Core.GamePlay
             if (TimeGridSubBeatCount == 0)
                 return null;
 
-            MainSystem.ProjectManager.AssertProjectLoaded();
-            var project = MainSystem.ProjectManager.CurrentProject;
+            Asserts.NotNull(App.ProjectManager.CurrentProject);
+            var project = App.ProjectManager.CurrentProject;
             var tempoIndex = project.GetTempoIndex(time);
             if (tempoIndex < 0)
                 return project.Tempos.Length > 0 ? project.Tempos[0].StartTime : null;

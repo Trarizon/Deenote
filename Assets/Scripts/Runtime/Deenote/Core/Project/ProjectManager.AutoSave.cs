@@ -16,39 +16,39 @@ namespace Deenote.Core.Project
         /// <remarks>
         /// Unit second
         /// </remarks>
-        public int AutoSaveIntervalTime
-        {
-            get => _autoSaveIntervalTime_bf;
-            set {
-                if (Utils.SetField(ref _autoSaveIntervalTime_bf, value)) {
-                    NotifyFlag(NotificationFlag.AutoSaveInterval);
-                }
-            }
-        }
+        // public int AutoSaveIntervalTime
+        // {
+        //     get => _autoSaveIntervalTime_bf;
+        //     set {
+        //         if (Utils.SetField(ref _autoSaveIntervalTime_bf, value)) {
+        //             NotifyFlag(NotificationFlag.AutoSaveInterval);
+        //         }
+        //     }
+        // }
 
-        private ProjectAutoSaveOption _autoSave_bf;
-        public ProjectAutoSaveOption AutoSave
-        {
-            get => (ProjectAutoSaveOption)App.Environment.AutoSaveOptions;
-            set => App.Environment.AutoSaveOptions = (AutoSaveOptions)value;
-        }
+        // private ProjectAutoSaveOption _autoSave_bf;
+        // public ProjectAutoSaveOption AutoSave
+        // {
+        //     get => (ProjectAutoSaveOption)App.Environment.AutoSaveOptions;
+        //     set => App.Environment.AutoSaveOptions = (AutoSaveOptions)value;
+        // }
 
-        public event Action<ProjectSaveEventArgs>? ProjectSaved;
+        // public event Action<ProjectSaveEventArgs>? ProjectSaved;
 
-        private void RegisterAutoSaveConfigurations()
-        {
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("project/autosave", (int)AutoSave);
-                configs.Set("project/autosave_interval", AutoSaveIntervalTime);
-            };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                AutoSave = (ProjectAutoSaveOption)configs.GetInt32("project/autosave", (int)ProjectAutoSaveOption.Off);
-                var autosaveintervaltime = configs.GetInt32("project/autosave_interval", -1);
-                AutoSaveIntervalTime = autosaveintervaltime <= 0 ? DefaultAutoSaveIntervalTime : autosaveintervaltime;
-            };
-        }
+        // private void RegisterAutoSaveConfigurations()
+        // {
+        //     MainSystem.SaveSystem.SavingConfigurations += configs =>
+        //     {
+        //         // configs.Set("project/autosave", (int)AutoSave);
+        //         // configs.Set("project/autosave_interval", AutoSaveIntervalTime);
+        //     };
+        //     MainSystem.SaveSystem.LoadedConfigurations += configs =>
+        //     {
+        //         // AutoSave = (ProjectAutoSaveOption)configs.GetInt32("project/autosave", (int)ProjectAutoSaveOption.Off);
+        //         // var autosaveintervaltime = configs.GetInt32("project/autosave_interval", -1);
+        //         // AutoSaveIntervalTime = autosaveintervaltime <= 0 ? DefaultAutoSaveIntervalTime : autosaveintervaltime;
+        //     };
+        // }
 
         public readonly record struct ProjectSaveEventArgs(ProjectSaveContents Contents)
         {
