@@ -91,8 +91,7 @@ namespace Deenote.Core.GamePlay
 
                 App.GameStageManager.NotesManager.ShiftActiveNotes(playSounds: !args.IsByJump);
 
-                var forward = args.NewTime > args.OldTime;
-                // NotesManager.ShiftStageActiveNotes(!args.IsByJump && _manualPlaySpeedMultiplier is null);
+                // NotesManager.ShiftStageActiveNotes();
                 App.GameStageManager.WarningNotesManager.ShiftActiveNotes();
                 NotifyFlag(NotificationFlag.ActiveNoteUpdated);
                 // In previous version, note time was controlled by StageNoteController.Update,
@@ -100,6 +99,33 @@ namespace Deenote.Core.GamePlay
                 // In current version, note time is controlled by GamePlayManager.UpdateActiveNotes,
                 // so the following code is not required
                 // if (args.IsManuallyChanged) RefreshNotesTimeState();
+            };
+
+            MusicPlayer.TransportChanged += reason =>
+            {
+                if (!IsChartLoaded())
+                    return;
+
+                switch (reason) {
+                    case TransportChangeReason.Paused:
+                        // Let already-started voices ring out, but discard
+                        // everything that has only been scheduled for the future.
+                        NotesManager.CancelPendingAudio();
+                        return;
+                    case TransportChangeReason.Seeked:
+                        // Time jumps only invalidate scheduled voices. Active
+                        // voices continue as tails.
+                        NotesManager.CancelPendingAudio();
+                        break;
+                    case TransportChangeReason.RateChanged:
+                        NotesManager.CancelPendingAudio();
+                        break;
+                    case TransportChangeReason.Started:
+                        NotesManager.RebaseScheduledAudio();
+                        break;
+                }
+
+                NotesManager.ScheduleAudio();
             };
 
             App.ProjectManager.RegisterPropertyChanged((s, e) =>
@@ -160,6 +186,8 @@ namespace Deenote.Core.GamePlay
             //     MusicPlayer.Nudge(Time.deltaTime * manuallPlaySpeed);
             // }
 
+            NotesManager.ScheduleAudio();
+
             if (IsStageLoaded()) {
                 NotesManager.RefreshStageNoteTimeDisplay();
                 App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
@@ -208,6 +236,7 @@ namespace Deenote.Core.GamePlay
         {
             Debug.Assert(MainSystem.ProjectManager.CurrentProject?.Charts.Contains(chart) is true);
 
+            NotesManager.CancelScheduledAudio();
             MusicPlayer.Stop();
             MusicPlayer.Time = 0f;
             CurrentChart = chart;
@@ -246,6 +275,7 @@ namespace Deenote.Core.GamePlay
         {
             if (CurrentChart is null)
                 return;
+            NotesManager.CancelScheduledAudio();
             CurrentChart = null;
             MusicPlayer.Stop();
             NotifyFlag(NotificationFlag.CurrentChart);
