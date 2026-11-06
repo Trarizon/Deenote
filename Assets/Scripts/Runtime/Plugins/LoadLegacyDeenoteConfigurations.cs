@@ -38,12 +38,12 @@ namespace Deenote.Runtime.Plugins
             var showIndicator = GetBool("Show Indicator");
             var showBorder = GetBool("Show Border");
 
-            context.ProjectManager.AutoSave = autoSave switch {
-                AutoSaveState.Off => ProjectAutoSaveOption.Off,
-                AutoSaveState.On => ProjectAutoSaveOption.On,
-                AutoSaveState.OnAndSaveJson => ProjectAutoSaveOption.OnAndSaveJson,
-                _ => ProjectAutoSaveOption.Off,
-            };
+            // context.ProjectManager.AutoSave = autoSave switch {
+            //     AutoSaveState.Off => ProjectAutoSaveOption.Off,
+            //     AutoSaveState.On => ProjectAutoSaveOption.On,
+            //     AutoSaveState.OnAndSaveJson => ProjectAutoSaveOption.OnAndSaveJson,
+            //     _ => ProjectAutoSaveOption.Off,
+            // };
             context.GameManager.IsStageEffectOn = lightEffect;
             context.GlobalSettings.IsFpsShown = showFps;
             context.GlobalSettings.IsVSyncOn = vsync;
@@ -56,7 +56,7 @@ namespace Deenote.Runtime.Plugins
             context.GameManager.IsShowLinkLines = showLinkLines;
             // TODO: 强制转换为旧版？
             context.GameManager.Grids.PositionGridCount = xGridCount + 1;
-            //context.GameManager.Grids.PositionGridOffset_Legacy
+            // // context.GameManager.Grids.PositionGridOffset_Legacy
             context.GameManager.Grids.TimeGridSubBeatCount = tGridCount;
             LocalizationSystem.TrySetLanguage(language switch {
                 Language.EN => "en",
@@ -66,7 +66,7 @@ namespace Deenote.Runtime.Plugins
             context.Editor.Placer.SnapToPositionGrid = snapToGrid;
             context.Editor.Placer.SnapToTimeGrid = snapToGrid;
             context.Editor.Placer.IsIndicatorOn = showIndicator;
-            //context.GameManager.Grids.IsPositionGridBorderVisible_Legacy
+            // //context.GameManager.Grids.IsPositionGridBorderVisible_Legacy
 
             return UniTask.CompletedTask;
         }

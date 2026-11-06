@@ -56,8 +56,8 @@ namespace Deenote.CoreB.Notification
 
         public static PropertyChangedRegistration<T> RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyChangedEventArgs> action) where T : INotifyPropertyChanged<T>
         {
-            action(self, PropertyChangedEventArgs.All);
             self.PropertyChanged += action;
+            action(self, PropertyChangedEventArgs.All);
             return new PropertyChangedRegistration<T>(self, action);
         }
     }

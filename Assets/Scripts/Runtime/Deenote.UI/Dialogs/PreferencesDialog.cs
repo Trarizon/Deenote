@@ -50,6 +50,13 @@ namespace Deenote.UI.Dialogs
 
         #endregion
 
+        private EnvironmentContext _environment;
+
+        protected override void Awake()
+        {
+            _environment = App.Environment;
+        }
+
         private void Start()
         {
             _dialog.CloseButton.Clicked += base.CloseSelfModalDialog;
@@ -138,11 +145,6 @@ namespace Deenote.UI.Dialogs
             App.Current.ResolutionManager.ResolutionChanged += value => _resolutionDropdown.SetValueWithoutNotify(GetResolutionDropdownIndex(value));
             _resolutionDropdown.SetValueWithoutNotify(GetResolutionDropdownIndex(App.Current.ResolutionManager.Resolution));
 
-            _vSyncToggle.IsCheckedChanged += val => MainSystem.GlobalSettings.IsVSyncOn = val;
-            MainSystem.GlobalSettings.RegisterNotificationAndInvoke(
-                GlobalSettings.NotificationFlag.VSync,
-                settings => _vSyncToggle.IsChecked = settings.IsVSyncOn);
-
             _languageDropdown.ResetOptions(LocalizationSystem.Languages, pack => LocalizableText.Raw(pack.LanguageDisplayName));
             _languageDropdown.SetValueWithoutNotify(_languageDropdown.FindIndex(text => text == LocalizationSystem.CurrentLanguage.LanguageDisplayName));
             _languageDropdown.SelectedIndexChanged += val => LocalizationSystem.CurrentLanguage = (LanguagePack)_languageDropdown.Options[val].Item!;
@@ -165,10 +167,18 @@ namespace Deenote.UI.Dialogs
                 }
             });
 
-            _checkUpdateToggle.IsCheckedChanged += val => MainSystem.GlobalSettings.CheckUpdateOnStartup = val;
-            MainSystem.GlobalSettings.RegisterNotificationAndInvoke(
-                GlobalSettings.NotificationFlag.CheckUpdateOnStartup,
-                settings => _checkUpdateToggle.IsChecked = settings.CheckUpdateOnStartup);
+            _vSyncToggle.IsCheckedChanged += val => _environment.IsVSyncOn = val;
+            _checkUpdateToggle.IsCheckedChanged += val => _environment.CheckUpdateOnStartup = val;
+            
+            _environment.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.IsVSyncOn))) {
+                    _vSyncToggle.SetIsCheckedWithoutNotify(s.IsVSyncOn);
+                }
+                if (e.Match(nameof(s.CheckUpdateOnStartup))) {
+                    _checkUpdateToggle.SetIsCheckedWithoutNotify(s.CheckUpdateOnStartup);
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
 
             //_embedAudioDataToggle.IsCheckedChanged+=MainSystem.ProjectManager.
 

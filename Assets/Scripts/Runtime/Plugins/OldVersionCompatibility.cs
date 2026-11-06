@@ -52,7 +52,7 @@ namespace Deenote.Runtime.Plugins
 
                     var res = await context.UI.DialogManager.OpenFileExplorerInputFileAsync(
                         LocalizableText.Raw(texts["exportas"]),
-                        context.ProjectManager.CurrentProject.MusicName,
+                        null,// context.ProjectManager.CurrentProject.MusicName,
                         ".json");
                     if (res.IsCancelled)
                         return;

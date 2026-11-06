@@ -47,7 +47,7 @@ namespace Deenote.CoreB.Notification
         }
 
         public static void AsNestedRegisterPropertyChangedAndInvoke<T>(this T self, string propertyName, PropertyChangedEventArgs e, ObservableBindingToken token, Action<T, PropertyChangedEventArgs, ObservableBindingToken> action)
-            where T : class?, INotifyPropertyChanged<T?>?
+            where T : INotifyPropertyChanged<T?>?
         {
             if (e.Match(propertyName)) {
                 token.Binding.AddOrUpdate(propertyName, self, action);

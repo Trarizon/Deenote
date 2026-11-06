@@ -53,6 +53,17 @@ namespace Deenote.Project
         private CancellationTokenSource? _openLoadCts = new();
         private CancellationTokenSource _saveCts = new();
 
+        private bool _loading_bf = false;
+        public bool IsProjectLoading
+        {
+            get => _loading_bf;
+            private set {
+                if (_loading_bf != value) {
+                    _loading_bf = value;
+                    PropertyChanged?.Invoke(this, nameof(IsProjectLoading));
+                }
+            }
+        }
         public bool IsProjectSaving { get; private set; }
         public event Action<ProjectSaveEventArgs>? ProjectSaved;
 
@@ -78,18 +89,25 @@ namespace Deenote.Project
             _openLoadCts?.Dispose();
             _openLoadCts = new();
 
-            using var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _openLoadCts.Token);
+            IsProjectLoading = true;
+            try {
 
-            var proj = await ProjectIO.LoadAsync(filePath, lcts.Token);
-            if (proj == null)
-                return false;
+                using var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _openLoadCts.Token);
 
-            using var ms = new MemoryStream(proj.AudioFileData);
-            var clip = await AudioUtils.TryLoadAsync(ms, Path.GetExtension(proj.AudioFileRelativePath));
-            if (clip is null)
-                return false;
+                var proj = await ProjectIO.LoadAsync(filePath, lcts.Token);
+                if (proj == null)
+                    return false;
 
-            OpenProject(proj, clip);
+                using var ms = new MemoryStream(proj.AudioFileData);
+                var clip = await AudioUtils.TryLoadAsync(ms, Path.GetExtension(proj.AudioFileRelativePath));
+                if (clip is null)
+                    return false;
+                    
+                OpenProject(proj, clip);
+            } finally {
+                IsProjectLoading = false;
+            }
+
             return true;
         }
 
@@ -110,7 +128,7 @@ namespace Deenote.Project
             }
         }
 
-        public UniTask SaveCurrentProjectToAsync(string targetFilePath, CancellationToken cancellationToken = default)
+        public async UniTask SaveCurrentProjectToAsync(string targetFilePath, CancellationToken cancellationToken = default)
         {
             Guard.IsNotNull(CurrentProject);
 
@@ -119,10 +137,10 @@ namespace Deenote.Project
             _saveCts = new();
 
             using var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _saveCts.Token);
-            return SaveCurrentProjectAsyncInternal(targetFilePath, lcts.Token);
+            await SaveCurrentProjectAsyncInternal(targetFilePath, lcts.Token);
         }
 
-        public UniTask SaveCurrentProjectAsync(CancellationToken cancellationToken = default)
+        public async UniTask SaveCurrentProjectAsync(CancellationToken cancellationToken = default)
         {
             Guard.IsNotNull(CurrentProject);
 
@@ -131,7 +149,7 @@ namespace Deenote.Project
             _saveCts = new();
 
             using var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _saveCts.Token);
-            return SaveCurrentProjectAsyncInternal(CurrentProject.ProjectFilePath, lcts.Token);
+            await SaveCurrentProjectAsyncInternal(CurrentProject.ProjectFilePath, lcts.Token);
         }
 
         private async UniTask SaveCurrentProjectChartJsonsToAsyncInternal(string targetDirectory, IChartJsonSaveStrategy strategy, IProgress<bool>? progress, CancellationToken cancellationToken)

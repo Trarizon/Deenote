@@ -20,6 +20,7 @@ using UnityEngine;
 using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Notification;
+using Deenote.Project;
 
 namespace Deenote.UI.Views
 {
@@ -79,11 +80,15 @@ namespace Deenote.UI.Views
         private float _chartConcatOffset = 0f;
         private float _chartConcatMultiplier = 1f;
 
+        private ProjectManager2 _projectManager;
+
         private void Awake()
         {
             _chartItems = new(UnityUtils.CreateObjectPool(_chartListItemPrefab, _chartsCollapsable.Content,
                 item => item.OnInstantiate(this), defaultCapacity: 0));
             _rcts = new();
+
+            _projectManager = App.ProjectManager;
 
             #region Project
             {
@@ -160,23 +165,32 @@ namespace Deenote.UI.Views
                 });
 
                 var manager = MainSystem.ProjectManager;
-                App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                _projectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
                 {
                     if (e.Match(nameof(s.CurrentProject))) {
-                        if (!manager.IsProjectLoaded()) {
-                            _projectInfoGroup.gameObject.SetActive(false);
-                        }
-                        else {
-                            var proj = manager.CurrentProject;
-                            _projectInfoGroup.gameObject.SetActive(true);
-                            SetAudio(proj.AudioFileRelativePath);
-                            SetName(proj.MusicName);
-                            SetComposer(proj.Composer);
-                            SetCharter(proj.ChartDesigner);
-                            SetCharts(proj.Charts);
-                        }
+                        _projectInfoGroup.gameObject.SetActive(s.CurrentProject is not null);
                     }
-                });
+                    s.CurrentProject.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentProject), e, t, (s, e, t) =>
+                    {
+                        if (s is null)
+                            return;
+                        if (e.Match(nameof(s.AudioFileRelativePath))) {
+                            SetAudio(s.AudioFileRelativePath);
+                        }
+                        if (e.Match(nameof(s.MusicName))) {
+                            SetName(s.MusicName);
+                        }
+                        if (e.Match(nameof(s.Composer))) {
+                            SetComposer(s.Composer);
+                        }
+                        if (e.Match(nameof(s.ChartDesigner))) {
+                            SetCharter(s.ChartDesigner);
+                        }
+                        if (e.Match(nameof(s.Charts))) {
+                            SetCharts(s.Charts);
+                        }
+                    });
+                }).UnregisterWhenGameObjectDestroyed(this);
                 manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectAudio,
                     manager =>
                     {

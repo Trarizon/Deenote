@@ -48,7 +48,7 @@ namespace Deenote.Core.Editing
                 Placer.SnapToPositionGrid = configs.GetBoolean("editor/snap_pos", true);
                 Placer.SnapToTimeGrid = configs.GetBoolean("editor/snap_time", true);
             };
-            MainSystem.ProjectManager.ProjectSaved += args =>
+            App.ProjectManager.ProjectSaved += args =>
             {
                 OperationMemento.SaveAtCurrent();
             };

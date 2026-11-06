@@ -33,70 +33,70 @@ namespace Deenote.Core.Project
         private ResetableCancellationTokenSource _saveCts = new();
         private ResetableCancellationTokenSource _saveChartsCts = new();
 
-        public bool IsLoading
-        {
-            get => _isLoading_bf;
-            private set {
-                if (Utils.SetField(ref _isLoading_bf, value)) {
-                    NotifyFlag(NotificationFlag.IsLoading);
-                }
-            }
-        }
+        // public bool IsLoading
+        // {
+        //     get => _isLoading_bf;
+        //     private set {
+        //         if (Utils.SetField(ref _isLoading_bf, value)) {
+        //             NotifyFlag(NotificationFlag.IsLoading);
+        //         }
+        //     }
+        // }
 
-        public bool IsSaving
-        {
-            get => _isSaving_bf;
-            private set {
-                if (Utils.SetField(ref _isSaving_bf, value)) {
-                    NotifyFlag(NotificationFlag.IsSaving);
-                }
-            }
-        }
+        // public bool IsSaving
+        // {
+        //     get => _isSaving_bf;
+        //     private set {
+        //         if (Utils.SetField(ref _isSaving_bf, value)) {
+        //             NotifyFlag(NotificationFlag.IsSaving);
+        //         }
+        //     }
+        // }
 
-        private void Awake()
-        {
-            RegisterAutoSaveConfigurations();
-        }
+        // private void Awake()
+        // {
+        //     RegisterAutoSaveConfigurations();
+        // }
 
-        public void SetCurrentProject(ProjectModel project, AudioClip audio)
-        {
-            App.ProjectManager.OpenProject(project, audio);
-            NotifyFlag(NotificationFlag.CurrentProject);
-        }
+        // public void SetCurrentProject(ProjectModel project, AudioClip audio)
+        // {
+        //     App.ProjectManager.OpenProject(project, audio);
+        //     NotifyFlag(NotificationFlag.CurrentProject);
+        // }
 
-        public async UniTask<bool> OpenLoadProjectFileAsync(string filePath)
-        {
-            return await App.ProjectManager.OpenLoadProjectFileAsync(filePath);
-        }
+        // public async UniTask<bool> OpenLoadProjectFileAsync(string filePath)
+        // {
+        //     return await App.ProjectManager.OpenLoadProjectFileAsync(filePath);
+        // }
 
-        public void UnloadCurrentProject()
-        {
-            App.ProjectManager.UnloadCurrentProject();
-        }
+        // public void UnloadCurrentProject()
+        // {
+        //     App.ProjectManager.UnloadCurrentProject();
+        // }
 
-        public async UniTask SaveCurrentProjectAsync()
-        {
-            await App.ProjectManager.SaveCurrentProjectAsync();
-            ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
-        }
+        // public async UniTask SaveCurrentProjectAsync()
+        // {
+        //     await App.ProjectManager.SaveCurrentProjectAsync();
+        //     // ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
+        // }
 
-        public async UniTask SaveCurrentProjectToAsync(string targetFilePath)
-        {
-            await App.ProjectManager.SaveCurrentProjectToAsync(targetFilePath);
-            ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
-        }
+        // public async UniTask SaveCurrentProjectToAsync(string targetFilePath)
+        // {
+        //     await App.ProjectManager.SaveCurrentProjectToAsync(targetFilePath);
+        //     // ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
+        // }
 
-        public async UniTask SaveCurrentProjectChartJsonsAsync()
-        {
-            await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
-            ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
-        }
+        // public async UniTask SaveCurrentProjectChartJsonsAsync()
+        // {
+        //     await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
+        //     // ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
+        // }
 
-        public async UniTask SaveCurrentProjectChartJsonsToAsync(string targetDirectory)
-        {
-            await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(targetDirectory);
-            ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
-        }
+        // public async UniTask SaveCurrentProjectChartJsonsToAsync(string targetDirectory)
+        // {
+        //     await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(targetDirectory);
+        //     // ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
+        // }
 
         #region Validation
 
@@ -139,36 +139,36 @@ namespace Deenote.Core.Project
             ProjectCharts,
         }
 
-        private readonly struct LoadingScope : IDisposable
-        {
-            private readonly ProjectManager _self;
+        // private readonly struct LoadingScope : IDisposable
+        // {
+        //     private readonly ProjectManager _self;
 
-            public LoadingScope(ProjectManager self)
-            {
-                _self = self;
-                _self.IsLoading = true;
-            }
+        //     public LoadingScope(ProjectManager self)
+        //     {
+        //         _self = self;
+        //         _self.IsLoading = true;
+        //     }
 
-            public void Dispose()
-            {
-                _self.IsLoading = false;
-            }
-        }
+        //     public void Dispose()
+        //     {
+        //         _self.IsLoading = false;
+        //     }
+        // }
 
-        private readonly struct SavingScope : IDisposable
-        {
-            private readonly ProjectManager _self;
+        // private readonly struct SavingScope : IDisposable
+        // {
+        //     private readonly ProjectManager _self;
 
-            public SavingScope(ProjectManager self)
-            {
-                _self = self;
-                _self.IsSaving = true;
-            }
+        //     public SavingScope(ProjectManager self)
+        //     {
+        //         _self = self;
+        //         _self.IsSaving = true;
+        //     }
 
-            public void Dispose()
-            {
-                _self.IsSaving = false;
-            }
-        }
+        //     public void Dispose()
+        //     {
+        //         _self.IsSaving = false;
+        //     }
+        // }
     }
 }
