@@ -134,7 +134,7 @@ namespace Deenote.Replica
             }
         }
 
-        private static (int Pitch, (T? Clip, int Velocity) Low, (T Clip, int Velocity) High) GetNearestSoundClip<T>(int pitch, int velocity, ReadOnlySpan<T> soundClips)
+        internal static (int Pitch, (T? Clip, int Velocity) Low, (T Clip, int Velocity) High) GetNearestSoundClip<T>(int pitch, int velocity, ReadOnlySpan<T> soundClips)
         {
             var clips = GetNearestClipsByPitch(pitch, out var resultPitch, soundClips);
             Debug.Assert(clips.Length == _velocities.Length);

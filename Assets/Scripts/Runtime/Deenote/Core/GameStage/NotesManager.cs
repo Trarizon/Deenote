@@ -432,8 +432,6 @@ namespace Deenote.Core.GameStage
             UpdateNotesAppearOrder();
             ReselectActiveVisibleNotes();
 
-            CancelScheduledAudio();
-            ResetScheduledAudio(_game.MusicPlayer.PreciseTime, _game.MusicPlayer.Transport.Epoch);
             _time = currentTime;
         }
 

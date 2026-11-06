@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Audio;
 using Deenote.Core.Audio;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
@@ -24,7 +25,7 @@ namespace Deenote.Core.GamePlay
         private GridsManager _gridsManager = default!;
         [SerializeField] GameMusicPlayer _musicPlayer = default!;
         private StagePianoSoundPlayer _pianoSoundPlayer = default!;
-        [SerializeField] HitSoundPlayer _hitSoundPlayer = default!;
+        [SerializeField] HitSoundSource _hitSoundPlayer = default!;
 
 
         public GameStageController? Stage { get; private set; }
@@ -33,7 +34,7 @@ namespace Deenote.Core.GamePlay
         public GridsManager Grids => _gridsManager;
         public GameMusicPlayer MusicPlayer => _musicPlayer;
         public StagePianoSoundPlayer PianoSoundPlayer => null;// App.Current.PianoSoundPlayer;
-        public HitSoundPlayer HitSoundPlayer => null;// App.Current.HitSoundPlayer;
+        public HitSoundSource HitSoundPlayer => null;// App.Current.HitSoundPlayer;
 
         public event Action<StageLoadedEventArgs>? StageLoaded;
 
@@ -101,32 +102,32 @@ namespace Deenote.Core.GamePlay
                 // if (args.IsManuallyChanged) RefreshNotesTimeState();
             };
 
-            MusicPlayer.TransportChanged += reason =>
-            {
-                if (!IsChartLoaded())
-                    return;
+            // MusicPlayer.TransportChanged += reason =>
+            // {
+            //     if (!IsChartLoaded())
+            //         return;
 
-                switch (reason) {
-                    case TransportChangeReason.Paused:
-                        // Let already-started voices ring out, but discard
-                        // everything that has only been scheduled for the future.
-                        NotesManager.CancelPendingAudio();
-                        return;
-                    case TransportChangeReason.Seeked:
-                        // Time jumps only invalidate scheduled voices. Active
-                        // voices continue as tails.
-                        NotesManager.CancelPendingAudio();
-                        break;
-                    case TransportChangeReason.RateChanged:
-                        NotesManager.CancelPendingAudio();
-                        break;
-                    case TransportChangeReason.Started:
-                        NotesManager.RebaseScheduledAudio();
-                        break;
-                }
+            //     switch (reason) {
+            //         case TransportChangeReason.Paused:
+            //             // Let already-started voices ring out, but discard
+            //             // everything that has only been scheduled for the future.
+            //             NotesManager.CancelPendingAudio();
+            //             return;
+            //         case TransportChangeReason.Seeked:
+            //             // Time jumps only invalidate scheduled voices. Active
+            //             // voices continue as tails.
+            //             NotesManager.CancelPendingAudio();
+            //             break;
+            //         case TransportChangeReason.RateChanged:
+            //             NotesManager.CancelPendingAudio();
+            //             break;
+            //         case TransportChangeReason.Started:
+            //             NotesManager.RebaseScheduledAudio();
+            //             break;
+            //     }
 
-                NotesManager.ScheduleAudio();
-            };
+            //     NotesManager.ScheduleAudio();
+            // };
 
             App.ProjectManager.RegisterPropertyChanged((s, e) =>
             {
@@ -186,8 +187,6 @@ namespace Deenote.Core.GamePlay
             //     MusicPlayer.Nudge(Time.deltaTime * manuallPlaySpeed);
             // }
 
-            NotesManager.ScheduleAudio();
-
             if (IsStageLoaded()) {
                 NotesManager.RefreshStageNoteTimeDisplay();
                 App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
@@ -208,6 +207,8 @@ namespace Deenote.Core.GamePlay
             switch (noteCollectionChangedOrNoteTimeRelatedPropertyChanged, notesVisualDataChanged) {
                 case (true, false):
                     NotesManager.RefreshStageActiveNotes();
+                    App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
+                    App.GamePlayManager.NoteSoundsPlayer.ResetScheduledAudio(MusicPlayer.PreciseTime, MusicPlayer.Transport.Epoch);
                     break;
                 case (false, true):
                     foreach (var note in NotesManager.OnStageNotes) {
@@ -216,6 +217,8 @@ namespace Deenote.Core.GamePlay
                     break;
                 case (true, true):
                     NotesManager.RefreshStageActiveNotes();
+                    App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
+                    App.GamePlayManager.NoteSoundsPlayer.ResetScheduledAudio(MusicPlayer.PreciseTime, MusicPlayer.Transport.Epoch);
                     break;
                 default:
                     return;
@@ -236,7 +239,7 @@ namespace Deenote.Core.GamePlay
         {
             Debug.Assert(MainSystem.ProjectManager.CurrentProject?.Charts.Contains(chart) is true);
 
-            NotesManager.CancelScheduledAudio();
+            App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
             MusicPlayer.Stop();
             MusicPlayer.Time = 0f;
             CurrentChart = chart;
@@ -275,7 +278,7 @@ namespace Deenote.Core.GamePlay
         {
             if (CurrentChart is null)
                 return;
-            NotesManager.CancelScheduledAudio();
+            App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
             CurrentChart = null;
             MusicPlayer.Stop();
             NotifyFlag(NotificationFlag.CurrentChart);

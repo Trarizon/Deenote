@@ -1,14 +1,11 @@
-#nullable enable
-
-using Deenote.Core.GamePlay.Audio;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using Deenote.Library.Collections;
 using UnityEngine;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.GamePlay
 {
-    partial class NotesManager
+    partial class GameNoteSoundsPlayer
     {
         private const double AudioLookaheadSeconds = 0.25d;
         private const double MinAudioScheduleLeadSeconds = 0.01d;
@@ -24,10 +21,10 @@ namespace Deenote.Core.GameStage
         /// </summary>
         internal void ScheduleAudio()
         {
-            if (!_game.IsChartLoaded())
+            if (Chart is null)
                 return;
 
-            var musicPlayer = _game.MusicPlayer;
+            var musicPlayer = App.GamePlayManager.MusicPlayer;
             var transport = musicPlayer.Transport;
 
             if (!transport.CanSchedule)
@@ -40,7 +37,7 @@ namespace Deenote.Core.GameStage
                     transport.Epoch);
             }
 
-            var chart = _game.CurrentChart;
+            var chart = Chart;
             double horizonChartTime = transport.ChartTimeAtDsp(dspNow + AudioLookaheadSeconds);
 
             while (_nextScheduledNoteIndex < chart.NoteNodes.Count) {
@@ -53,10 +50,10 @@ namespace Deenote.Core.GameStage
                 if (node is NoteModel note) {
                     double targetDspTime = transport.DspTimeAtChart(note.Time);
                     if (targetDspTime >= dspNow + MinAudioScheduleLeadSeconds) {
-                        _game.HitSoundPlayer.ScheduleSound(note.Kind, targetDspTime);
+                        this._hitSoundSource.ScheduleSound(NoteToSoundKind(note), targetDspTime, HitSoundVolume);
                         foreach (var sound in note.Sounds) {
                             double soundDspTime = transport.DspTimeAtChart(note.Time + sound.Delay);
-                            _game.PianoSoundPlayer.ScheduleSound(sound, soundDspTime);
+                            this.ScheduleSound(sound, soundDspTime);
                         }
                     }
                 }
@@ -73,7 +70,7 @@ namespace Deenote.Core.GameStage
                 if (targetDspTime >= dspNow + MinAudioScheduleLeadSeconds) {
                     foreach (var sound in note.Sounds) {
                         double soundDspTime = transport.DspTimeAtChart(note.Time + sound.Delay);
-                        _game.PianoSoundPlayer.ScheduleSound(sound, soundDspTime);
+                        this.ScheduleSound(sound, soundDspTime);
                     }
                 }
 
@@ -81,18 +78,19 @@ namespace Deenote.Core.GameStage
             }
         }
 
-        private void ResetScheduledAudio(double chartTime, long epoch)
+        // TODO: r1.1 临时公开供旧 GamePlayManager 调用
+        internal void ResetScheduledAudio(double chartTime, long epoch)
         {
             _scheduledAudioEpoch = epoch;
             _scheduledAudioInitialized = true;
 
-            if (!_game.IsChartLoaded()) {
+            if (Chart is null) {
                 _nextScheduledNoteIndex = 0;
                 _nextScheduledBackgroundNoteIndex = 0;
                 return;
             }
 
-            var chart = _game.CurrentChart;
+            var chart = Chart;
             _nextScheduledNoteIndex = chart.NoteNodes.AsSpan()
                 .FindLowerBoundIndex(new NodeTimeComparable((float)chartTime));
             _nextScheduledBackgroundNoteIndex = chart.BackgroundSoundNotes.AsSpan()
@@ -102,15 +100,15 @@ namespace Deenote.Core.GameStage
         internal void CancelScheduledAudio()
         {
             _scheduledAudioInitialized = false;
-            _game.HitSoundPlayer.CancelScheduledSounds();
-            _game.PianoSoundPlayer.CancelScheduledSounds();
+            _hitSoundSource.CancelScheduledSounds();
+            _pianoSoundSource.CancelScheduledSounds();
         }
 
         internal void CancelPendingAudio()
         {
             _scheduledAudioInitialized = false;
-            _game.HitSoundPlayer.CancelPendingSounds();
-            _game.PianoSoundPlayer.CancelPendingSounds();
+            _hitSoundSource.CancelPendingSounds();
+            _pianoSoundSource.CancelPendingSounds();
         }
 
         internal void RebaseScheduledAudio()

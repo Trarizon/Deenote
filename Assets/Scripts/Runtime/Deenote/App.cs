@@ -31,7 +31,7 @@ namespace Deenote
         public ProjectAutoSaveTrigger ProjectAutoSaveTrigger { get; private set; }
 
         public StagePianoSoundPlayer PianoSoundPlayer;
-        public HitSoundPlayer HitSoundPlayer;
+        public HitSoundSource HitSoundPlayer;
 
         private App()
         {
@@ -41,8 +41,7 @@ namespace Deenote
             IGameStagePerspectiveViewPanel foreground,
             GameMusicPlayer gameMusicPlayer,
             PianoSoundSource pianoSoundSource,
-            HitSoundSource hitSoundSource,
-            HitSoundPlayer hitSoundPlayer)
+            HitSoundSource hitSoundSource)
         {
             Current = new App();
             Application.Current = Current;
@@ -54,7 +53,7 @@ namespace Deenote
 
             var stagePianoSoundPlayer = new StagePianoSoundPlayer(pianoSoundSource);
             Current.PianoSoundPlayer = stagePianoSoundPlayer;
-            Current.HitSoundPlayer = hitSoundPlayer;
+            // Current.HitSoundPlayer = hitSoundPlayer;
 
             return Current;
         }

@@ -18,7 +18,6 @@ namespace Deenote
         [SerializeField] GameMusicPlayer _gameMusicPlayer;
         [SerializeField] PianoSoundSource _pianoSoundSource;
         [SerializeField] HitSoundSource _hitSoundSource;
-        [SerializeField] HitSoundPlayer _hitSoundPlayer;
         [SerializeField] PerspectiveViewPanelView _perspectiveViewPanel;
 
         private const string ExceptionLogFilePath = "exceptions.log";
@@ -38,7 +37,7 @@ namespace Deenote
 
         void Awake()
         {
-            var app = App.Create(_perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundSource, _hitSoundPlayer);
+            var app = App.Create(_perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundSource);
             
             Debug.Log("Bootstrapper Awake");
         }

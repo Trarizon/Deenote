@@ -1,20 +1,30 @@
 #nullable enable
 
 using Deenote.Entities.Models;
+using System;
 using System.Collections.Generic;
+using TriInspector;
 using UnityEngine;
 
-namespace Deenote.Core.GamePlay.Audio
+namespace Deenote.Audio
 {
-    [RequireComponent(typeof(AudioSource))]
-    public sealed class HitSoundPlayer : MonoBehaviour
+    public sealed class HitSoundSource : MonoBehaviour
     {
         private const double MinScheduleLeadSeconds = 0.01d;
         private const double VoiceRecycleSlackSeconds = 0.01d;
         private const double ActiveStartGraceSeconds = 0.01d;
 
-        [SerializeField] private AudioSource _source = default!;
-        [SerializeField] private HitSoundArgs _args = default!;
+        [Serializable]
+        private struct SoundItem
+        {
+            public AudioClip Clip;
+            [Min(0)] public float BaseVolume;
+        }
+
+        [Required][SerializeField] private AudioSource _source;
+        [SerializeField] SoundItem _clickSound;
+        [SerializeField] SoundItem _slideSound;
+
         [SerializeField, Min(1)] private int _maxVoices = 16;
 
         private readonly List<Voice> _voices = new();
@@ -25,8 +35,6 @@ namespace Deenote.Core.GamePlay.Audio
             Scheduled,
             Active,
         }
-
-        public float Volume { get; internal set; }
 
         private void Awake()
         {
@@ -58,12 +66,12 @@ namespace Deenote.Core.GamePlay.Audio
             }
         }
 
-        public void PlaySound(NoteModel.NoteKind kind)
-            => ScheduleSound(kind, AudioSettings.dspTime + MinScheduleLeadSeconds);
+        public void PlaySound(SoundKind kind, float volume)
+            => ScheduleSound(kind, AudioSettings.dspTime + MinScheduleLeadSeconds, volume);
 
-        public bool ScheduleSound(NoteModel.NoteKind kind, double targetDspTime)
+        public bool ScheduleSound(SoundKind kind, double targetDspTime, float volume)
         {
-            if (Volume <= 0f)
+            if (volume <= 0f)
                 return false;
             if (targetDspTime < AudioSettings.dspTime + MinScheduleLeadSeconds)
                 return false;
@@ -71,14 +79,13 @@ namespace Deenote.Core.GamePlay.Audio
             AudioClip clip;
             float baseVolume;
             switch (kind) {
-                case NoteModel.NoteKind.Slide:
-                    clip = _args.SlideHitSoundClip;
-                    baseVolume = _args.SlideHitSoundBaseVolume;
+                case SoundKind.Slide:
+                    clip = _slideSound.Clip;
+                    baseVolume = _slideSound.BaseVolume;
                     break;
-                case NoteModel.NoteKind.Click:
-                case NoteModel.NoteKind.Swipe:
-                    clip = _args.ClickHitSoundClip;
-                    baseVolume = _args.ClickHitSoundBaseVolume;
+                case SoundKind.Click:
+                    clip = _clickSound.Clip;
+                    baseVolume = _clickSound.BaseVolume;
                     break;
                 default:
                     return false;
@@ -92,7 +99,7 @@ namespace Deenote.Core.GamePlay.Audio
             source.Stop();
             source.clip = clip;
             source.loop = false;
-            source.volume = Volume * baseVolume;
+            source.volume = volume * baseVolume;
             source.pitch = 1f;
             source.PlayScheduled(targetDspTime);
 
@@ -203,10 +210,6 @@ namespace Deenote.Core.GamePlay.Audio
             }
         }
 
-        public enum SoundKind
-        {
-            ClickSound,
-            SlideSound,
-        }
+        public enum SoundKind { Click, Slide, }
     }
 }
