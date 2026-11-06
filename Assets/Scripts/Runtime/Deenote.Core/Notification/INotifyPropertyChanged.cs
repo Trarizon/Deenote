@@ -1,4 +1,3 @@
-using Deenote.CoreB.Notification;
 using System;
 
 namespace Deenote.CoreB.Notification
@@ -36,7 +35,7 @@ namespace Deenote.CoreB.Notification
         public void Unregister() => _self.PropertyChanged -= _action;
     }
 
-    public static partial class INotifyPropertyChangedExtensions
+    public static partial class InpcRegistration
     {
         public static void Invoke<T>(this Action<T, PropertyChangedEventArgs> action, T self, string propertyName)
             where T : INotifyPropertyChanged<T>
