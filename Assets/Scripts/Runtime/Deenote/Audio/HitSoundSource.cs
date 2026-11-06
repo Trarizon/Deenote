@@ -1,6 +1,3 @@
-#nullable enable
-
-using Deenote.Entities.Models;
 using System;
 using System.Collections.Generic;
 using TriInspector;
@@ -193,7 +190,6 @@ namespace Deenote.Audio
 
         private void OnValidate()
         {
-            _source ??= GetComponent<AudioSource>();
             _maxVoices = Mathf.Max(1, _maxVoices);
         }
 

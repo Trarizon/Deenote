@@ -1,8 +1,4 @@
-#nullable enable
-
-using System;
-
-namespace Deenote.Core.GamePlay.Audio
+namespace Deenote.Audio
 {
     /// <summary>
     /// Defines the relationship between the audio DSP clock and chart time.

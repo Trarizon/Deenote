@@ -1,8 +1,6 @@
-#nullable enable
-
 using System;
 
-namespace Deenote.Core.GamePlay.Audio
+namespace Deenote.Audio
 {
     /// <summary>
     /// A smooth chart-time source for rendering. It advances with the render

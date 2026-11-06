@@ -25,7 +25,7 @@ namespace Deenote.GamePlay
         public GamePlayManager2(GameMusicPlayer musicPlayer, PianoSoundSource pianoSoundSource, HitSoundSource hitSoundSource)
         {
             _musicPlayer = musicPlayer;
-            _noteSoundsPlayer = new GameNoteSoundsPlayer(pianoSoundSource, hitSoundSource);
+            _noteSoundsPlayer = new GameNoteSoundsPlayer(musicPlayer, pianoSoundSource, hitSoundSource);
 
             App.Current.UnscaledTick += delta =>
             {
@@ -69,6 +69,13 @@ namespace Deenote.GamePlay
 
                 _noteSoundsPlayer.ScheduleAudio();
             };
+
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    _noteSoundsPlayer.Chart = s.CurrentChart;
+                }
+            });
         }
     }
 }

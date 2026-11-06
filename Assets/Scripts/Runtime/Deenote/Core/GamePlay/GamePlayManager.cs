@@ -1,14 +1,13 @@
 #nullable enable
 
 using Deenote.Audio;
-using Deenote.Core.Audio;
-using Deenote.Core.Editing;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.GameStage;
 using Deenote.Core.Project;
 using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
+using Deenote.GamePlay;
 using Deenote.GamePlay.UI;
 using Deenote.Library;
 using Deenote.Library.Components;
@@ -33,8 +32,6 @@ namespace Deenote.Core.GamePlay
         public NotesManager NotesManager => _notesManager;
         public GridsManager Grids => _gridsManager;
         public GameMusicPlayer MusicPlayer => _musicPlayer;
-        public StagePianoSoundPlayer PianoSoundPlayer => null;// App.Current.PianoSoundPlayer;
-        public HitSoundSource HitSoundPlayer => null;// App.Current.HitSoundPlayer;
 
         public event Action<StageLoadedEventArgs>? StageLoaded;
 

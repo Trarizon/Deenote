@@ -1,10 +1,9 @@
-#nullable enable
-
-using Deenote.Core.Audio;
+using Deenote.Audio;
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Deenote.Core.GamePlay.Audio
+namespace Deenote.GamePlay
 {
     public enum TransportChangeReason
     {
@@ -15,6 +14,7 @@ namespace Deenote.Core.GamePlay.Audio
     }
 
     [RequireComponent(typeof(AudioSource))]
+    [MovedFrom("Deenote.Core.GamePlay.Audio")]
     public sealed class GameMusicPlayer : MonoBehaviour
     {
         private const double MinimumStartLeadSeconds = 0.02d;

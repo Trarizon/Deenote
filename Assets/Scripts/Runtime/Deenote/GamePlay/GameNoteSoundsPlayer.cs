@@ -6,17 +6,19 @@ namespace Deenote.GamePlay
 {
     internal partial class GameNoteSoundsPlayer
     {
+        private readonly GameMusicPlayer _musicPlayer;
         private readonly PianoSoundSource _pianoSoundSource;
         private readonly HitSoundSource _hitSoundSource;
 
-        private ChartModel? Chart => App.ProjectManager.CurrentChart;
+        internal ChartModel? Chart { get; set; }
 
         public float HitSoundVolume { get; set; }
         public float PianoSoundVolume { get; set; }
         public float SoundSpeed { get; set; } = 1f;
 
-        public GameNoteSoundsPlayer(PianoSoundSource pianoSoundSource, HitSoundSource hitSoundSource)
+        public GameNoteSoundsPlayer(GameMusicPlayer musicPlayer, PianoSoundSource pianoSoundSource, HitSoundSource hitSoundSource)
         {
+            _musicPlayer = musicPlayer;
             _pianoSoundSource = pianoSoundSource;
             _hitSoundSource = hitSoundSource;
         }

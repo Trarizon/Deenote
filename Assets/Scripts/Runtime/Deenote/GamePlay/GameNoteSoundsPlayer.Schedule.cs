@@ -24,7 +24,7 @@ namespace Deenote.GamePlay
             if (Chart is null)
                 return;
 
-            var musicPlayer = App.GamePlayManager.MusicPlayer;
+            var musicPlayer = _musicPlayer;
             var transport = musicPlayer.Transport;
 
             if (!transport.CanSchedule)

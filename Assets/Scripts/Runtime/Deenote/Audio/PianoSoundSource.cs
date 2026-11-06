@@ -1,5 +1,3 @@
-#nullable enable
-
 using Cysharp.Threading.Tasks;
 using Deenote.Library;
 using Deenote.Replica;

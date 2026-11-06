@@ -1,8 +1,6 @@
-#nullable enable
-
 using UnityEngine;
 
-namespace Deenote.Core.Audio
+namespace Deenote.Audio
 {
     public interface IClipProvider
     {
