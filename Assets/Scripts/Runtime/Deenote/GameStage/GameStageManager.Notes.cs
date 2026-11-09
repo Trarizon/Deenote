@@ -1,6 +1,7 @@
+using Deenote.Core;
 using Deenote.Core.GameStage;
+using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
-using Deenote.Helpers;
 using System;
 using System.Collections.Generic;
 
@@ -21,7 +22,7 @@ namespace Deenote.GameStage
             {
                 RefreshStageVisibleWarningNotes(e.ActiveNotes);
             };
-            
+
             App.GamePlayManager.TimeChanged += e =>
             {
                 if (App.ProjectManager.CurrentChart is null)
@@ -49,7 +50,8 @@ namespace Deenote.GameStage
                 controller.Initialize(note);
                 _notes.Add(controller);
             }
-            Asserts.NotesInOrderViaTimeUnique(notes);
+
+            Asserts.InOrder(notes, NodeTimeComparer.Instance);
             GameStageNoteController? prevNote = null;
             foreach (var note in _notes) {
                 note.PostInitialize(prevNote);
@@ -74,7 +76,8 @@ namespace Deenote.GameStage
                 controller.Initialize(note);
                 _warningNotes.Add(controller);
             }
-            Asserts.NotesInOrderViaTime(notes);
+
+            Asserts.InOrder(notes, NodeTimeComparer.Instance);
         }
     }
 }
