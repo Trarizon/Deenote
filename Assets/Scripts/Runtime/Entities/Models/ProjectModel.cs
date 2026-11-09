@@ -75,7 +75,8 @@ namespace Deenote.Entities.Models
         public string ProjectFilePath
         {
             get => _projectFilePath_bf;
-            internal set {
+            [Obsolete("temp public")]
+            set {
                 if (_projectFilePath_bf != value) {
                     _projectFilePath_bf = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProjectFilePath)));

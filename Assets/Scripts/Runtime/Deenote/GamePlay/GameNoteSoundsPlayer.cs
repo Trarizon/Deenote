@@ -10,7 +10,17 @@ namespace Deenote.GamePlay
         private readonly PianoSoundSource _pianoSoundSource;
         private readonly HitSoundSource _hitSoundSource;
 
-        internal ChartModel? Chart { get; set; }
+        private ChartModel? _chart;
+        internal ChartModel? Chart
+        {
+            get => _chart;
+            set {
+                if (_chart != value) {
+                    _chart = value;
+                    CancelScheduledAudio();
+                }
+            }
+        }
 
         public float HitSoundVolume { get; set; }
         public float PianoSoundVolume { get; set; }

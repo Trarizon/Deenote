@@ -1,6 +1,7 @@
 #nullable enable
 
 using Cysharp.Threading.Tasks;
+using Deenote.Core;
 using Deenote.Core.Project;
 using Deenote.CoreB.Localization;
 using Deenote.Plugin;
@@ -48,7 +49,7 @@ namespace Deenote.Runtime.Plugins
                         context.UI.ToastManager.ShowRawTextToastAsync(texts["nochartload"], 2f).Forget();
                         return;
                     }
-                    context.ProjectManager.AssertProjectLoaded();
+                    Asserts.NotNull(App.ProjectManager.CurrentProject2, "Project is not loaded");
 
                     var res = await context.UI.DialogManager.OpenFileExplorerInputFileAsync(
                         LocalizableText.Raw(texts["exportas"]),

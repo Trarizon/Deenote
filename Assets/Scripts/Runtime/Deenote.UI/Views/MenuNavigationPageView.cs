@@ -19,6 +19,7 @@ using Deenote.CoreB.Notification;
 using Deenote.Systems;
 using Deenote.Core.Unity;
 using Deenote.Project;
+using Deenote.EditorModels;
 
 namespace Deenote.UI.Views
 {
@@ -183,8 +184,8 @@ namespace Deenote.UI.Views
 
                 _projectManager.RegisterPropertyChangedAndInvoke((s, e) =>
                 {
-                    if (e.Match(nameof(s.CurrentProject))) {
-                        bool active = s.CurrentProject is not null;
+                    if (e.Match(nameof(s.CurrentProject2))) {
+                        bool active = s.CurrentProject2 is not null;
                         _saveButton.IsInteractable = active;
                         _saveAsButton.IsInteractable = active;
                     }
@@ -201,7 +202,7 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuCreateNewProjectAsync()
         {
-            if (MainSystem.ProjectManager.IsProjectLoaded()) {
+            if (App.ProjectManager.CurrentProject2 is not null) {
                 var res = await MainWindow.DialogManager.OpenMessageBoxAsync(
                     MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange
                         ? _newProjectOnUnsavedOpenMsgBoxArgs
@@ -211,13 +212,13 @@ namespace Deenote.UI.Views
             }
             var nresult = await MainWindow.DialogManager.NewProjectDialog.OpenCreateNewAsync();
             if (nresult is { } result) {
-                _projectManager.OpenProject(result.Project, result.AudioClip);
+                _projectManager.OpenProjectModel(new ProjectEditorModel(result.Project, result.AudioClip));
             }
         }
 
         public async UniTask MenuOpenProjectAsync()
         {
-            if (MainSystem.ProjectManager.IsProjectLoaded()) {
+            if (App.ProjectManager.CurrentProject2 is not null) {
                 var res = await MainWindow.DialogManager.OpenMessageBoxAsync(
                     MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange
                         ? _openProjOnUnsavedOpenMsgBoxArgs
@@ -251,8 +252,8 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuSaveProjectAsync()
         {
-            Asserts.NotNull(_projectManager.CurrentProject, "Unexpected interactable save button when current project is null");
-            var proj = _projectManager.CurrentProject;
+            Asserts.NotNull(_projectManager.CurrentProject2, "Unexpected interactable save button when current project is null");
+            var proj = _projectManager.CurrentProject2;
 
             MainWindow.StatusBar.SetLocalizedStatusMessage(SaveProjectSavingStatusKey);
             await _projectManager.SaveCurrentProjectAsync();
@@ -262,9 +263,9 @@ namespace Deenote.UI.Views
 
         public async UniTask MenuSaveProjectAsAsync()
         {
-            Asserts.NotNull(_projectManager.CurrentProject, "Unexpected interactable save button when current project is null");
+            Asserts.NotNull(_projectManager.CurrentProject2, "Unexpected interactable save button when current project is null");
         SelectFile:
-            var proj = _projectManager.CurrentProject;
+            var proj = _projectManager.CurrentProject2;
             var feRes = await MainWindow.DialogManager.OpenFileExplorerInputFileAsync(
                 LocalizableText.Localized(SaveAsFileExplorerTitleKey),
                 proj.MusicName,

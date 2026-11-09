@@ -60,6 +60,12 @@ namespace Deenote.CoreB.Notification
 
     partial class InpcRegistration
     {
+        public static ReadOnlySpan<T> GetOldItems<T>(this in NotifyCollectionChangedEventArgs<T> e)
+            => e.IsSingleItem ? MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.OldItem), 1) : e.OldItems;
+
+        public static ReadOnlySpan<T> GetNewItems<T>(this in NotifyCollectionChangedEventArgs<T> e)
+            => e.IsSingleItem ? MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.NewItem), 1) : e.NewItems;
+
         public static CollectionChangedRegistration<T> RegisterCollectionChanged<T>(this IObservableCollection<T> collection, CollectionChangedEventHandler<T> action)
         {
             NotifyCollectionChangedEventHandler<T> reg = action._ConvertHandler;

@@ -21,6 +21,7 @@ using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Notification;
 using Deenote.Project;
+using Deenote.Core;
 
 namespace Deenote.UI.Views
 {
@@ -94,7 +95,8 @@ namespace Deenote.UI.Views
             {
                 _audioButton.Clicked += UniTask.Action(async () =>
                 {
-                    AssertProjectLoaded();
+                    Asserts.NotNull(_projectManager.CurrentProject2);
+                    var project = _projectManager.CurrentProject2;
                     _rcts.Reset();
                     var cancellationToken = _rcts.Token;
 
@@ -125,23 +127,24 @@ namespace Deenote.UI.Views
                         var bytes = new byte[fs.Length];
                         fs.Seek(0, SeekOrigin.Begin);
                         fs.Read(bytes);
-                        MainSystem.ProjectManager.EditProjectAudio(res.Path, bytes, clip);
+
+                        project.SetAudio(bytes, res.Path, clip);
 
                         MainWindow.StatusBar.SetLocalizedStatusMessage(LoadAudioLoadedStatusKey, fileName, 3f);
 
                         break;
                     }
                 });
-                _musicNameInput.EditSubmitted += MainSystem.ProjectManager.EditProjectMusicName;
-                _composerInput.EditSubmitted += MainSystem.ProjectManager.EditProjectComposer;
-                _chartDesignerInput.EditSubmitted += MainSystem.ProjectManager.EditProjectChartDesigner;
+                _musicNameInput.EditSubmitted += v => App.ProjectManager.CurrentProject2!.MusicName = v;
+                _composerInput.EditSubmitted += v => App.ProjectManager.CurrentProject2!.Composer = v;
+                _chartDesignerInput.EditSubmitted += v => App.ProjectManager.CurrentProject2!.ChartDesigner = v;
                 _addChartButton.Clicked += () =>
                 {
                     var newChart = new ChartModel(new()) {
                         Difficulty = Difficulty.Hard,
                         Level = "10",
                     };
-                    MainSystem.ProjectManager.AddProjectChart(newChart);
+                    App.ProjectManager.CurrentProject2!.Charts.Add(newChart);
                     LoadChartModelToStage(newChart);
                 };
                 _loadChartButton.Clicked += UniTask.Action(async () =>
@@ -160,17 +163,17 @@ namespace Deenote.UI.Views
                     chart.Difficulty = Difficulty.Hard;
                     chart.Level = "10";
 
-                    MainSystem.ProjectManager.AddProjectChart(chart);
+                    App.ProjectManager.CurrentProject2!.Charts.Add(chart);
                     LoadChartModelToStage(chart);
                 });
 
                 var manager = MainSystem.ProjectManager;
                 _projectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
                 {
-                    if (e.Match(nameof(s.CurrentProject))) {
-                        _projectInfoGroup.gameObject.SetActive(s.CurrentProject is not null);
+                    if (e.Match(nameof(s.CurrentProject2))) {
+                        _projectInfoGroup.gameObject.SetActive(s.CurrentProject2 is not null);
                     }
-                    s.CurrentProject.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentProject), e, t, (s, e, t) =>
+                    s.CurrentProject2.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentProject2), e, t, (s, e, t) =>
                     {
                         if (s is null)
                             return;
@@ -186,47 +189,18 @@ namespace Deenote.UI.Views
                         if (e.Match(nameof(s.ChartDesigner))) {
                             SetCharter(s.ChartDesigner);
                         }
-                        if (e.Match(nameof(s.Charts))) {
+                        s.Charts.AsNestedRegisterCollectionChangedAndInvoke(nameof(s.Charts), e, t, (e, t) =>
+                        {
                             SetCharts(s.Charts);
-                        }
+                        });
                     });
                 }).UnregisterWhenGameObjectDestroyed(this);
-                manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectAudio,
-                    manager =>
-                    {
-                        if (manager.IsProjectLoaded() && manager.CurrentProject is var proj)
-                            SetAudio(proj.AudioFileRelativePath);
-                    });
-                manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectMusicName,
-                    manager =>
-                    {
-                        if (manager.IsProjectLoaded() && manager.CurrentProject is var proj)
-                            SetName(proj.MusicName);
-                    });
-                manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectComposer,
-                    manager =>
-                    {
-                        if (manager.IsProjectLoaded() && manager.CurrentProject is var proj)
-                            SetComposer(proj.Composer);
-                    });
-                manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectChartDesigner,
-                    manager =>
-                    {
-                        if (manager.IsProjectLoaded() && manager.CurrentProject is var proj)
-                            SetCharter(proj.ChartDesigner);
-                    });
-                manager.RegisterNotification(ProjectManager.NotificationFlag.ProjectCharts,
-                    manager =>
-                    {
-                        if (manager.IsProjectLoaded() && manager.CurrentProject is var proj)
-                            SetCharts(manager.CurrentProject.Charts);
-                    });
 
                 void SetAudio(string audioPath) => _audioButton.Text.SetRawText(Path.GetFileName(audioPath));
                 void SetName(string name) => _musicNameInput.SetValueWithoutNotify(name);
                 void SetComposer(string composer) => _composerInput.SetValueWithoutNotify(composer);
                 void SetCharter(string charter) => _chartDesignerInput.SetValueWithoutNotify(charter);
-                void SetCharts(List<ChartModel> charts)
+                void SetCharts(IReadOnlyList<ChartModel> charts)
                 {
                     using (var resetter = _chartItems.Resetting(charts.Count)) {
                         foreach (var chart in charts) {
@@ -404,14 +378,21 @@ namespace Deenote.UI.Views
 
         internal void RemoveChart(ProjectInfoChartListItem item)
         {
-            MainSystem.ProjectManager.AssertProjectLoaded();
+            Asserts.NotNull(App.ProjectManager.CurrentProject2, "Project is not loaded");
 
             int findIndex = _chartItems.IndexOf(item);
             Debug.Assert(findIndex >= 0, $"Try to remove a {nameof(ProjectInfoChartListItem)} that is not in the list");
             _chartItems.RemoveAt(findIndex);
-            Debug.Assert(ReferenceEquals(item.ChartModel, MainSystem.ProjectManager.CurrentProject.Charts[findIndex]),
+            Debug.Assert(ReferenceEquals(item.ChartModel, App.ProjectManager.CurrentProject2.Charts[findIndex]),
                 "Chart in ProjectInfo page and in current project not match");
-            MainSystem.ProjectManager.RemoveProjectChartAt(findIndex);
+
+            var charts = App.ProjectManager.CurrentProject2.Charts;
+            if (charts.Count > 1) {
+                charts.RemoveAt(findIndex);
+            }
+            else {
+                charts[0] = new ChartModel();
+            }
         }
 
         #endregion
@@ -421,8 +402,5 @@ namespace Deenote.UI.Views
             MainSystem.GamePlayManager.LoadChartInCurrentProject(chart);
             MainWindow.StatusBar.SetLocalizedStatusMessage(ChartLoadedStatusKey);
         }
-
-        [System.Diagnostics.Conditional("UNITY_ASSERTIONS")]
-        private void AssertProjectLoaded() => Debug.Assert(MainSystem.ProjectManager.CurrentProject is not null);
     }
 }

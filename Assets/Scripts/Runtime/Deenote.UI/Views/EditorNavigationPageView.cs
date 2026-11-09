@@ -1,5 +1,6 @@
 #nullable enable
 
+using Deenote.Core;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
 using Deenote.Entities;
@@ -268,10 +269,7 @@ namespace Deenote.UI.Views
                 _bpmEndTimeInput.EditSubmitted += val =>
                 {
                     if (float.TryParse(val, out var fval)) {
-                        if (MainSystem.ProjectManager.IsProjectLoaded())
-                            _bpmEndTime = Mathf.Min(fval, MainSystem.GamePlayManager.MusicPlayer.ClipLength);
-                        else
-                            _bpmEndTime = fval;
+                        _bpmEndTime = Mathf.Min(fval, App.GamePlayManager.GamePlayLength);
                     }
                     SyncFloatInput(_bpmEndTimeInput, _bpmEndTime);
                 };
@@ -283,8 +281,8 @@ namespace Deenote.UI.Views
                 };
                 _bpmFillButton.Clicked += () =>
                 {
-                    MainSystem.ProjectManager.AssertProjectLoaded();
-                    var endTime = Mathf.Min(_bpmEndTime, MainSystem.GamePlayManager.MusicPlayer.ClipLength);
+                    Asserts.NotNull(App.ProjectManager.CurrentProject2, "Project is not loaded");
+                    var endTime = Mathf.Min(_bpmEndTime, App.GamePlayManager.GamePlayLength);
                     MainSystem.StageChartEditor.InsertTempo(new Entities.TempoRange(_bpmValue, _bpmStartTime, _bpmEndTime));
                 };
 

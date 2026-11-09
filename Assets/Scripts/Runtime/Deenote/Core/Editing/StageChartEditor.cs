@@ -64,7 +64,7 @@ namespace Deenote.Core.Editing
 
             App.ProjectManager.RegisterPropertyChanged((s, e) =>
             {
-                if (e.Match(nameof(s.CurrentProject))) {
+                if (e.Match(nameof(s.CurrentProject2))) {
                     _operations.Reset();
                 }
             });

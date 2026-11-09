@@ -58,7 +58,7 @@ namespace Deenote.UI.Views.Elements
         {
             _button.Clicked += UniTask.Action(async () =>
             {
-                if (MainSystem.ProjectManager.IsProjectLoaded()) {
+                if (App.ProjectManager.CurrentProject2 is not null) {
                     var res = await MainWindow.DialogManager.OpenMessageBoxAsync(
                         MainSystem.StageChartEditor.OperationMemento.HasUnsavedChange
                             ? _openProjOnUnsavedOpenMsgBoxArgs

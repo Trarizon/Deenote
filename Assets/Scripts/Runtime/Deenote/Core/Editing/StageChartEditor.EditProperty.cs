@@ -357,10 +357,10 @@ namespace Deenote.Core.Editing
 
         public void InsertTempo(TempoRange range)
         {
-            if (App.ProjectManager.CurrentProject is null)
+            if (App.ProjectManager.CurrentProject2 is null)
                 return;
 
-            _operations.Do(App.ProjectManager.CurrentProject.InsertTempo(range)
+            _operations.Do(App.ProjectManager.CurrentProject2.InsertTempo(range)
                 .OnDone(() => NotifyFlag(NotificationFlag.ProjectTempo)));
         }
     }

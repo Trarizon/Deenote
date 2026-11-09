@@ -36,7 +36,11 @@ namespace Deenote.Core.GamePlay
         public event Action<StageLoadedEventArgs>? StageLoaded;
 
 
-        public ChartModel? CurrentChart { get; private set; }
+        public ChartModel? CurrentChart
+        {
+            get => App.ProjectManager.CurrentChart;
+            private set => App.ProjectManager.CurrentChart = value;
+        }
 
         /// <remarks>
         /// If music is paused, maually set music time by this value,
@@ -82,22 +86,22 @@ namespace Deenote.Core.GamePlay
             RegisterConfigurations();
             RegisterCustomPropertiesConfigurations();
 
-            MusicPlayer.TimeChanged += args =>
-            {
-                if (!IsChartLoaded())
-                    return;
+            // MusicPlayer.TimeChanged += args =>
+            // {
+            //     if (!IsChartLoaded())
+            //         return;
 
-                App.GameStageManager.NotesManager.ShiftActiveNotes(playSounds: !args.IsByJump);
+            //     App.GameStageManager.NotesManager.ShiftActiveNotes(playSounds: !args.IsByJump);
 
-                // NotesManager.ShiftStageActiveNotes();
-                App.GameStageManager.WarningNotesManager.ShiftActiveNotes();
-                NotifyFlag(NotificationFlag.ActiveNoteUpdated);
-                // In previous version, note time was controlled by StageNoteController.Update,
-                // so we have to manually call update when manually change music time.
-                // In current version, note time is controlled by GamePlayManager.UpdateActiveNotes,
-                // so the following code is not required
-                // if (args.IsManuallyChanged) RefreshNotesTimeState();
-            };
+            //     // NotesManager.ShiftStageActiveNotes();
+            //     App.GameStageManager.WarningNotesManager.ShiftActiveNotes();
+            //     NotifyFlag(NotificationFlag.ActiveNoteUpdated);
+            //     // In previous version, note time was controlled by StageNoteController.Update,
+            //     // so we have to manually call update when manually change music time.
+            //     // In current version, note time is controlled by GamePlayManager.UpdateActiveNotes,
+            //     // so the following code is not required
+            //     // if (args.IsManuallyChanged) RefreshNotesTimeState();
+            // };
 
             // MusicPlayer.TransportChanged += reason =>
             // {
@@ -126,48 +130,17 @@ namespace Deenote.Core.GamePlay
             //     NotesManager.ScheduleAudio();
             // };
 
-            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
             {
-                if (e.Match(nameof(s.CurrentProject))) {
-                    var proj = s.CurrentProject;
-                    if (proj is null) {
-                        UnloadChart();
-                        return;
-                    }
-
-                    if (proj.Charts.Count == 0) {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    if (CurrentChart is null) {
                         UnloadChart();
                     }
                     else {
-                        LoadChartInCurrentProject(proj.Charts[0]);
+                        LoadChartInCurrentProject(CurrentChart);
                     }
-                }
-                if (e.Match(nameof(s.CurrentAudioClip))) {
-                    // TODO: try out streaming clip provider
-                    _musicPlayer.ReplaceClip(new DecodedClipProvider(s.CurrentAudioClip!));
                 }
             });
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectAudio,
-                manager =>
-                {
-                    manager.AssertProjectLoaded();
-                    _musicPlayer.ReplaceClip(new DecodedClipProvider(manager.AudioClip!));
-                });
-
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectCharts,
-                manager =>
-                {
-                    if (CurrentChart is null)
-                        return;
-                    if (manager.CurrentProject is null)
-                        return;
-                    // Simple check, if current chart is removed from project, unload this and load the first chart
-                    if (!manager.CurrentProject.Charts.Contains(CurrentChart)) {
-                        LoadChartInCurrentProject(manager.CurrentProject.Charts[0]);
-                    }
-                });
         }
 
         private void OnDestroy()
@@ -234,7 +207,7 @@ namespace Deenote.Core.GamePlay
 
         public void LoadChartInCurrentProject(ChartModel chart)
         {
-            Debug.Assert(MainSystem.ProjectManager.CurrentProject?.Charts.Contains(chart) is true);
+            Debug.Assert(App.ProjectManager.CurrentProject2?.Charts.Contains(chart) is true);
 
             App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
             MusicPlayer.Stop();

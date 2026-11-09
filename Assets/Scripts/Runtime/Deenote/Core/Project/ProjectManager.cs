@@ -22,16 +22,16 @@ namespace Deenote.Core.Project
     [Obsolete]
     public sealed partial class ProjectManager : FlagNotifiableMonoBehaviour<ProjectManager, ProjectManager.NotificationFlag>
     {
-        public ProjectModel? CurrentProject => App.ProjectManager.CurrentProject;
+        private ProjectModel? CurrentProject => App.ProjectManager.CurrentProject;
 
-        public ChartModel? CurrentChart => MainSystem.GamePlayManager.CurrentChart;
+        // public ChartModel? CurrentChart => MainSystem.GamePlayManager.CurrentChart;
 
-        public AudioClip? AudioClip => App.ProjectManager.CurrentAudioClip;
+        // public AudioClip? AudioClip => App.ProjectManager.CurrentAudioClip;
 
-        private bool _isLoading_bf;
-        private bool _isSaving_bf;
-        private ResetableCancellationTokenSource _saveCts = new();
-        private ResetableCancellationTokenSource _saveChartsCts = new();
+        // private bool _isLoading_bf;
+        // private bool _isSaving_bf;
+        // private ResetableCancellationTokenSource _saveCts = new();
+        // private ResetableCancellationTokenSource _saveChartsCts = new();
 
         // public bool IsLoading
         // {
@@ -100,26 +100,26 @@ namespace Deenote.Core.Project
 
         #region Validation
 
-        [MemberNotNull(nameof(CurrentProject))]
-        private void ValidateProject()
-        {
-            if (CurrentProject is null)
-                throw new InvalidOperationException("No project loaded.");
-        }
+        // [MemberNotNull(nameof(CurrentProject))]
+        // private void ValidateProject()
+        // {
+        //     if (CurrentProject is null)
+        //         throw new InvalidOperationException("No project loaded.");
+        // }
 
-        /// <summary>
-        /// The method do <c>UnityEngine.Debug.Assert()</c>, and could make IDE
-        /// provide a better nullable diagnostic in context
-        /// </summary>
-        [System.Diagnostics.Conditional("UNITY_ASSERTIONS")]
-        [MemberNotNull(nameof(CurrentProject))]
-        public void AssertProjectLoaded(string message = "Project not loaded")
-#pragma warning disable CS8774
-            => Debug.Assert(CurrentProject is not null, message);
-#pragma warning restore CS8774
+//         /// <summary>
+//         /// The method do <c>UnityEngine.Debug.Assert()</c>, and could make IDE
+//         /// provide a better nullable diagnostic in context
+//         /// </summary>
+//         [System.Diagnostics.Conditional("UNITY_ASSERTIONS")]
+//         [MemberNotNull(nameof(CurrentProject))]
+//         public void AssertProjectLoaded(string message = "Project not loaded")
+// #pragma warning disable CS8774
+//             => Debug.Assert(CurrentProject is not null, message);
+// #pragma warning restore CS8774
 
-        [MemberNotNullWhen(true, nameof(CurrentProject))]
-        public bool IsProjectLoaded() => CurrentProject is not null;
+        // [MemberNotNullWhen(true, nameof(CurrentProject))]
+        // public bool IsProjectLoaded() => CurrentProject is not null;
 
         #endregion
 

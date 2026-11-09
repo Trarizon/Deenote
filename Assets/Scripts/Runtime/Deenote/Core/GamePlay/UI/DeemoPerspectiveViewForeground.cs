@@ -14,6 +14,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Deenote.CoreB.Notification;
+using Deenote.Project;
 
 namespace Deenote.GamePlay.UI
 {
@@ -71,6 +72,8 @@ namespace Deenote.GamePlay.UI
         }
 
 
+        private ProjectManager2 _projectManager;
+
         protected override void Awake()
         {
             _shockWaveEnterPosX = _shockWaveEnterPosTransform.anchorMin.x;
@@ -86,6 +89,7 @@ namespace Deenote.GamePlay.UI
                 _speedChangeWarningBaseColors[i] = image.color;
                 image.gameObject.SetActive(false);
             }
+            _projectManager = App.ProjectManager;
         }
 
         private void Start()
@@ -98,13 +102,17 @@ namespace Deenote.GamePlay.UI
             _timeSlider.maxValue = App.GamePlayManager.CurrentAudioClip?.length ?? 0f;
             _timeSlider.SetValueWithoutNotify(App.GamePlayManager.CurrentTime);
 
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectMusicName,
-                manager =>
+            _projectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
+            {
+                s.CurrentProject2.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentProject2), e, t, (s, e, t) =>
                 {
-                    manager.AssertProjectLoaded();
-                    _musicNameText.text = manager.CurrentProject.MusicName;
+                    if (s is null)
+                        return;
+                    if (e.Match(nameof(s.MusicName))) {
+                        _musicNameText.text = s.MusicName;
+                    }
                 });
+            }).UnregisterWhenGameObjectDestroyed(this);
 
             MainSystem.GamePlayManager.RegisterNotification(
                 GamePlayManager.NotificationFlag.ChartLevel,
@@ -121,14 +129,6 @@ namespace Deenote.GamePlay.UI
                     manager.AssertChartLoaded();
                     Difficulty = manager.CurrentChart.Difficulty;
                 });
-
-            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
-            {
-                if (e.Match(nameof(s.CurrentProject))) {
-                    if (s.CurrentProject is not null)
-                        _musicNameText.text = s.CurrentProject.MusicName;
-                }
-            });
 
             MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
                 GamePlayManager.NotificationFlag.CurrentChart,

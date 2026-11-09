@@ -49,15 +49,16 @@ namespace Deenote.Core.GameStage
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 _OnActiveNotesUpdated);
 
-            MainSystem.ProjectManager.RegisterNotification(
-                ProjectManager.NotificationFlag.ProjectMusicName,
-                _OnProjectNameChanged);
-            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
             {
-                if (e.Match(nameof(s.CurrentProject))) {
-                    if (s.CurrentProject is not null)
-                        _staveMusicNameText.text = s.CurrentProject.MusicName;
-                }
+                s.CurrentProject2.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentProject2), e, t, (s, e, t) =>
+                {
+                    if (s is null)
+                        return;
+                    if (e.Match(nameof(s.MusicName))) {
+                        _staveMusicNameText.text = s.MusicName;
+                    }
+                });
             }).UnregisterWhenGameObjectDestroyed(this);
         }
 
@@ -67,9 +68,6 @@ namespace Deenote.Core.GameStage
             _manager.UnregisterNotification(
                 GamePlayManager.NotificationFlag.ActiveNoteUpdated,
                 _OnActiveNotesUpdated);
-            MainSystem.ProjectManager.UnregisterNotification(
-                ProjectManager.NotificationFlag.ProjectMusicName,
-                _OnProjectNameChanged);
         }
 
         private void _OnViewSizeChanged(IGameStagePerspectiveViewPanel panel)
@@ -108,12 +106,6 @@ namespace Deenote.Core.GameStage
             Debug.Assert(deltaTime >= 0);
 
             _judgeLineEffect.SetHitEffect(deltaTime);
-        }
-
-        private void _OnProjectNameChanged(ProjectManager manager)
-        {
-            if (manager.IsProjectLoaded())
-                _staveMusicNameText.text = manager.CurrentProject.MusicName;
         }
 
         protected override void OnIsStageEffectOnChanged(bool value)

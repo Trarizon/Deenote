@@ -1,15 +1,16 @@
 using CommunityToolkit.Diagnostics;
 using Cysharp.Threading.Tasks;
 using Deenote.Core;
-using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Notification;
+using Deenote.EditorModels;
 using Deenote.Entities.Models;
 using Deenote.Entities.Storage;
+using ObservableCollections;
 using System;
+using System.Collections.Specialized;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Deenote.Project
 {
@@ -29,26 +30,47 @@ namespace Deenote.Project
             }
         }
 
-        public ChartModel? CurrentChart
+        private ProjectEditorModel? _currentProject2;
+        public ProjectEditorModel? CurrentProject2
         {
-            get => MainSystem.GamePlayManager.CurrentChart;
+            get => _currentProject2;
+            private set {
+                if (_currentProject2 != value) {
+                    if (_currentProject2 is not null)
+                        _currentProject2.Charts.CollectionChanged -= _OnChartsChanged;
+                    _currentProject2 = value;
+                    if (_currentProject2 is not null)
+                        _currentProject2.Charts.CollectionChanged += _OnChartsChanged;
+                    else
+                        CurrentChart = null;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentProject2)));
+                }
+            }
         }
 
-        // TODO: R1.1 Audio或许不应该放这里，放GamePlay？
-        private AudioClip? _audioClip;
-        public AudioClip? CurrentAudioClip
+        private ChartModel? _currentChart;
+        public ChartModel? CurrentChart
         {
-            get => _audioClip;
-            [Obsolete("temp public")]
-            internal set {
-                if (_audioClip != value) {
-                    _audioClip = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentAudioClip)));
+            get => _currentChart;
+            set {
+                if (_currentChart != value) {
+                    _currentChart = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentChart)));
                 }
             }
         }
 
         public event Action<ProjectManager2, PropertyChangedEventArgs>? PropertyChanged;
+
+        private void _OnChartsChanged(in NotifyCollectionChangedEventArgs<ChartModel> e)
+        {
+            foreach (var item in e.GetOldItems()) {
+                if (item == CurrentChart) {
+                    this.CurrentChart = null;
+                    return;
+                }
+            }
+        }
 
         private CancellationTokenSource? _openLoadCts = new();
         private CancellationTokenSource _saveCts = new();
@@ -67,7 +89,7 @@ namespace Deenote.Project
         public bool IsProjectSaving { get; private set; }
         public event Action<ProjectSaveEventArgs>? ProjectSaved;
 
-        public void OpenProject(ProjectModel project, AudioClip clip)
+        public void OpenProjectModel(ProjectEditorModel model)
         {
             if (_openLoadCts is not null) {
                 _openLoadCts?.Cancel();
@@ -75,12 +97,7 @@ namespace Deenote.Project
                 _openLoadCts = null;
             }
 
-            if (CurrentProject != project) {
-                CurrentProject = project;
-                if (project is not null)
-                    project.AudioLength = clip.length;
-                CurrentAudioClip = clip;
-            }
+            CurrentProject2 = model;
         }
 
         public async UniTask<bool> OpenLoadProjectFileAsync(string filePath, CancellationToken cancellationToken = default)
@@ -98,12 +115,7 @@ namespace Deenote.Project
                 if (proj == null)
                     return false;
 
-                using var ms = new MemoryStream(proj.AudioFileData);
-                var clip = await AudioUtils.TryLoadAsync(ms, Path.GetExtension(proj.AudioFileRelativePath));
-                if (clip is null)
-                    return false;
-                    
-                OpenProject(proj, clip);
+                OpenProjectModel(new ProjectEditorModel(proj));
             } finally {
                 IsProjectLoading = false;
             }
@@ -113,7 +125,7 @@ namespace Deenote.Project
 
         public void UnloadCurrentProject()
         {
-            OpenProject(null!, null!);
+            OpenProjectModel(null!);
         }
 
         private async UniTask SaveCurrentProjectAsyncInternal(string targetFilePath, CancellationToken cancellationToken)

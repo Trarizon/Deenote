@@ -21,6 +21,15 @@ namespace Deenote.GameStage
             {
                 RefreshStageVisibleWarningNotes(e.ActiveNotes);
             };
+            
+            App.GamePlayManager.TimeChanged += e =>
+            {
+                if (App.ProjectManager.CurrentChart is null)
+                    return;
+
+                NotesManager.ShiftActiveNotes(!e.IsByJump);
+                WarningNotesManager.ShiftActiveNotes();
+            };
         }
 
         private void RefreshStageVisibleNotes(ReadOnlySpan<NoteModel> notes)

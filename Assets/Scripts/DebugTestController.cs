@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Deenote.EditorModels;
 using TriInspector;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Deenote
     {
         [ShowInInspector, Group("GamePlayerManager")]
         float StagePlaySpeed => App.Current is null ? 0 : App.GamePlayManager.StagePlaySpeed;
-        
+
         [ShowInInspector, Group("GamePlayerManager")]
         float CurrentTime => App.Current is null ? 0 : App.GamePlayManager.CurrentTime;
 
@@ -19,7 +20,8 @@ namespace Deenote
         {
             var proj = await DebugUtils.GetTestProjectAsync();
             Debug.Log("Loaded test project");
-            App.ProjectManager.OpenProject(proj.Item1, proj.Item2);
+            var model = new ProjectEditorModel(proj.Item1, proj.Item2);
+            App.ProjectManager.OpenProjectModel(model);
         }
     }
 }

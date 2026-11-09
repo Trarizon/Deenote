@@ -46,7 +46,7 @@ namespace Deenote.Project
 
         private async UniTask AutoSaveProjectAsync()
         {
-            if (App.ProjectManager.CurrentProject is null)
+            if (App.ProjectManager.CurrentProject2 is null)
                 return;
             if (App.ProjectManager.IsProjectSaving)
                 return;

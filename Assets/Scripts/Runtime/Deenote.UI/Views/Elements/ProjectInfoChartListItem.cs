@@ -57,9 +57,9 @@ namespace Deenote.UI.Views.Elements
             });
             _exportButton.Clicked += UniTask.Action(async () =>
             {
-                Asserts.NotNull(App.ProjectManager.CurrentProject);
+                Asserts.NotNull(App.ProjectManager.CurrentProject2);
 
-                var projFilePath = App.ProjectManager.CurrentProject.ProjectFilePath;
+                var projFilePath = App.ProjectManager.CurrentProject2.ProjectFilePath;
 
                 var suffix = string.IsNullOrEmpty(ChartModel.Name)
                     ? ChartModel.Difficulty.ToLowerCaseString()
