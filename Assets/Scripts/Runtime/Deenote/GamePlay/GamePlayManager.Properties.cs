@@ -79,7 +79,7 @@ namespace Deenote.GamePlay
         }
 
         private static float ConvertToActualMusicSpeed(int musicSpeed) => musicSpeed / 10.0f;
-    
+
         private bool _pauseWhenLoseFocus_bf;
         public bool PauseWhenLoseFocus
         {
@@ -90,6 +90,29 @@ namespace Deenote.GamePlay
                     PropertyChanged?.Invoke(this, nameof(PauseWhenLoseFocus));
                 }
             }
+        }
+
+        private void RegisterConfigurations()
+        {
+            MainSystem.SaveSystem.SavingConfigurations += configs =>
+          {
+              configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
+
+              configs.Set("stage/music_speed", MusicSpeed);
+              configs.Set("stage/hitsound_volume", HitSoundVolume);
+              configs.Set("stage/music_volume", MusicVolume);
+              configs.Set("stage/piano_volume", PianoVolume);
+          };
+            MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            {
+                PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
+
+                MusicSpeed = configs.GetInt32("stage/music_speed", 10);
+                HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
+                MusicVolume = configs.GetSingle("stage/music_volume", 100f);
+                PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
+            };
+
         }
     }
 }

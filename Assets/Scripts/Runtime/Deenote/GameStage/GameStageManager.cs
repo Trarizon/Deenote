@@ -5,8 +5,6 @@ using Deenote.GameStage.Themes;
 using Deenote.GameStage.UI;
 using Deenote.GameStage.World;
 using System;
-using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace Deenote.GameStage
 {
@@ -16,7 +14,7 @@ namespace Deenote.GameStage
 
         public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
         public GameStageGridsManager GridsManager { get; }
-        public GameStageNotesManager NotesManager { get; private set; } = default;
+        public GameStageNotesManager NotesManager { get; private set; } 
         public GameStageWarningNotesManager WarningNotesManager { get; private set; } = default!;
 
         public GameStageConfig Config => GameStage!.Config;
@@ -59,6 +57,7 @@ namespace Deenote.GameStage
             NotesManager = new(this, App.GamePlayManager, App.ProjectManager);
             WarningNotesManager = new(this, App.GamePlayManager, App.ProjectManager);
 
+            RegisterConfigurations();
             RegisterCustomPropertiesConfigurations();
 
             Ctor_Notes();

@@ -11,9 +11,12 @@ using Deenote.UIFramework.Controls;
 using System;
 using System.Collections.Immutable;
 using UnityEngine;
-using Deenote.Library.Mathematics;
+// using Deenote.Library.Mathematics;
 using Deenote.CoreB.Notification;
 using Deenote.Systems;
+using Deenote.GameStage;
+using Deenote.GamePlay;
+using Deenote.Core.Helpers;
 
 namespace Deenote.UI.Dialogs
 {
@@ -51,25 +54,27 @@ namespace Deenote.UI.Dialogs
         #endregion
 
         private EnvironmentContext _environment;
+        private GameStageManager _stageManager;
+        private GamePlayManager2 _gamePlayManager;
 
         protected override void Awake()
         {
             _environment = App.Environment;
+            _stageManager = App.GameStageManager;
+            _gamePlayManager = App.GamePlayManager;
         }
 
         private void Start()
         {
             _dialog.CloseButton.Clicked += base.CloseSelfModalDialog;
 
-            _stageEffectToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsStageEffectOn = val;
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.StageEffectOn,
-                manager => _stageEffectToggle.SetIsCheckedWithoutNotify(manager.IsStageEffectOn));
-
-            _pauseStageWhenLoseFocusToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.PauseWhenLoseFocus = val;
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.PauseWhenLoseFocus,
-                manager => _pauseStageWhenLoseFocusToggle.SetIsCheckedWithoutNotify(manager.PauseWhenLoseFocus));
+            _pauseStageWhenLoseFocusToggle.IsCheckedChanged += val => _gamePlayManager.PauseWhenLoseFocus = val;
+            _gamePlayManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.PauseWhenLoseFocus))) {
+                    _pauseStageWhenLoseFocusToggle.SetIsCheckedWithoutNotify(s.PauseWhenLoseFocus);
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
 
             _mouseSensitivityInput.EditSubmitted += val =>
             {
@@ -82,61 +87,76 @@ namespace Deenote.UI.Dialogs
                 GlobalSettings.NotificationFlag.GameViewScrollSensitivity,
                 settings => _mouseSensitivityInput.SetValueWithoutNotify(settings.GameViewScrollSensitivity.ToString("F1")));
 
+            // Stage
+
+            _stageEffectToggle.IsCheckedChanged += val => _stageManager.IsStageEffectOn = val;
+
             _tempoLineColorInput.EditSubmitted += val =>
             {
                 var span = val.AsSpan();
-                if (span.Length < 1) {
-                    MainSystem.GamePlayManager.CustomTempoLineColor = null;
-                    return;
+                if (span.IsEmpty) {
+                    // Empty string as null
+                    _stageManager.CustomTempoLineColor = null;
                 }
-                if (span[0] is '#')
-                    span = span[1..];
-
-                if (ColorUtils.TryParse(span, out var color)) {
-                    MainSystem.GamePlayManager.CustomTempoLineColor = color;
+                else if (ColorUtils.TryParse(span, out var color)) {
+                    _stageManager.CustomTempoLineColor = color;
                 }
-                SyncColorValue(_tempoLineColorInput, MainSystem.GamePlayManager.CustomTempoLineColor);
+                else {
+                    // Non-empty length but invalid color string, do nothing, set the original value
+                    SyncColorValue(_tempoLineColorInput, _stageManager.CustomTempoLineColor);
+                }
             };
             _beatLineColorInput.EditSubmitted += val =>
             {
                 var span = val.AsSpan();
-                if (span.Length < 1) {
-                    MainSystem.GamePlayManager.CustomBeatLineColor = null;
-                    return;
+                if (span.Length == 0) {
+                    // Empty length as null
+                    _stageManager.CustomBeatLineColor = null;
                 }
-                if (span[0] is '#')
-                    span = span[1..];
-
-                if (ColorUtils.TryParse(span, out var color)) {
-                    MainSystem.GamePlayManager.CustomBeatLineColor = color;
+                else if (ColorUtils.TryParse(span, out var color)) {
+                    _stageManager.CustomBeatLineColor = color;
                 }
-                SyncColorValue(_beatLineColorInput, MainSystem.GamePlayManager.CustomBeatLineColor);
+                else {
+                    // Non-empty length but invalid color string, do nothing, set the original value
+                    SyncColorValue(_beatLineColorInput, _stageManager.CustomBeatLineColor);
+                }
             };
             _subbeatLineColorInput.EditSubmitted += val =>
             {
                 var span = val.AsSpan();
-                if (span.Length < 1) {
-                    MainSystem.GamePlayManager.CustomSubBeatLineColor = null;
-                    return;
+                if (span.IsEmpty) {
+                    // Empty string as null
+                    _stageManager.CustomSubdivisionLineColor = null;
                 }
-                if (span[0] is '#')
-                    span = span[1..];
-
-
-                if (ColorUtils.TryParse(span, out var color)) {
-                    MainSystem.GamePlayManager.CustomSubBeatLineColor = color;
+                else if (ColorUtils.TryParse(span, out var color)) {
+                    _stageManager.CustomSubdivisionLineColor = color;
                 }
-                SyncColorValue(_subbeatLineColorInput, MainSystem.GamePlayManager.CustomSubBeatLineColor);
+                else {
+                    // Non-empty length but invalid color string, do nothing, set the original value
+                    SyncColorValue(_subbeatLineColorInput, _stageManager.CustomSubdivisionLineColor);
+                }
             };
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CustomTempoLineColor,
-                manager => SyncColorValue(_tempoLineColorInput, manager.CustomTempoLineColor));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CustomBeatLineColor,
-                manager => SyncColorValue(_beatLineColorInput, manager.CustomBeatLineColor));
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CustomSubBeatLineColor,
-                manager => SyncColorValue(_subbeatLineColorInput, manager.CustomSubBeatLineColor));
+
+            _distinguishPianoNotesToggle.IsCheckedChanged += val => _stageManager.IsPianoNotesDistinguished = val;
+
+            _stageManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.IsStageEffectOn))) {
+                    _stageEffectToggle.SetIsCheckedWithoutNotify(s.IsStageEffectOn);
+                }
+                if (e.Match(nameof(s.CustomTempoLineColor))) {
+                    SyncColorValue(_tempoLineColorInput, s.CustomTempoLineColor);
+                }
+                if (e.Match(nameof(s.CustomBeatLineColor))) {
+                    SyncColorValue(_beatLineColorInput, s.CustomBeatLineColor);
+                }
+                if (e.Match(nameof(s.CustomSubdivisionLineColor))) {
+                    SyncColorValue(_subbeatLineColorInput, s.CustomSubdivisionLineColor);
+                }
+                if (e.Match(nameof(s.IsPianoNotesDistinguished))) {
+                    _distinguishPianoNotesToggle.SetIsCheckedWithoutNotify(s.IsPianoNotesDistinguished);
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
 
             // System
 
@@ -151,13 +171,18 @@ namespace Deenote.UI.Dialogs
             LocalizationSystem.LanguageChanged += val => _languageDropdown.SetValueWithoutNotify(_languageDropdown.FindIndex(text => text == val.LanguageDisplayName));
             _languageDropdown.SetValueWithoutNotify(_languageDropdown.FindIndex(text => text == LocalizationSystem.CurrentLanguage.LanguageDisplayName));
 
+            // Env
+
             _autoSaveDropdown.ResetOptions(_autoSaveDropdownOptions.AsSpan());
-            _autoSaveDropdown.SelectedIndexChanged += val => App.Environment.AutoSaveOptions = GetAutoSaveDropdownOption(val);
+            _autoSaveDropdown.SelectedIndexChanged += val => _environment.AutoSaveOptions = GetAutoSaveDropdownOption(val);
 
             _autoSaveIntervalDropdown.ResetOptions(_autoSaveIntervals.AsSpan(), time => LocalizableText.Localized(AutoSaveIntervalMinutesKey, (time / 60).ToString()));
-            _autoSaveIntervalDropdown.SelectedIndexChanged += val => App.Environment.AutoSaveIntervalSeconds = GetAutoSaveIntervalDropdownOption(val);
+            _autoSaveIntervalDropdown.SelectedIndexChanged += val => _environment.AutoSaveIntervalSeconds = GetAutoSaveIntervalDropdownOption(val);
 
-            App.Environment.RegisterPropertyChangedAndInvoke((s, e) =>
+            _vSyncToggle.IsCheckedChanged += val => _environment.IsVSyncOn = val;
+            _checkUpdateToggle.IsCheckedChanged += val => _environment.CheckUpdateOnStartup = val;
+
+            _environment.RegisterPropertyChangedAndInvoke((s, e) =>
             {
                 if (e.Match(nameof(s.AutoSaveOptions))) {
                     _autoSaveDropdown.SetValueWithoutNotify(GetAutoSaveDropdownIndex(s.AutoSaveOptions));
@@ -165,13 +190,6 @@ namespace Deenote.UI.Dialogs
                 if (e.Match(nameof(s.AutoSaveIntervalSeconds))) {
                     _autoSaveIntervalDropdown.SetValueWithoutNotify(GetAutoSaveIntervalDropdownIndex(s.AutoSaveIntervalSeconds));
                 }
-            });
-
-            _vSyncToggle.IsCheckedChanged += val => _environment.IsVSyncOn = val;
-            _checkUpdateToggle.IsCheckedChanged += val => _environment.CheckUpdateOnStartup = val;
-            
-            _environment.RegisterPropertyChangedAndInvoke((s, e) =>
-            {
                 if (e.Match(nameof(s.IsVSyncOn))) {
                     _vSyncToggle.SetIsCheckedWithoutNotify(s.IsVSyncOn);
                 }
@@ -200,18 +218,9 @@ namespace Deenote.UI.Dialogs
                 GlobalSettings.NotificationFlag.IneffectivePropertiesVisible,
                 settings => _showIneffectivePropertiesToggle.IsChecked = settings.IsIneffectivePropertiesVisible);
 
-            _distinguishPianoNotesToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsPianoNotesDistinguished = val;
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.DistinguishPianoNotes,
-                manager => _distinguishPianoNotesToggle.IsChecked = manager.IsPianoNotesDistinguished);
-
             void SyncColorValue(TextBox textBox, Color? color)
             {
-                var str = color?.ToRGBAString();
-                if (str is null)
-                    textBox.SetValueWithoutNotify("");
-                else
-                    textBox.SetValueWithoutNotify($"#{str}");
+                textBox.SetValueWithoutNotify(color?.ToRGBAString(true) ?? "");
             }
         }
 

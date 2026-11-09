@@ -42,6 +42,7 @@ namespace Deenote
 
             StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
         
+            App.GamePlayManager.PostConstructor();
             App.GameStageManager.PostConstructor();
         }
 

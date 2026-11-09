@@ -116,6 +116,11 @@ namespace Deenote.GamePlay
             });
         }
 
+        public void PostConstructor()
+        {
+            RegisterConfigurations();
+        }
+
         private CancellationTokenSource? _audioClipCts;
         private async UniTask LoadAudioClipFromDataAsync(byte[] bytes, string audioType)
         {

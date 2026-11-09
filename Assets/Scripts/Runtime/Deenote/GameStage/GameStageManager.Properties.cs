@@ -1,7 +1,7 @@
+using Deenote.Core.Helpers;
 using Deenote.CoreB.Notification;
 using Deenote.Entities.Models;
 using Deenote.Library;
-using Deenote.Library.Mathematics;
 using System;
 using UnityEngine;
 
@@ -179,6 +179,37 @@ namespace Deenote.GameStage
         }
 
         #endregion
+
+        private void RegisterConfigurations()
+        {
+            MainSystem.SaveSystem.SavingConfigurations += configs =>
+            {
+                configs.Set("stage/highlight_note_speed", PlacementNoteSpeed);
+                configs.Set("stage/apply_speed_diff", IsApplySpeedDifference);
+                configs.Set("stage/filter_note_speed", HighlightedNoteSpeed is not null);
+
+                configs.Set("stage/note_speed", NoteFallSpeed);
+                configs.Set("stage/show_link_lines", IsShowLinkLines);
+                configs.Set("stage/piano_note_distinguish", IsPianoNotesDistinguished);
+                configs.Set("stage/effect", IsStageEffectOn);
+                configs.Set("stage/sudden_plus", SuddenPlus);
+                configs.Set("stage/early_display_slow_notes", IsEarlyDisplaySlowNotes);
+                configs.Set("stage/warning_note_display", (int)WarningNoteVisibility);
+            };
+            MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            {
+                HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
+                IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
+
+                NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
+                IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
+                IsPianoNotesDistinguished = configs.GetBoolean("stage/piano_note_distinguish", true);
+                IsStageEffectOn = configs.GetBoolean("stage/effect", true);
+                SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
+                IsEarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
+                WarningNoteVisibility = (GameStageWarningNoteVisibility)configs.GetInt32("stage/warning_note_display", (int)GameStageWarningNoteVisibility.ShowNoteAndLine);
+            };
+        }
 
         #region Grid Properties
 

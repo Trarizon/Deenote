@@ -20,48 +20,48 @@ namespace Deenote.Core.GamePlay
 
         private void RegisterConfigurations()
         {
-            MainSystem.SaveSystem.SavingConfigurations += configs =>
-            {
-                configs.Set("stage/highlight_note_speed", HighlightedNoteSpeed);
-                configs.Set("stage/apply_speed_diff", IsApplySpeedDifference);
-                configs.Set("stage/filter_note_speed", IsFilterNoteSpeed);
+            // MainSystem.SaveSystem.SavingConfigurations += configs =>
+            // {
+            //     configs.Set("stage/highlight_note_speed", HighlightedNoteSpeed);
+            //     configs.Set("stage/apply_speed_diff", IsApplySpeedDifference);
+            //     configs.Set("stage/filter_note_speed", IsFilterNoteSpeed);
 
-                configs.Set("stage/note_speed", NoteFallSpeed);
-                configs.Set("stage/show_link_lines", IsShowLinkLines);
-                configs.Set("stage/piano_note_distinguish", IsPianoNotesDistinguished);
-                configs.Set("stage/effect", IsStageEffectOn);
-                configs.Set("stage/sudden_plus", SuddenPlus);
-                configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
-                // configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
-                configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
-                configs.Set("stage/warning_note_display", (int)WarningNoteVisibility);
+            //     configs.Set("stage/note_speed", NoteFallSpeed);
+            //     configs.Set("stage/show_link_lines", IsShowLinkLines);
+            //     configs.Set("stage/piano_note_distinguish", IsPianoNotesDistinguished);
+            //     configs.Set("stage/effect", IsStageEffectOn);
+            //     configs.Set("stage/sudden_plus", SuddenPlus);
+            //     configs.Set("stage/early_display_slow_notes", EarlyDisplaySlowNotes);
+            //     // configs.Set("stage/ignore_note_speed_property", IgnoreNoteSpeed);
+            //     configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
+            //     configs.Set("stage/warning_note_display", (int)WarningNoteVisibility);
 
-                configs.Set("stage/music_speed", MusicSpeed);
-                configs.Set("stage/hitsound_volume", HitSoundVolume);
-                configs.Set("stage/music_volume", MusicVolume);
-                configs.Set("stage/piano_volume", PianoVolume);
-            };
-            MainSystem.SaveSystem.LoadedConfigurations += configs =>
-            {
-                HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
-                IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
-                IsFilterNoteSpeed = configs.GetBoolean("stage/filter_note_speed", false);
+            //     configs.Set("stage/music_speed", MusicSpeed);
+            //     configs.Set("stage/hitsound_volume", HitSoundVolume);
+            //     configs.Set("stage/music_volume", MusicVolume);
+            //     configs.Set("stage/piano_volume", PianoVolume);
+            // };
+            // MainSystem.SaveSystem.LoadedConfigurations += configs =>
+            // {
+            //     HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
+            //     IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
+            //     IsFilterNoteSpeed = configs.GetBoolean("stage/filter_note_speed", false);
 
-                NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
-                IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
-                IsPianoNotesDistinguished = configs.GetBoolean("stage/piano_note_distinguish", true);
-                IsStageEffectOn = configs.GetBoolean("stage/effect", true);
-                SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
-                EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
-                // IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
-                PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
-                WarningNoteVisibility = (SpeedWarningNoteVisibility)configs.GetInt32("stage/warning_note_display", (int)SpeedWarningNoteVisibility.ShowNoteLine);
+            //     NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
+            //     IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
+            //     IsPianoNotesDistinguished = configs.GetBoolean("stage/piano_note_distinguish", true);
+            //     IsStageEffectOn = configs.GetBoolean("stage/effect", true);
+            //     SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
+            //     EarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
+            //     // IgnoreNoteSpeed = configs.GetBoolean("stage/ignore_note_speed_property", false);
+            //     PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
+            //     WarningNoteVisibility = (SpeedWarningNoteVisibility)configs.GetInt32("stage/warning_note_display", (int)SpeedWarningNoteVisibility.ShowNoteLine);
 
-                MusicSpeed = configs.GetInt32("stage/music_speed", 10);
-                HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
-                MusicVolume = configs.GetSingle("stage/music_volume", 100f);
-                PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
-            };
+            //     MusicSpeed = configs.GetInt32("stage/music_speed", 10);
+            //     HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
+            //     MusicVolume = configs.GetSingle("stage/music_volume", 100f);
+            //     PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
+            // };
         }
 
         private const float ZeroAvoidHighlightedSpeed = 0.1f;

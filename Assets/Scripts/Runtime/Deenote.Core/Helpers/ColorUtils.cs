@@ -1,22 +1,27 @@
-#nullable enable
-
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace Deenote.Library.Mathematics
+namespace Deenote.Core.Helpers
 {
     public static class ColorUtils
     {
-        /// <param name="code">RGBA, hex, exclude # sign</param>
+        /// <param name="code">RGBA, hex, allows # sign</param>
         /// <param name="color"></param>
         /// <returns></returns>
         public static bool TryParse(ReadOnlySpan<char> code, out Color color)
         {
-            const int HalfByteBitCount = 4;
+            if (code.IsEmpty)
+                goto Failed;
+
+            if (code[0] == '#')
+                code = code[1..];
 
             if (code.IsEmpty)
                 goto Failed;
+
+            const int HalfByteBitCount = 4;
+
             Span<byte> bytes = stackalloc byte[4];
             bytes[3] = byte.MaxValue;
 
@@ -65,20 +70,34 @@ namespace Deenote.Library.Mathematics
             }
         }
 
-        public static string ToRGBAString(this Color color)
-            => ToRGBAString((Color32)color);
+        public static string ToRGBAString(this Color color, bool hashtag = false)
+            => ToRGBAString((Color32)color, hashtag);
 
-        public static string ToRGBAString(this Color32 color)
+        public static string ToRGBAString(this Color32 color, bool hashtag = false)
+        {
+            var buffer = (stackalloc char[8 + 1]);
+            if (hashtag) {
+                buffer[0] = '#';
+                WriteColorRGBAString(color, buffer[1..]);
+                return buffer.ToString();
+            }
+            WriteColorRGBAString(color, buffer);
+            return buffer[..8].ToString();
+        }
+
+        public static bool WriteColorRGBAString(Color32 color, Span<char> buffer)
         {
             const int HalfByteBitCount = 4;
+            const int Written = 8;
 
-            var chars = (stackalloc char[8]);
-
-            ToStr(color.r, ref chars[0]);
-            ToStr(color.g, ref chars[2]);
-            ToStr(color.b, ref chars[4]);
-            ToStr(color.a, ref chars[6]);
-            return chars.ToString();
+            if (buffer.Length < Written) {
+                return false;
+            }
+            ToStr(color.r, ref buffer[0]);
+            ToStr(color.g, ref buffer[2]);
+            ToStr(color.b, ref buffer[4]);
+            ToStr(color.a, ref buffer[6]);
+            return true;
 
             void ToStr(byte b, ref char c)
             {
@@ -99,4 +118,5 @@ namespace Deenote.Library.Mathematics
             }
         }
     }
+
 }
