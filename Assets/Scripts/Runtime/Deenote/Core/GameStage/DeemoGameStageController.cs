@@ -19,7 +19,6 @@ namespace Deenote.Core.GameStage
         private static readonly int HoldCullMaxZPropertyId = Shader.PropertyToID("_CullMaxZ");
 
         [Title("Deemo")]
-        [SerializeField] Camera _perspectiveCamera;
         [SerializeField] Camera _backgroundCamera;
 
         [Header("Effect")]
@@ -29,25 +28,14 @@ namespace Deenote.Core.GameStage
         [Space]
         [SerializeField] Material _holdBodyCullMaterial = default!;
 
-        private GameStageManager _stageManager;
+        private GameStageManager _stageManager = default!;
 
-        protected override Camera PerspectiveCamera => _perspectiveCamera;
-
-        void Awake()
+        protected internal override void OnInstantiate(GameStageManager stageManager)
         {
-            _stageManager = App.GameStageManager;
-        }
+            base.OnInstantiate(stageManager);
 
-        protected internal override void OnInstantiate(GamePlayManager manager)
-        {
-            base.OnInstantiate(manager);
-
-            _stageManager.ForegroundViewPanel.ViewSizeChanged += _OnViewSizeChanged;
-            _OnViewSizeChanged(_stageManager.ForegroundViewPanel);
-
-            _manager.RegisterNotification(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                _OnActiveNotesUpdated);
+            _stageManager = stageManager;
+            _stageManager.NotesManager.ActiveNotesChanged += _OnActiveNotesChanged;
 
             App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
             {
@@ -64,45 +52,19 @@ namespace Deenote.Core.GameStage
 
         private void OnDestroy()
         {
-            _stageManager.ForegroundViewPanel.ViewSizeChanged -= _OnViewSizeChanged;
-            _manager.UnregisterNotification(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                _OnActiveNotesUpdated);
+            _stageManager.NotesManager.ActiveNotesChanged -= _OnActiveNotesChanged;
         }
 
-        private void _OnViewSizeChanged(IGameStagePerspectiveViewPanel panel)
+        private void _OnActiveNotesChanged(GameStageNotesManager s, GameStageNotesManager.ActiveNotesChangedEventArgs e)
         {
-            var rt = panel.ViewRendererTexture;
-
-            // Background camera
-
-            _backgroundCamera.targetTexture = rt;
-            _backgroundCamera.Render();
-
-            // Perspective camera
-
-            if (_perspectiveCamera.targetTexture != rt) {
-                _perspectiveCamera.targetTexture = rt;
-            }
-            var width = rt.width;
-            var height = rt.height;
-            var h = 9f / 16f * width / height;
-            _perspectiveCamera.rect = new Rect(0f, 0f, 1f, h);
-        }
-
-        private void _OnActiveNotesUpdated(GamePlayManager manager)
-        {
-            manager.AssertChartLoaded();
-
-            // Update judge line hit effect
-            var previousHitNode = App.GameStageManager.NotesManager.GetPreviousHitNote();
+            var previousHitNode = s.GetPreviousHitNote();
             if (previousHitNode is null) {
                 _judgeLineEffect.SetHitEffect(null);
                 return;
             }
 
             var hitTime = previousHitNode.Time;
-            var deltaTime = manager.MusicPlayer.Time - hitTime;
+            var deltaTime = s.CurrentTime - hitTime;
             Debug.Assert(deltaTime >= 0);
 
             _judgeLineEffect.SetHitEffect(deltaTime);
@@ -122,6 +84,21 @@ namespace Deenote.Core.GameStage
             var time = _manager.StageNoteActiveAheadTime * value;
             var z = _manager.ConvertNoteCoordTimeToWorldZ(time);
             _holdBodyCullMaterial.SetFloat(HoldCullMaxZPropertyId, z);
+        }
+
+        protected override void OnRenderedViewChanged(RenderTexture renderTexture)
+        {
+            // Background camera
+
+            _backgroundCamera.targetTexture = renderTexture;
+            _backgroundCamera.Render();
+
+            // Perspective camera
+
+            var width = renderTexture.width;
+            var height = renderTexture.height;
+            var h = 9f / 16f * width / height;
+            PerspectiveCamera.rect = new Rect(0f, 0f, 1f, h);
         }
     }
 }

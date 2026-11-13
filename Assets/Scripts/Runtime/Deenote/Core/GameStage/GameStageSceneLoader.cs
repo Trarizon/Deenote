@@ -2,6 +2,7 @@
 
 using Cysharp.Threading.Tasks;
 using Deenote.GamePlay.UI;
+using Deenote.GameStage;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;

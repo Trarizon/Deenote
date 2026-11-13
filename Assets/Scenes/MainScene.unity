@@ -18144,6 +18144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dbe778e7cfe9c347946cbc79fff88a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _appGlobalConfigs: {fileID: 11400000, guid: d50f97bae3ca13a44a04d1e98710a66e, type: 2}
   _gameMusicPlayer: {fileID: 1285348179}
   _pianoSoundSource: {fileID: 295354313}
   _hitSoundSource: {fileID: 224336615}
