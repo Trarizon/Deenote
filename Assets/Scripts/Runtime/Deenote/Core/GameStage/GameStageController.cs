@@ -1,25 +1,26 @@
-#nullable enable
-
 using Deenote.Core.GamePlay;
+using Deenote.Core.GameStage;
 using Deenote.Entities;
 using Deenote.GameStage.Grids;
+using Deenote.GameStage.UI;
 using Deenote.GameStage.World;
 using Deenote.Library;
 using System.Diagnostics.CodeAnalysis;
 using TriInspector;
 using UnityEngine;
 
-namespace Deenote.Core.GameStage
+namespace Deenote.GameStage
 {
     public abstract class GameStageController : MonoBehaviour
     {
+        [SerializeField] Camera _perspectiveCamera;
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
         [SerializeField] Transform _notePanelTransform = default!;
         [SerializeField] GameStageNotePlaneController _notePlane;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
 
-        protected abstract Camera PerspectiveCamera { get; }
+        protected Camera PerspectiveCamera => _perspectiveCamera;
 
         public PerspectiveLinesRenderer PerspectiveLinesRenderer => _perspectiveLineRenderer;
 
@@ -63,14 +64,31 @@ namespace Deenote.Core.GameStage
             }
         }
 
+        private GameStageManager _stageManager = default!;
 
-        protected internal virtual void OnInstantiate(GamePlayManager manager)
+        protected internal virtual void OnInstantiate(GameStageManager stageManager)
         {
-            _manager = manager;
-            _manager.RegisterNotification(
+            _stageManager = stageManager;
+            _stageManager.ForegroundViewPanel.ViewSizeChanged += _OnViewSizeChanged;
+
+            MainSystem.GamePlayManager.RegisterNotification(
                 GamePlayManager.NotificationFlag.SuddenPlus,
                 manager => VisibleRangePercentage = manager.VisibleRangePercentage);
-            _perspectiveLineRenderer.OnInstantiate(_manager);
+            _perspectiveLineRenderer.OnInstantiate(MainSystem.GamePlayManager);
+        }
+
+        void OnDestroy()
+        {
+            _stageManager.ForegroundViewPanel.ViewSizeChanged -= _OnViewSizeChanged;
+        }
+
+        private void _OnViewSizeChanged(IGameStagePerspectiveViewPanel panel)
+        {
+            var rt = panel.ViewRendererTexture;
+            if (_perspectiveCamera.targetTexture != rt) {
+                _perspectiveCamera.targetTexture = rt;
+            }
+            OnRenderedViewChanged(rt);
         }
 
         internal void SetSelectionPanelRect(NoteCoord startCoord, NoteCoord endCoord)
@@ -90,10 +108,8 @@ namespace Deenote.Core.GameStage
         }
 
         protected virtual void OnIsStageEffectOnChanged(bool value) { }
-
-        protected virtual void OnVisibleRangePercentageChanged(float value)
-        {
-        }
+        protected virtual void OnVisibleRangePercentageChanged(float value) { }
+        protected virtual void OnRenderedViewChanged(RenderTexture renderTexture) { }
 
         #region Perspective Converters
 

@@ -90,7 +90,7 @@ namespace Deenote.GamePlay
                 _noteSoundsPlayer.ScheduleAudio();
             };
 
-            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
+            App.ProjectManager.RegisterPropertyChanged((s, e, t) =>
             {
                 if (e.Match(nameof(s.CurrentChart))) {
                     _noteSoundsPlayer.Chart = s.CurrentChart;

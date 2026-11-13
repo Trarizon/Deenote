@@ -21,7 +21,7 @@ namespace Deenote
         [SerializeField] GamePlayManager _gamePlayManager = default!;
         [SerializeField] StageChartEditor _stageChartEditor = default!;
 
-        public static SaveSystem SaveSystem { get; private set; } = default!;
+        public static SaveSystem SaveSystem  => App.Current.SaveSystem;
         public static GlobalSettings GlobalSettings { get; private set; } = default!;
 
         public static PianoSoundSource PianoSoundSource => Instance._pianoSoundSource;
@@ -36,8 +36,6 @@ namespace Deenote
 
             base.Awake();
 
-            SaveSystem = new();
-
             GlobalSettings = new();
 
             StageChartEditor.OnInstantiate(ProjectManager, GamePlayManager);
@@ -49,7 +47,7 @@ namespace Deenote
         private void Start()
         {
             SaveSystem.LoadConfigurations();
-            _ = GameStageSceneLoader.LoadAsync("StageScene");
+            // _ = GameStageSceneLoader.LoadAsync("StageScene");
         }
 
         public static partial class Args

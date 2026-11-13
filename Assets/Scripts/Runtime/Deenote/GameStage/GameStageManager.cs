@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.GameStage;
+using Deenote.CoreB.Notification;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.Themes;
 using Deenote.GameStage.UI;
@@ -13,43 +14,43 @@ namespace Deenote.GameStage
         private readonly IGameStagePerspectiveViewPanel _foreground;
 
         public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
+        public GameStageThemeManager ThemeManager { get; }
         public GameStageGridsManager GridsManager { get; }
-        public GameStageNotesManager NotesManager { get; private set; } 
+        public GameStageNotesManager NotesManager { get; private set; }
         public GameStageWarningNotesManager WarningNotesManager { get; private set; } = default!;
 
         public GameStageConfig Config => GameStage!.Config;
         public IGameStageStrategy Strategy { get; } = new DeemoGameStageStrategy();
         private IGameStageNoteFactory? NoteFactory { get; set; }
 
-        public GameStageController? GameStage { get; private set; }
+        public GameStageController? GameStage => ThemeManager.CurrentStage;
 
-
-        public event Action<StageLoadedEventArgs>? StageLoaded;
-
-        internal GameStageManager(IGameStagePerspectiveViewPanel foreground)
+        internal GameStageManager(IGameStagePerspectiveViewPanel foreground, AppGlobalConfigs appConfig)
         {
             _foreground = foreground;
+            ThemeManager = new(appConfig.BuiltinStageThemes);
             GridsManager = new();
 
 
-            GameStageSceneLoader.StageLoaded += (loader) =>
+            ThemeManager.RegisterPropertyChanged((s, e) =>
             {
-                Core(loader).Forget();
-                async UniTaskVoid Core(GameStageSceneLoader loader)
-                {
-                    GameStage = loader.StageController;
+                if (e.Match(nameof(s.CurrentStage))) {
+                    PropertyChanged?.Invoke(this, nameof(GameStage));
 
-                    MainSystem.GamePlayManager.OnStageLoaded(loader);
-                    OnGameStageLoaded(loader.StageController);
+                    if (s.CurrentStage is { } stage) {
+                        MainSystem.GamePlayManager.OnStageLoaded(stage);
+                        OnGameStageLoaded(stage);
 
-                    await _foreground.ApplyStageAsync(parent =>
-                    {
-                        return UniTask.FromResult<GameStageForegroundView>(UnityEngine.Object.Instantiate(loader.PerspectiveViewForeground, parent));
-                    });
-
-                    StageLoaded?.Invoke(new StageLoadedEventArgs(GameStage));
+                        stage.OnInstantiate(this);
+                    }
                 }
-            };
+                if (e.Match(nameof(s.CurrentTheme))) {
+                    _foreground.ApplyStageAsync(async parent =>
+                    {
+                        return await s.LoadCurrentThemeForegroundAsync(parent);
+                    });
+                }
+            });
         }
 
         public void PostConstructor()

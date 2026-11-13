@@ -7,7 +7,7 @@ namespace Deenote.GameStage.UI
     public interface IGameStagePerspectiveViewPanel
     {
         RenderTexture ViewRendererTexture { get; }
-        UniTask ApplyStageAsync(Func<Transform, UniTask<GameStageForegroundView>> instantiateForegroundViewAsync);
+        UniTask ApplyStageAsync(Func<Transform, UniTask<GameStageForegroundView?>> instantiateForegroundViewAsync);
         
         event Action<IGameStagePerspectiveViewPanel>? ViewSizeChanged;
     }

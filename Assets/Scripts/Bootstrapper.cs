@@ -10,12 +10,14 @@ using Deenote.UI.Views;
 using System.ComponentModel;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Deenote
 {
     [DefaultExecutionOrder(-99)]
     internal sealed class Bootstrapper : MonoBehaviour
     {
+        [SerializeField] AppGlobalConfigs _appGlobalConfigs;
         [SerializeField] GameMusicPlayer _gameMusicPlayer;
         [SerializeField] PianoSoundSource _pianoSoundSource;
         [SerializeField] HitSoundSource _hitSoundSource;
@@ -38,8 +40,8 @@ namespace Deenote
 
         void Awake()
         {
-            var app = App.Create(_perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundSource);
-            
+            var app = App.Create(_appGlobalConfigs, _perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundSource);
+
             Debug.Log("Bootstrapper Awake");
         }
 
@@ -101,6 +103,10 @@ namespace Deenote
                 CheckUpdateAsync().Forget();
             }
 #endif
+
+            // StageScene
+
+            LoadStageSceneAsync().Forget();
         }
 
         private async UniTask CheckUpdateAsync()
@@ -116,6 +122,14 @@ namespace Deenote
                 }
             }
             // We do not pop up any fail message on startup-check
+        }
+
+        private async UniTaskVoid LoadStageSceneAsync()
+        {
+            App.Logger.LogTrace("Request loading GameStageScene");
+            await App.Current.LoadGameStageSceneAsync();
+            await App.GameStageManager.ThemeManager.TryLoadThemeAsync("Deemo");
+
         }
     }
 }

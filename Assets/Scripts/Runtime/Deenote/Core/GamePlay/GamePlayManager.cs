@@ -9,6 +9,7 @@ using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.GamePlay;
 using Deenote.GamePlay.UI;
+using Deenote.GameStage;
 using Deenote.Library;
 using Deenote.Library.Components;
 using System;
@@ -57,23 +58,23 @@ namespace Deenote.Core.GamePlay
             App.GamePlayManager.SetManualPlaySpeed(manualPlaySpeed);
         }
 
-        public void OnStageLoaded(GameStageSceneLoader loader)
+        public void OnStageLoaded(GameStageController stage)
         {
-            App.Logger.LogDebug("StageLoaded");
-            Stage = loader.StageController;
-            Stage.OnInstantiate(this);
-            NotesManager.Initialize(
-                UnityUtils.CreateObjectPool(
-                    Stage.Config.NotePrefab,
-                    Stage.NotePanelTransform,
-                    item => item.OnInstantiate(this)));
-            OnStageLoaded_Properties(loader);
+            // App.Logger.LogDebug("StageLoaded");
+            // Stage = stage;
+            // Stage.OnInstantiate(this);
+            // NotesManager.Initialize(
+            //     UnityUtils.CreateObjectPool(
+            //         Stage.Config.NotePrefab,
+            //         Stage.NotePanelTransform,
+            //         item => item.OnInstantiate(this)));
+            // OnStageLoaded_Properties(stage);
 
-            if (IsChartLoaded()) {
-                UpdateNotes(true, true);
-            }
+            // if (IsChartLoaded()) {
+            //     UpdateNotes(true, true);
+            // }
 
-            StageLoaded?.Invoke(new StageLoadedEventArgs(Stage, loader.PerspectiveViewForeground));
+            StageLoaded?.Invoke(new StageLoadedEventArgs(stage, (PerspectiveViewForegroundBase)App.GameStageManager.ThemeManager.CurrentForeground));
         }
 
         private void Awake()

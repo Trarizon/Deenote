@@ -174,7 +174,7 @@ namespace Deenote.UI.Views
             return true;
         }
 
-        public async UniTask ApplyStageAsync(Func<Transform, UniTask<GameStageForegroundView>> instantiateForegroundViewAsync)
+        public async UniTask ApplyStageAsync(Func<Transform, UniTask<GameStageForegroundView?>> instantiateForegroundViewAsync)
         {
             var foreground = await instantiateForegroundViewAsync(_contentTransform);
             if (StageForeground != null) {
@@ -182,7 +182,7 @@ namespace Deenote.UI.Views
             }
             StageForeground = foreground;
 
-            _raycaster.enabled = true;
+            _raycaster.enabled = foreground is not null;
         }
 
         #region Pointer

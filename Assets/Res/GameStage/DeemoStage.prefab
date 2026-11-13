@@ -1867,6 +1867,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43df871793f322647a15b0c7d2d646ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _perspectiveCamera: {fileID: 1356150517582111379}
   _perspectiveLineRenderer: {fileID: 3048834464407272512}
   _notePanelTransform: {fileID: 3822971740223594642}
   _notePlane: {fileID: 6824105575207004586}
@@ -1874,7 +1875,6 @@ MonoBehaviour:
   _noteDragSelectionPanelTransform: {fileID: 2153447970756827747}
   _config: {fileID: 11400000, guid: b6418790971b3634f9a0a4ea3c38e25f, type: 2}
   _gridLineConfig: {fileID: 11400000, guid: cf9bad0af6df57943be84caaa500007c, type: 2}
-  _perspectiveCamera: {fileID: 1356150517582111379}
   _backgroundCamera: {fileID: 8502391528799722158}
   _staveMusicNameText: {fileID: 3798957992778705542}
   _backgroundAnimation: {fileID: 6138470144613939462}
@@ -2008,7 +2008,6 @@ GameObject:
   - component: {fileID: 7813525274158536022}
   - component: {fileID: 1356150517582111379}
   - component: {fileID: 8337825424291379209}
-  - component: {fileID: 3771442345784415223}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: Untagged
@@ -2090,20 +2089,6 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9148121033330635912}
   m_Enabled: 1
---- !u!114 &3771442345784415223
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9148121033330635912}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0fd81eb697a93e248bf2bef0dbc153a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _camera: {fileID: 1356150517582111379}
-  _backgroundCamera: {fileID: 8502391528799722158}
 --- !u!1001 &4509694498253957988
 PrefabInstance:
   m_ObjectHideFlags: 0

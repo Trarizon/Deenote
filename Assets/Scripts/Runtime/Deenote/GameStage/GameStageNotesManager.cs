@@ -38,6 +38,8 @@ namespace Deenote.GameStage
 
         public ReadOnlySpan<NoteModel> ActiveNotes => _trackingNotes.AsSpan();
 
+        public float CurrentTime => _gamePlay.CurrentTime;
+
         internal GameStageNotesManager(GameStageManager stage, GamePlayManager2 gamePlay, ProjectManager2 project)
         {
             _stage = stage;

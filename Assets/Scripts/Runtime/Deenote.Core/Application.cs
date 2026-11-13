@@ -1,6 +1,11 @@
+using Cysharp.Threading.Tasks;
+using Deenote.Core.Unity;
 using Deenote.CoreB.Unity;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Deenote.CoreB
 {
@@ -73,6 +78,31 @@ namespace Deenote.CoreB
 #else
             UnityEngine.Application.Quit();
 #endif
+        }
+
+        protected async UniTask<T> LoadSceneAsync<T>(string sceneName, LoadSceneMode mode) where T : SceneObject<T>
+        {
+            var utcs = new UniTaskCompletionSource<SceneObject<T>>();
+            SceneObject<T>._loadedCallback += Cb;
+            try {
+                Logger.LogTrace($"Loading scene {sceneName}");
+
+                await SceneManager.LoadSceneAsync(sceneName, mode).ToUniTask();
+
+                Logger.LogTrace($"Scene {sceneName} loaded");
+            } catch {
+                SceneObject<T>._loadedCallback -= Cb;
+            }
+            var so = await utcs.Task;
+
+            Logger.LogTrace($"SceneObject {sceneName} awaked");
+            return (T)so;
+
+            void Cb(SceneObject<T> obj)
+            {
+                utcs.TrySetResult(obj);
+                SceneObject<T>._loadedCallback -= Cb;
+            }
         }
     }
 }
