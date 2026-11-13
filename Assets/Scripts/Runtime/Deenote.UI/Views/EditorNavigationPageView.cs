@@ -3,10 +3,14 @@
 using Deenote.Core;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
+using Deenote.Project;
 using Deenote.UIFramework.Controls;
 using System;
 using UnityEngine;
@@ -63,6 +67,17 @@ namespace Deenote.UI.Views
         private float _bpmEndTime;
         private float _bpmValue;
 
+        private GamePlayManager2 _gamePlayManager;
+        private GameStageManager _stageManager;
+        private ProjectManager2 _projectManager;
+
+        private void Awake()
+        {
+            _gamePlayManager = App.GamePlayManager;
+            _stageManager = App.GameStageManager;
+            _projectManager = App.ProjectManager;
+        }
+
         private void Start()
         {
             RegisterNotifications();
@@ -76,29 +91,37 @@ namespace Deenote.UI.Views
                 _highlightNoteSpeedInput.EditSubmitted += text =>
                 {
                     if (float.TryParse(text, out var value))
-                        MainSystem.GamePlayManager.HighlightedNoteSpeed = value;
+                        _stageManager.PlacementNoteSpeed = value;
                     else
-                        _highlightNoteSpeedInput.SetValueWithoutNotify(MainSystem.GamePlayManager.HighlightedNoteSpeed.ToString("F2"));
+                        _highlightNoteSpeedInput.SetValueWithoutNotify(_stageManager.PlacementNoteSpeed.ToString("F2"));
                 };
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.HighlightedNoteSpeed,
-                    manager => _highlightNoteSpeedInput.SetValueWithoutNotify(MainSystem.GamePlayManager.HighlightedNoteSpeed.ToString("F2")));
-                _applySpeedDiffToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsApplySpeedDifference = val;
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.IsApplySpeedDifference,
-                    manager => _applySpeedDiffToggle.SetIsCheckedWithoutNotify(manager.IsApplySpeedDifference));
-                _filterNoteSpeedToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.IsFilterNoteSpeed = val;
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.IsFilterNoteSpeed,
-                    manager => _filterNoteSpeedToggle.SetIsCheckedWithoutNotify(manager.IsFilterNoteSpeed));
+                _applySpeedDiffToggle.IsCheckedChanged += val => _stageManager.IsApplySpeedDifference = val;
+                _filterNoteSpeedToggle.IsCheckedChanged += val => _stageManager.HighlightedNoteSpeed = val ? _stageManager.PlacementNoteSpeed : null;
+                _stageManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.Match(nameof(s.PlacementNoteSpeed))) {
+                        _highlightNoteSpeedInput.SetValueWithoutNotify(_stageManager.PlacementNoteSpeed.ToString("F2"));
+                    }
+                    if (e.Match(nameof(s.IsApplySpeedDifference))) {
+                        _applySpeedDiffToggle.SetIsCheckedWithoutNotify(_stageManager.IsApplySpeedDifference);
+                    }
+                    if (e.Match(nameof(s.HighlightedNoteSpeed))) {
+                        _filterNoteSpeedToggle.SetIsCheckedWithoutNotify(_stageManager.HighlightedNoteSpeed != null);
+                    }
+                }).UnregisterWhenGameObjectDestroyed(this);
 
-                _musicSpeedNumericStepper.Initialize(GamePlayManager.MinMusicSpeed, GamePlayManager.MaxMusicSpeed);
+                // GamePlay
+
+                _musicSpeedNumericStepper.Initialize(GamePlayManager2.MinMusicSpeed, GamePlayManager2.MaxMusicSpeed);
                 _musicSpeedNumericStepper.SetInputParser(static input => float.TryParse(input, out var val) ? Mathf.RoundToInt(val * 10f) : null);
                 _musicSpeedNumericStepper.SetDisplayerTextSelector(static ival => $"{ival / 10}.{ival % 10}");
-                _musicSpeedNumericStepper.ValueChanged += val => MainSystem.GamePlayManager.MusicSpeed = val;
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.MusicSpeed,
-                    stage => _musicSpeedNumericStepper.SetValueWithoutNotify(stage.MusicSpeed));
+                _musicSpeedNumericStepper.ValueChanged += val => _gamePlayManager.MusicSpeed = val;
+                _gamePlayManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.Match(nameof(s.MusicSpeed))) {
+                        _musicSpeedNumericStepper.SetValueWithoutNotify(_gamePlayManager.MusicSpeed);
+                    }
+                }).UnregisterWhenGameObjectDestroyed(this);
 
                 _soundedNoteModeToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.PlaceSoundNoteByDefault = val;
                 _noteModeRadio.Checked += () => MainSystem.StageChartEditor.Placer.IsSpeedChangeWarningMode = false;
@@ -173,20 +196,27 @@ namespace Deenote.UI.Views
                     StageNotePlacer.NotificationFlag.SnapToTimeGrid,
                     placer => _horizontalGridSnapToggle.SetIsCheckedWithoutNotify(placer.SnapToTimeGrid));
 
-                _horizontalGridVisibleToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.Grids.TimeGridVisible = val;
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.TimeGridVisible,
-                    grids => _horizontalGridVisibleToggle.SetIsCheckedWithoutNotify(grids.TimeGridVisible));
 
                 _verticalGridSnapToggle.IsCheckedChanged += val => MainSystem.StageChartEditor.Placer.SnapToPositionGrid = val;
                 MainSystem.StageChartEditor.Placer.RegisterNotificationAndInvoke(
                     StageNotePlacer.NotificationFlag.SnapToPositionGrid,
                     placer => _verticalGridSnapToggle.SetIsCheckedWithoutNotify(placer.SnapToPositionGrid));
 
-                _verticalGridVisibleToggle.IsCheckedChanged += val => MainSystem.GamePlayManager.Grids.PositionGridVisible = val;
-                MainSystem.GamePlayManager.Grids.RegisterNotificationAndInvoke(
-                    GridsManager.NotificationFlag.PositionGridVisible,
-                    grids => _verticalGridVisibleToggle.SetIsCheckedWithoutNotify(grids.PositionGridVisible));
+
+                // Stage
+
+                _horizontalGridVisibleToggle.IsCheckedChanged += val => _stageManager.IsTimeGridsVisible = val;
+                _verticalGridVisibleToggle.IsCheckedChanged += val => _stageManager.IsPositionGridsVisible = val;
+
+                _stageManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.PropertyName == nameof(s.IsTimeGridsVisible)) {
+                        _horizontalGridVisibleToggle.SetIsCheckedWithoutNotify(s.IsTimeGridsVisible);
+                    }
+                    if (e.PropertyName == nameof(s.IsPositionGridsVisible)) {
+                        _verticalGridVisibleToggle.SetIsCheckedWithoutNotify(s.IsPositionGridsVisible);
+                    }
+                }).UnregisterWhenGameObjectDestroyed(this);
             }
 
             // Curves
@@ -289,13 +319,12 @@ namespace Deenote.UI.Views
                 MainSystem.StageChartEditor.Selector.SelectedNotesChanged += _OnSelectedNotesChanaged;
                 _OnSelectedNotesChanaged(MainSystem.StageChartEditor.Selector);
 
-                MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                    GamePlayManager.NotificationFlag.CurrentChart,
-                    manager =>
-                    {
-                        var chartLoaded = manager.IsChartLoaded();
-                        _bpmFillButton.IsInteractable = chartLoaded;
-                    });
+                _projectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+                {
+                    if (e.Match(nameof(s.CurrentChart))) {
+                        _bpmFillButton.IsInteractable = s.CurrentChart is not null;
+                    }
+                }).UnregisterWhenGameObjectDestroyed(this);
 
                 void _OnSelectedNotesChanaged(StageNoteSelector selector)
                 {

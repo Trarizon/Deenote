@@ -42,7 +42,7 @@ namespace Deenote.Core.GameStage
 
                 var suddenPlusAheadTime = _game.GetStageNoteAppearAheadTime(NoteModel.Speed);
                 float aheadTime;
-                if (_game.EarlyDisplaySlowNotes) {
+                if (App.GameStageManager.IsEarlyDisplaySlowNotes) {
                     aheadTime = suddenPlusAheadTime;
                 }
                 else {
@@ -147,7 +147,7 @@ namespace Deenote.Core.GameStage
                 if (_stageDeltaTime >= AppearAheadTime)
                     return true;
 
-                if (!_game.EarlyDisplaySlowNotes) {
+                if (!App.GameStageManager.IsEarlyDisplaySlowNotes) {
                     // In TimeOrder mode, the note should display only after its previous note displayed
                     if (App.GameStageManager.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
                         if (NodeTimeUniqueComparer.Instance.Compare(NoteModel, next) >= 0) {
