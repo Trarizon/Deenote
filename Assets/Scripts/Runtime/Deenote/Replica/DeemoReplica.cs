@@ -244,6 +244,32 @@ namespace Deenote.Replica
             Array.Fill(clearPitchFlags, false);
         }
 
+        public static bool UpdatePianoSoundVolumeFadeOut(AudioSource source, double dspStart, double now, float sourceVolume, bool clearPitch, float? duration, float speed)
+        {
+            if (now < dspStart)
+                return true;
+
+            if (duration is null)
+                return source.isPlaying;
+
+            var actualDuration = duration.Value / speed;
+            var dspEnd = dspStart + actualDuration;
+
+            if (now < dspEnd)
+                return true;
+
+            var fadeoutSpeedFactor = clearPitch ? 0.1f : 0.015f;
+            var endVolumeFactor = 0.01f;
+            const float Fps = 60f;
+
+            var frames = (now - dspEnd) * Fps;
+            var volumeFactor = 1 - fadeoutSpeedFactor * frames;
+            if (volumeFactor < endVolumeFactor)
+                return false;
+            source.volume = (float)(sourceVolume * volumeFactor);
+            return true;
+        }
+
         public static bool[] CreatePianoSoundClearPitchFlags() => new bool[128];
     }
 }

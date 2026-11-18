@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Library;
+using Deenote.Library.Collections;
 using Deenote.Replica;
 using System;
 using System.Collections.Generic;
@@ -58,47 +59,38 @@ namespace Deenote.Audio
                 if (velDiff <= 0f)
                     return;
 
-                ScheduleVoice(highSound.Clip, sourcePitch * speed,
+                ScheduleVoice(highSound.Clip, pitch, sourcePitch * speed,
                     (velocity - lowSound.Velocity) / velDiff * volume,
                     duration, speed, targetDspTime);
 
                 if (lowSound.Clip is not null) {
-                    ScheduleVoice(lowSound.Clip, sourcePitch * speed,
+                    ScheduleVoice(lowSound.Clip, pitch, sourcePitch * speed,
                         (highSound.Velocity - velocity) / velDiff * volume,
                         duration, speed, targetDspTime);
                 }
             }
             else {
-                ScheduleVoice(highSound.Clip, sourcePitch * speed,
+                ScheduleVoice(highSound.Clip, pitch, sourcePitch * speed,
                     (float)velocity / highSound.Velocity * volume,
                     duration, speed, targetDspTime);
             }
         }
 
-        private void ScheduleVoice(AudioClip clip, float pitch, float volume,
+        private void ScheduleVoice(AudioClip clip, int pitch, float sourcePitch, float volume,
             float? duration, float speed, double targetDspTime)
         {
             var source = _audioPlayerPool.Get();
             source.enabled = true;
             source.clip = clip;
-            source.pitch = pitch;
+            source.pitch = sourcePitch;
             source.volume = volume;
             source.loop = false;
             source.PlayScheduled(targetDspTime);
 
-            float safeSpeed = Mathf.Max(0.01f, speed);
-            float naturalDuration = clip.length / Mathf.Max(0.01f, Mathf.Abs(pitch));
-            float requestedDuration = duration is { } durationValue && durationValue > 0f
-                ? durationValue / safeSpeed
-                : naturalDuration;
-
-            double endDspTime = targetDspTime +
-                Math.Min(requestedDuration, naturalDuration);
-            source.SetScheduledEndTime(endDspTime);
             _scheduledVoices.Add(new ScheduledVoice(
                 source,
                 targetDspTime,
-                endDspTime));
+                volume, pitch, duration, speed));
         }
 
         public void CancelScheduledSounds()
@@ -144,13 +136,13 @@ namespace Deenote.Audio
         {
             double dspTime = AudioSettings.dspTime;
             for (int i = _scheduledVoices.Count - 1; i >= 0; i--) {
-                var voice = _scheduledVoices[i];
+                ref var voice = ref _scheduledVoices.AsSpan()[i];
                 if (voice.State == ScheduledVoiceState.Scheduled &&
                     dspTime + ActiveStartGraceSeconds >= voice.StartDspTime) {
                     voice.State = ScheduledVoiceState.Active;
                 }
 
-                if (dspTime < voice.EndDspTime + 0.01d)
+                if (DeemoReplica.UpdatePianoSoundVolumeFadeOut(voice.Source, voice.StartDspTime, dspTime, voice.SourceVolume, _clearPitch[voice.Pitch], voice.Duration, voice.Speed))
                     continue;
 
                 voice.Source.Stop();
@@ -168,19 +160,25 @@ namespace Deenote.Audio
             Active,
         }
 
-        private sealed class ScheduledVoice
+        private struct ScheduledVoice
         {
             public readonly AudioSource Source;
             public readonly double StartDspTime;
-            public readonly double EndDspTime;
+            public readonly float SourceVolume;
+            public readonly int Pitch;
+            public readonly float? Duration;
+            public readonly float Speed;
             public ScheduledVoiceState State;
 
             public ScheduledVoice(AudioSource source, double startDspTime,
-                double endDspTime)
+                float sourceVolume, int pitch, float? duration, float speed)
             {
                 Source = source;
                 StartDspTime = startDspTime;
-                EndDspTime = endDspTime;
+                SourceVolume = sourceVolume;
+                Pitch = pitch;
+                Duration = duration;
+                Speed = speed;
                 State = ScheduledVoiceState.Scheduled;
             }
         }

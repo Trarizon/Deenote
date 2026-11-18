@@ -41,11 +41,14 @@ namespace Deenote.CoreB.Helpers
                         break;
                     case ".mp3" or ".MP3":
                         var id3TagLength = SkipID3Tag(stream);
-                        var builder = new Mp3FileReaderBase.FrameDecompressorBuilder(wf => new Mp3FrameDecompressor(wf));
-                        wave = new Mp3FileReaderBase(stream, builder);
-                        Mp3Frame frame = Mp3Frame.LoadFromStream(stream);
-                        initialSampleCount = frame.SampleCount * wave.WaveFormat.Channels;
+
                         stream.Seek(id3TagLength, SeekOrigin.Begin);
+                        Mp3Frame frame = Mp3Frame.LoadFromStream(stream);
+
+                        stream.Seek(id3TagLength, SeekOrigin.Begin);
+                        wave = new Mp3FileReaderBase(stream, wf => new Mp3FrameDecompressor(wf));
+                        
+                        initialSampleCount = frame.SampleCount * wave.WaveFormat.Channels;
                         break;
                     default:
                         return null;
@@ -65,8 +68,7 @@ namespace Deenote.CoreB.Helpers
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    float[] samples = new float[length + initialSampleCount];
-                    raw.CopyTo(samples, initialSampleCount);
+                    var samples = raw.AsSpan(initialSampleCount).ToArray();
                     return (samples, wave);
                 } finally {
                     ArrayPool<float>.Shared.Return(raw);
