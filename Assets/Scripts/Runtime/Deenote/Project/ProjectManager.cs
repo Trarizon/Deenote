@@ -7,10 +7,10 @@ using Deenote.Entities.Models;
 using Deenote.Entities.Storage;
 using ObservableCollections;
 using System;
-using System.Collections.Specialized;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Deenote.Project
 {
@@ -21,13 +21,7 @@ namespace Deenote.Project
 
         public ProjectModel? CurrentProject
         {
-            get => _currentProject;
-            private set {
-                if (_currentProject != value) {
-                    _currentProject = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentProject)));
-                }
-            }
+            get => CurrentProject2?._model;
         }
 
         private ProjectEditorModel? _currentProject2;
@@ -36,6 +30,7 @@ namespace Deenote.Project
             get => _currentProject2;
             private set {
                 if (_currentProject2 != value) {
+                    App.Logger.LogTrace($"[ProjectManager] CurrentProject2 changed: {value?.MusicName ?? "<null>"}");
                     if (_currentProject2 is not null)
                         _currentProject2.Charts.CollectionChanged -= _OnChartsChanged;
                     _currentProject2 = value;
@@ -43,16 +38,30 @@ namespace Deenote.Project
                         _currentProject2.Charts.CollectionChanged += _OnChartsChanged;
                     else
                         CurrentChart = null;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentProject2)));
+                    PropertyChanged?.Invoke(this, new(nameof(CurrentProject)));
+                    PropertyChanged?.Invoke(this, new(nameof(CurrentProject2)));
                 }
             }
         }
 
-        private ChartModel? _currentChart;
-        public ChartModel? CurrentChart
+        // private ChartModel? _currentChart;
+        // public ChartModel? CurrentChart
+        // {
+        //     get => _currentChart;
+        //     [Obsolete("temp public for old GamePlayManager")]
+        //     internal set {
+        //         if (_currentChart != value) {
+        //             _currentChart = value;
+        //             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentChart)));
+        //         }
+        //     }
+        // }
+
+        private ChartEditorModel? _currentChart;
+        public ChartEditorModel? CurrentChart
         {
             get => _currentChart;
-            set {
+            private set {
                 if (_currentChart != value) {
                     _currentChart = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentChart)));
@@ -62,7 +71,7 @@ namespace Deenote.Project
 
         public event Action<ProjectManager2, PropertyChangedEventArgs>? PropertyChanged;
 
-        private void _OnChartsChanged(in NotifyCollectionChangedEventArgs<ChartModel> e)
+        private void _OnChartsChanged(in NotifyCollectionChangedEventArgs<ChartEditorModel> e)
         {
             foreach (var item in e.GetOldItems()) {
                 if (item == CurrentChart) {
@@ -89,7 +98,7 @@ namespace Deenote.Project
         public bool IsProjectSaving { get; private set; }
         public event Action<ProjectSaveEventArgs>? ProjectSaved;
 
-        public void OpenProjectModel(ProjectEditorModel model)
+        public void OpenProjectModel(ProjectEditorModel model, bool openFirstChart = true)
         {
             if (_openLoadCts is not null) {
                 _openLoadCts?.Cancel();
@@ -98,6 +107,18 @@ namespace Deenote.Project
             }
 
             CurrentProject2 = model;
+            if (openFirstChart && model.Charts.Count > 0) {
+                CurrentChart = model.Charts[0];
+            }
+            else {
+                CurrentChart = null;
+            }
+        }
+
+        public void LoadChartInCurrentProject(ChartEditorModel chart)
+        {
+            Debug.Assert(CurrentProject2?.Charts.Contains(chart) is true);
+            CurrentChart = chart;
         }
 
         public async UniTask<bool> OpenLoadProjectFileAsync(string filePath, CancellationToken cancellationToken = default)

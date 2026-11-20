@@ -1,10 +1,14 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
+using Deenote.GameStage;
+using Deenote.GameStage.World;
 using Deenote.Library.Components;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using TriInspector;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -38,8 +42,6 @@ namespace Deenote.Core.GameStage
 
         private Mesh _mesh;
 
-        private GamePlayManager _game = default!;
-
         public event Action<LineCollector>? LineCollecting;
 
         private void Awake()
@@ -47,21 +49,6 @@ namespace Deenote.Core.GameStage
             _meshRenderer.sortingLayerName = "Lines";
             _mesh = new();
             _props = new MaterialPropertyBlock();
-        }
-
-        internal void OnInstantiate(GamePlayManager manager)
-        {
-            _game = manager;
-            _game.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
-        }
-
-        private void OnDestroy()
-        {
-            _game.UnregisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                _OnSuddenPlusChanged);
         }
 
         private void Update()
@@ -82,15 +69,11 @@ namespace Deenote.Core.GameStage
             _meshFilter.mesh = UpdateMesh();
         }
 
-        private void _OnSuddenPlusChanged(GamePlayManager manager)
+        public void SetCutoffAndFadeIn(float cutOffZ, float fadeInRatio)
         {
-            manager.AssertStageLoaded();
-
-            var config = manager.Stage.Config;
-            float percent = manager.VisibleRangePercentage;
-            float cutoff = percent * manager.ConvertNoteCoordTimeToWorldZ(manager.StageNoteActiveAheadTime);
-            _props.SetFloat(CutOffZ, cutoff);
-            _props.SetFloat(FadeInZ, cutoff * config.GridLineFadeInRatio);
+            _props.SetFloat(CutOffZ, cutOffZ);
+            _props.SetFloat(FadeInZ, cutOffZ * fadeInRatio);
+            App.Logger.LogTrace($"SetCutoffAndFadeIn: {cutOffZ}, {fadeInRatio}");
         }
 
         private Mesh UpdateMesh()

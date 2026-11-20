@@ -44,16 +44,16 @@ namespace Deenote.Runtime.Plugins
             //     AutoSaveState.OnAndSaveJson => ProjectAutoSaveOption.OnAndSaveJson,
             //     _ => ProjectAutoSaveOption.Off,
             // };
-            context.GameManager.IsStageEffectOn = lightEffect;
+            // context.GameManager.IsStageEffectOn = lightEffect;
             context.GlobalSettings.IsFpsShown = showFps;
             context.GlobalSettings.IsVSyncOn = vsync;
             context.GlobalSettings.GameViewScrollSensitivity = mouseSensi / 10f;
-            context.GameManager.NoteFallSpeed = noteSpeed * 5;
-            context.GameManager.MusicSpeed = musicSpeed;
-            context.GameManager.HitSoundVolume = effectVolume / 100f;
-            context.GameManager.MusicVolume = musicVolume / 100f;
-            context.GameManager.PianoVolume = pianoVolume / 100f;
-            context.GameManager.IsShowLinkLines = showLinkLines;
+            // context.GameManager.NoteFallSpeed = noteSpeed * 5;
+            // context.GameManager.MusicSpeed = musicSpeed;
+            // context.GameManager.HitSoundVolume = effectVolume / 100f;
+            // context.GameManager.MusicVolume = musicVolume / 100f;
+            // context.GameManager.PianoVolume = pianoVolume / 100f;
+            // context.GameManager.IsShowLinkLines = showLinkLines;
             // TODO: 强制转换为旧版？
             context.GameManager.Grids.PositionGridCount = xGridCount + 1;
             // // context.GameManager.Grids.PositionGridOffset_Legacy

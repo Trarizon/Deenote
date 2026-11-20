@@ -49,11 +49,15 @@ namespace Deenote
             Current.Configs = appGlobalConfigs;
             
             
-
-            Current._gamePlayerManager = new GamePlayManager2(gameMusicPlayer, pianoSoundSource, hitSoundSource);
-            Current._projectManager = new ProjectManager2();
-            Current._gameStageManager = new GameStageManager(foreground, appGlobalConfigs);
             Current._environment = new EnvironmentContext();
+
+            Current._projectManager = new ProjectManager2();
+            Current._gamePlayerManager = new GamePlayManager2(
+                gameMusicPlayer, pianoSoundSource, hitSoundSource,
+                Current._projectManager);
+            Current._gameStageManager = new GameStageManager(
+                foreground,
+                Current._projectManager, Current._gamePlayerManager, appGlobalConfigs);
             Current.ProjectAutoSaveTrigger = new ProjectAutoSaveTrigger();
 
             var stagePianoSoundPlayer = new StagePianoSoundPlayer(pianoSoundSource);

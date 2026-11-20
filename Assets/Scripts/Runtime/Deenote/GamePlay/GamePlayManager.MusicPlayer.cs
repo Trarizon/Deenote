@@ -45,5 +45,20 @@ namespace Deenote.GamePlay
                 _musicPlayer.Play();
             }
         }
+
+        public void Play()
+        {
+            _musicPlayer.Play();
+        }
+
+        public void Stop()
+        {
+            _musicPlayer.Stop();
+        }
+
+        public void Nudge(float deltaTime)
+        {
+            _musicPlayer.Nudge(deltaTime);
+        }
     }
 }

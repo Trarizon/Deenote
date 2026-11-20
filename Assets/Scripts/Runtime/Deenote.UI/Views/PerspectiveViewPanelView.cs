@@ -3,6 +3,7 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core;
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
 using Deenote.CoreB.Unity.UI;
 using Deenote.GamePlay.UI;
 using Deenote.GameStage.UI;
@@ -118,6 +119,13 @@ namespace Deenote.UI.Views
 
             // MainSystem.GamePlayManager.StageLoaded += _OnStageLoaded;
 
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    _viewRawImage.enabled = s.CurrentChart is not null;
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
+
             void InitAspectRatioController()
             {
                 _viewRenderTexture = new RenderTexture(1280, 720, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.None);
@@ -129,21 +137,6 @@ namespace Deenote.UI.Views
                 _viewSize_bf = new FrameCachedNotifyingProperty<Vector2>(GetViewSize, autoUpdate: true);
                 _viewSize_bf.OnValueChanged += ResizeTargetTexture;
             }
-        }
-
-        private void Start()
-        {
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager =>
-                {
-                    if (manager.IsChartLoaded()) {
-                        _viewRawImage.enabled = true;
-                    }
-                    else {
-                        _viewRawImage.enabled = false;
-                    }
-                });
         }
 
         // private void _OnStageLoaded(GamePlayManager.StageLoadedEventArgs args)

@@ -9,6 +9,7 @@ using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using Deenote.Entities.Operations;
+using Deenote.GamePlay;
 using Deenote.Library.Collections.Generic;
 using Deenote.Library.Components;
 using System;
@@ -23,6 +24,7 @@ namespace Deenote.Core.Editing
 
         internal ProjectManager _project = default!;
         internal GamePlayManager _game = default!;
+        internal GamePlayManager2 _gamePlayManager = default!;
 
         private OperationMemento _operations = default!;
 
@@ -58,6 +60,7 @@ namespace Deenote.Core.Editing
         {
             _project = project;
             _game = game;
+            _gamePlayManager = App.GamePlayManager;
 
             Placer = new StageNotePlacer(this);
             Selector = new StageNoteSelector(game);
@@ -85,7 +88,8 @@ namespace Deenote.Core.Editing
         {
             _game.AssertChartLoaded();
             NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
-            _game.UpdateNotes(true, false);
+            App.GameStageManager.ForEditorUpdateNotes(true, false);
+            App.GamePlayManager.ForEditorUpdateAudio(true, false);
         }
 
         public void AddNote(NoteModel notePrototype, NoteCoord noteCoord)
@@ -220,8 +224,7 @@ namespace Deenote.Core.Editing
 
         private void OnSpeedChangeWarningCollectionChanged()
         {
-            _game.AssertChartLoaded();
-            _game.UpdateSpeedChangeWarnings();
+            App.GameStageManager.ForEditorUpdateWarningNotes();
         }
 
         public void AddNotesSnappingToCurve(int count, ReadOnlySpan<GridsManager.CurveApplyProperty> applyProperties = default)

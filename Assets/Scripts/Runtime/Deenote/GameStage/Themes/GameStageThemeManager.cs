@@ -89,7 +89,7 @@ namespace Deenote.GameStage.Themes
                 UnityEngine.Object.Destroy(CurrentStage);
             }
             CurrentStage = stage;
-            _currentThemeConfig = config;
+            CurrentTheme = config;
             CurrentForeground = null;
 
             return true;
@@ -130,10 +130,12 @@ namespace Deenote.GameStage.Themes
 
         private async UniTask<GameStageForegroundView> LoadThemeForegroundAsync(GameStageThemeConfig config, Transform parent, CancellationToken cancellationToken = default)
         {
-            var instances = await UnityEngine.Object.InstantiateAsync(config.ForegroundPrefab, parent)
-                .AttachCancellation(cancellationToken)
-                .ToUniTask(cancellationToken: cancellationToken);
-            var ins = instances[0];
+            var ins = UnityEngine.Object.Instantiate(config.ForegroundPrefab, parent, worldPositionStays: false);
+
+            // var instances = await UnityEngine.Object.InstantiateAsync(config.ForegroundPrefab, parent)
+            //     .AttachCancellation(cancellationToken)
+            //     .ToUniTask(cancellationToken: cancellationToken);
+            // var ins = instances[0];
             return ins;
         }
     }

@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Library;
@@ -58,12 +59,18 @@ namespace Deenote.Core.Editing
             _prototypes.Add(out _);
             _indicators = null!;
 
-            _editor._game.RegisterNotification(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                _ => CancelPlaceNote());
-            _editor._game.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.HighlightedNoteSpeed,
-                _ => SetPlacingNoteSpeed(null, forceUpdateAndNotify: true));
+            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    CancelPlaceNote();
+                }
+            });
+            App.GameStageManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.PlacementNoteSpeed))) {
+                    SetPlacingNoteSpeed(null, forceUpdateAndNotify: true);
+                }
+            });
             _editor._game.StageLoaded += args =>
             {
                 _indicatorPanelTransform = args.Stage.NoteIndicatorPanelTransform;
@@ -81,7 +88,7 @@ namespace Deenote.Core.Editing
 
                 InitializeSpeedChangeWarningIndicator(args.Stage);
             };
-            _editor._game.MusicPlayer.TimeChanged += args =>
+            _editor._gamePlayManager.TimeChanged += args =>
             {
                 var delta = args.NewTime - args.OldTime;
                 _updateNoteCoord.Time += delta;
@@ -429,7 +436,7 @@ namespace Deenote.Core.Editing
             var baseCoord = coord - _indicators[0].NotePrototype.PositionCoord;
             foreach (var indicator in _indicators) {
                 var c = baseCoord + indicator.NotePrototype.PositionCoord;
-                c = NoteCoord.Clamp(c, _editor._game.MusicPlayer.ClipLength);
+                c = NoteCoord.Clamp(c, _editor._gamePlayManager.GamePlayLength);
                 indicator.MoveTo(c);
             }
         }
@@ -462,9 +469,7 @@ namespace Deenote.Core.Editing
 
         private bool IsInPlacementTime(NoteCoord coord)
         {
-            var game = _editor._game;
-            game.AssertStageLoaded();
-            return coord.Time <= game.MusicPlayer.Time + game.StageNoteAppearAheadTime;
+            return coord.Time <= _editor._gamePlayManager.CurrentTime + App.GameStageManager.StandardNoteAppearAheadTime;
         }
 
         public enum NotificationFlag

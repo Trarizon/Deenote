@@ -132,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 184436821}
   - component: {fileID: 184436820}
+  - component: {fileID: 184436822}
   m_Layer: 0
   m_Name: '[Scene]'
   m_TagString: Untagged
@@ -167,18 +168,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &873882404 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1216727778509909161, guid: 459787a3eec05024ab8d97828cfd533d,
-    type: 3}
-  m_PrefabInstance: {fileID: 7880893816116809278}
+--- !u!81 &184436822
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 184436819}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43df871793f322647a15b0c7d2d646ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1167608017
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,7 +185,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1167608019}
-  - component: {fileID: 1167608018}
   m_Layer: 0
   m_Name: GameStageSceneLoader
   m_TagString: Untagged
@@ -196,21 +192,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1167608018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1167608017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31475d5d29025ef4c8085ea6e245f860, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <StageController>k__BackingField: {fileID: 873882404}
-  <PerspectiveViewForeground>k__BackingField: {fileID: 3109862978520466737, guid: 4c1d716edf4dce74f8cef56eb87b30a3,
-    type: 3}
 --- !u!4 &1167608019
 Transform:
   m_ObjectHideFlags: 0
@@ -257,83 +238,10 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &7880893816116809278
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6399227078834011334, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8433119264037169101, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      propertyPath: m_Name
-      value: DeemoStage
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7883683839308006481, guid: 459787a3eec05024ab8d97828cfd533d,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-  m_SourcePrefab: {fileID: 100100000, guid: 459787a3eec05024ab8d97828cfd533d, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 184436821}
   - {fileID: 1167608019}
-  - {fileID: 7880893816116809278}
   - {fileID: 1311506214}

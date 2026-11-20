@@ -1,10 +1,15 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.GameStage;
 using Deenote.CoreB.Notification;
+using Deenote.EditorModels;
+using Deenote.Entities;
+using Deenote.Entities.Models;
+using Deenote.GamePlay;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.Themes;
 using Deenote.GameStage.UI;
 using Deenote.GameStage.World;
+using Deenote.Project;
 using System;
 
 namespace Deenote.GameStage
@@ -12,6 +17,8 @@ namespace Deenote.GameStage
     public sealed partial class GameStageManager
     {
         private readonly IGameStagePerspectiveViewPanel _foreground;
+
+        private readonly GamePlayManager2 _gamePlayManager;
 
         public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
         public GameStageThemeManager ThemeManager { get; }
@@ -25,11 +32,15 @@ namespace Deenote.GameStage
 
         public GameStageController? GameStage => ThemeManager.CurrentStage;
 
-        internal GameStageManager(IGameStagePerspectiveViewPanel foreground, AppGlobalConfigs appConfig)
+        internal GameStageManager(IGameStagePerspectiveViewPanel foreground,
+            ProjectManager2 projectManager, GamePlayManager2 gamePlayManager, AppGlobalConfigs appConfig)
         {
             _foreground = foreground;
+            _gamePlayManager = gamePlayManager;
+
             ThemeManager = new(appConfig.BuiltinStageThemes);
             GridsManager = new();
+            NotesManager = new(this, gamePlayManager, projectManager);
 
 
             ThemeManager.RegisterPropertyChanged((s, e) =>
@@ -45,17 +56,35 @@ namespace Deenote.GameStage
                     }
                 }
                 if (e.Match(nameof(s.CurrentTheme))) {
+                    App.Logger.LogTrace($"Stage theme changed, sync foreground view");
                     _foreground.ApplyStageAsync(async parent =>
                     {
                         return await s.LoadCurrentThemeForegroundAsync(parent);
                     });
                 }
             });
+            projectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    if (s.CurrentChart is not null)
+                        CheckCollision(s.CurrentChart);
+                    NotesManager.RefreshActiveNotes();
+                    WarningNotesManager.RefreshActiveNotes();
+                }
+            });
+
+            App.Current.UnscaledTick += e =>
+            {
+                // chino added this to fix preview stutter, while this looks weird to call every frame
+                foreach (var note in _activeNotes) {
+                    note.RefreshStageDeltaTime();
+                }
+                WarningNotesManager.RefreshActiveNotes();
+            };
         }
 
         public void PostConstructor()
         {
-            NotesManager = new(this, App.GamePlayManager, App.ProjectManager);
             WarningNotesManager = new(this, App.GamePlayManager, App.ProjectManager);
 
             RegisterConfigurations();
@@ -79,12 +108,35 @@ namespace Deenote.GameStage
 
         private void OnGameStageLoaded(GameStageController stage)
         {
-            NoteFactory = new DefaultGameStageNoteFactory(
-                Config,
-                stage.NotePlane
-            );
+            NoteFactory = new DefaultGameStageNoteFactory(Config, stage);
             RefreshStageVisibleNotes(NotesManager.ActiveNotes);
             RefreshStageVisibleWarningNotes(WarningNotesManager.ActiveNotes);
+        }
+
+        private void RefreshStageVisibleNotes()
+        {
+            RefreshStageVisibleNotes(NotesManager.ActiveNotes);
+            RefreshStageVisibleWarningNotes(WarningNotesManager.ActiveNotes);
+        }
+
+        private void CheckCollision(ChartEditorModel chart)
+        {
+            for (int i = 0; i < chart.NoteNodes.Count; i++) {
+                if (chart.NoteNodes[i] is not NoteModel note)
+                    continue;
+
+                for (int j = i + 1; j < chart.NoteNodes.Count; j++) {
+                    if (chart.NoteNodes[j] is not NoteModel noteCmp)
+                        continue;
+
+                    if (!EntityArgs.IsTimeCollided(note, noteCmp))
+                        break;
+                    if (EntityArgs.IsPositionCollided(note, noteCmp)) {
+                        note.CollisionCount++;
+                        noteCmp.CollisionCount++;
+                    }
+                }
+            }
         }
     }
 }

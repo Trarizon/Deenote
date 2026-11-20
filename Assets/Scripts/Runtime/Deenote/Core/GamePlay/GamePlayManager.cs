@@ -39,8 +39,8 @@ namespace Deenote.Core.GamePlay
 
         public ChartModel? CurrentChart
         {
-            get => App.ProjectManager.CurrentChart;
-            private set => App.ProjectManager.CurrentChart = value;
+            get => App.ProjectManager.CurrentChart?._model;
+            private set => throw new NotImplementedException();
         }
 
         /// <remarks>
@@ -61,13 +61,13 @@ namespace Deenote.Core.GamePlay
         public void OnStageLoaded(GameStageController stage)
         {
             // App.Logger.LogDebug("StageLoaded");
-            // Stage = stage;
+            Stage = stage;
             // Stage.OnInstantiate(this);
             // NotesManager.Initialize(
             //     UnityUtils.CreateObjectPool(
             //         Stage.Config.NotePrefab,
             //         Stage.NotePanelTransform,
-            //         item => item.OnInstantiate(this)));
+            //         item => item.OnInstantiate(stage)));
             // OnStageLoaded_Properties(stage);
 
             // if (IsChartLoaded()) {
@@ -84,8 +84,8 @@ namespace Deenote.Core.GamePlay
             _notesManager = new NotesManager(this);
             // _speedChangeWarningsManager = new SpeedChangeWarningsManager(this);
 
-            RegisterConfigurations();
-            RegisterCustomPropertiesConfigurations();
+            // RegisterConfigurations();
+            // RegisterCustomPropertiesConfigurations();
 
             // MusicPlayer.TimeChanged += args =>
             // {
@@ -131,17 +131,17 @@ namespace Deenote.Core.GamePlay
             //     NotesManager.ScheduleAudio();
             // };
 
-            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
-            {
-                if (e.Match(nameof(s.CurrentChart))) {
-                    if (CurrentChart is null) {
-                        UnloadChart();
-                    }
-                    else {
-                        LoadChartInCurrentProject(CurrentChart);
-                    }
-                }
-            });
+            // App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            // {
+            //     if (e.Match(nameof(s.CurrentChart))) {
+            //         if (CurrentChart is null) {
+            //             UnloadChart();
+            //         }
+            //         else {
+            //             LoadChartInCurrentProject(CurrentChart);
+            //         }
+            //     }
+            // });
         }
 
         private void OnDestroy()
@@ -159,8 +159,8 @@ namespace Deenote.Core.GamePlay
             // }
 
             if (IsStageLoaded()) {
-                NotesManager.RefreshStageNoteTimeDisplay();
-                App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
+                // NotesManager.RefreshStageNoteTimeDisplay();
+                // App.GameStageManager.WarningNotesManager.RefreshActiveNotes();
             }
         }
         // private void OnApplicationFocus(bool focus)
@@ -170,6 +170,7 @@ namespace Deenote.Core.GamePlay
         //     }
         // }
 
+        [Obsolete]
         public void UpdateNotes(bool noteCollectionChangedOrNoteTimeRelatedPropertyChanged, bool notesVisualDataChanged)
         {
             AssertChartLoaded();
@@ -197,6 +198,7 @@ namespace Deenote.Core.GamePlay
             NotifyFlag(NotificationFlag.ActiveNoteUpdated);
         }
 
+        [Obsolete]
         public void UpdateSpeedChangeWarnings()
         {
             AssertChartLoaded();
@@ -206,14 +208,15 @@ namespace Deenote.Core.GamePlay
             NotifyFlag(NotificationFlag.ActiveSpeedChangeWarningUpdated);
         }
 
+        [Obsolete]
         public void LoadChartInCurrentProject(ChartModel chart)
         {
-            Debug.Assert(App.ProjectManager.CurrentProject2?.Charts.Contains(chart) is true);
+            // Debug.Assert(App.ProjectManager.CurrentProject2?.Charts.Contains(chart) is true);
 
-            App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
-            MusicPlayer.Stop();
-            MusicPlayer.Time = 0f;
-            CurrentChart = chart;
+            // App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
+            // MusicPlayer.Stop();
+            // MusicPlayer.Time = 0f;
+            // CurrentChart = chart;
 
             CheckCollision();
             if (IsStageLoaded()) {
@@ -245,12 +248,13 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete]
         public void UnloadChart()
         {
             if (CurrentChart is null)
                 return;
             App.GamePlayManager.NoteSoundsPlayer.CancelScheduledAudio();
-            CurrentChart = null;
+            // CurrentChart = null;
             MusicPlayer.Stop();
             NotifyFlag(NotificationFlag.CurrentChart);
         }
@@ -286,6 +290,7 @@ namespace Deenote.Core.GamePlay
 
         #endregion
 
+        [Obsolete("Moved")]
         public enum NotificationFlag
         {
             HighlightedNoteSpeed,
@@ -298,7 +303,7 @@ namespace Deenote.Core.GamePlay
             MusicVolume,
             PianoVolume,
             IsShowLinkLines,
-            SuddenPlus,
+            SuddenPlus, // Moved, except Grids
             StageEffectOn,
             DistinguishPianoNotes,
             EarlyDisplaySlowNotes,

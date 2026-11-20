@@ -33,7 +33,7 @@ namespace Deenote.GamePlay
 
         public float ActualMusicSpeed => MusicSpeed / 10.0f;
 
-        private float _musicVolume_bf;
+        private float _musicVolume_bf = 1f;
         public float MusicVolume
         {
             get => _musicVolume_bf;
@@ -43,6 +43,7 @@ namespace Deenote.GamePlay
                     _musicVolume_bf = value;
 
                     _musicPlayer.Volume = value;
+                    App.Logger.LogTrace($"MusicVolume: {value}");
                     PropertyChanged?.Invoke(this, nameof(MusicVolume));
                 }
             }
@@ -95,24 +96,23 @@ namespace Deenote.GamePlay
         private void RegisterConfigurations()
         {
             MainSystem.SaveSystem.SavingConfigurations += configs =>
-          {
-              configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
+            {
+                configs.Set("stage/pause_when_lose_focus", PauseWhenLoseFocus);
 
-              configs.Set("stage/music_speed", MusicSpeed);
-              configs.Set("stage/hitsound_volume", HitSoundVolume);
-              configs.Set("stage/music_volume", MusicVolume);
-              configs.Set("stage/piano_volume", PianoVolume);
-          };
+                configs.Set("stage/music_speed", MusicSpeed);
+                configs.Set("stage/hitsound_volume", HitSoundVolume);
+                configs.Set("stage/music_volume", MusicVolume);
+                configs.Set("stage/piano_volume", PianoVolume);
+            };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
                 PauseWhenLoseFocus = configs.GetBoolean("stage/pause_when_lose_focus", true);
 
                 MusicSpeed = configs.GetInt32("stage/music_speed", 10);
                 HitSoundVolume = configs.GetSingle("stage/hitsound_volume", 0f);
-                MusicVolume = configs.GetSingle("stage/music_volume", 100f);
+                MusicVolume = configs.GetSingle("stage/music_volume", 1f);
                 PianoVolume = configs.GetSingle("stage/piano_volume", 0f);
             };
-
         }
     }
 }
