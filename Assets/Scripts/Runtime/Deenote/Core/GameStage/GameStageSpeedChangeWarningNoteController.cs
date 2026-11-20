@@ -3,6 +3,8 @@
 using Deenote.Core.GamePlay;
 using Deenote.CoreB.Unity;
 using Deenote.Entities.Models;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library;
 using Deenote.Library.Mathematics;
 using UnityEngine;
@@ -23,7 +25,8 @@ namespace Deenote.Core.GameStage
         [SerializeField] private SpeedChangeWarningLineRenderer _lineRenderer = default!;
         [SerializeField] private Collider _selectionCollider = default!;
 
-        protected GamePlayManager _game = default!;
+        protected GameStageController _stage = default!;
+        private GamePlayManager2 _gamePlayManager = default!;
 
         private float _stageDeltaTime;
         private bool _isActive;
@@ -32,24 +35,20 @@ namespace Deenote.Core.GameStage
 
         /// <summary>
         /// Time before the warning is hit at which the warning starts to appear.
-        /// Warnings always move in the lane of <see cref="GamePlayManager.HighlightedNoteSpeed"/>.
+        /// Warnings always move in the lane of <see cref="GameStageManager.HighlightedNoteSpeed"/>.
         /// </summary>
         private float AppearAheadTime
         {
             get {
-                _game.AssertStageLoaded();
-                return _game.GetStageNoteAppearAheadTime(_game.HighlightedNoteSpeed);
+                return _stage.StageManager.GetStageNoteAppearAheadTime(_stage.StageManager.HighlightedNoteSpeed ?? _stage.StageManager.PlacementNoteSpeed, true);
             }
         }
 
-        internal void OnInstantiate(GamePlayManager game)
+        internal void OnInstantiate(GameStageController stage)
         {
-            _game = game;
-            _game.AssertStageLoaded();
-
-            _lineRenderer ??= GetComponentInChildren<SpeedChangeWarningLineRenderer>(true);
-            _selectionCollider ??= GetComponentInChildren<Collider>(true);
-            _lineRenderer?.OnInstantiate(game);
+            _stage = stage;
+            _lineRenderer.OnInstantiate(_stage);
+            _gamePlayManager = App.GamePlayManager;
         }
 
         internal void Initialize(SpeedChangeWarningModel model)
@@ -70,7 +69,7 @@ namespace Deenote.Core.GameStage
             if (Model is null)
                 return;
 
-            _stageDeltaTime = Model.Time - _game.MusicPlayer.Time;
+            _stageDeltaTime = Model.Time - _gamePlayManager.CurrentTime;
             bool active = _stageDeltaTime >= 0f;
             if (active != _isActive) {
                 _isActive = active;
@@ -78,14 +77,15 @@ namespace Deenote.Core.GameStage
             }
 
             if (active) {
+                var speed = _stage.StageManager.HighlightedNoteSpeed ?? _stage.StageManager.PlacementNoteSpeed;
                 transform.WithLocalPositionZ(
-                    _game.ConvertNoteCoordTimeToWorldZ(_stageDeltaTime, _game.HighlightedNoteSpeed));
+                    _stage.StageManager.ConvertCoordTimeToWorldZ(_stageDeltaTime, speed, true));
 
-                bool timeGridVisible = _game.WarningNoteVisibility.HasFlag(GamePlayManager.SpeedWarningNoteVisibility.ShowLine);
+                bool timeGridVisible = _stage.StageManager.WarningNoteVisibility.HasFlag(GameStageWarningNoteVisibility.ShowLine);
                 if (_selectionCollider is not null)
                     _selectionCollider.enabled = timeGridVisible;
-                _lineRenderer?.SetTime(_stageDeltaTime, _game.HighlightedNoteSpeed, timeGridVisible ? 1f : 0f);
-                SetNoteSpriteAlpha(_game.WarningNoteVisibility.HasFlag(GamePlayManager.SpeedWarningNoteVisibility.ShowNote));
+                _lineRenderer?.SetTime(_stageDeltaTime, speed, timeGridVisible ? 1f : 0f);
+                SetNoteSpriteAlpha(_stage.StageManager.WarningNoteVisibility.HasFlag(GameStageWarningNoteVisibility.ShowNote));
                 RefreshColoring();
             }
         }
@@ -95,8 +95,7 @@ namespace Deenote.Core.GameStage
             if (Model is null)
                 return;
 
-            _game.AssertStageLoaded();
-            transform.WithLocalPositionX(_game.ConvertNoteCoordPositionToWorldX(SpritePosition));
+            transform.WithLocalPositionX(_stage.StageManager.ConvertCoordPositionToWorldX(SpritePosition));
             SetNoteSprite();
             SetNoteSize();
             RefreshColoring();
@@ -105,8 +104,8 @@ namespace Deenote.Core.GameStage
 
         internal void RefreshVisibility()
         {
-            _lineRenderer.SetVisible(_game.WarningNoteVisibility.HasFlag(GamePlayManager.SpeedWarningNoteVisibility.ShowNoteLine));
-            SetNoteSpriteAlpha(_game.WarningNoteVisibility.HasFlag(GamePlayManager.SpeedWarningNoteVisibility.ShowNote));
+            _lineRenderer.SetVisible(_stage.StageManager.WarningNoteVisibility.HasFlag(GameStageWarningNoteVisibility.ShowNoteAndLine));
+            SetNoteSpriteAlpha(_stage.StageManager.WarningNoteVisibility.HasFlag(GameStageWarningNoteVisibility.ShowNote));
         }
 
         internal void RefreshColoring()
@@ -114,7 +113,7 @@ namespace Deenote.Core.GameStage
             if (!_isActive)
                 return;
 
-            SetNoteSpriteEditorStatus(selected:Model.IsSelected);
+            SetNoteSpriteEditorStatus(selected: Model.IsSelected);
         }
 
         private void OnStateChanged(bool active)
@@ -128,7 +127,6 @@ namespace Deenote.Core.GameStage
 
         private void SetNoteSpriteAlpha(bool visible)
         {
-            _game.AssertStageLoaded();
             // Debug.Assert(_isActive);
 
             if (!visible) {
@@ -137,7 +135,7 @@ namespace Deenote.Core.GameStage
             }
 
             var appearAheadTime = AppearAheadTime;
-            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Config.NoteFadeInRatio);
+            var noteFadeInEndTime = appearAheadTime * (1 - _stage.Config.NoteFadeInRatio);
 
             var alpha = MathUtils.MapTo(_stageDeltaTime, appearAheadTime, noteFadeInEndTime, 0f, 1f);
             SetNoteSpriteRendererAlpha(alpha);

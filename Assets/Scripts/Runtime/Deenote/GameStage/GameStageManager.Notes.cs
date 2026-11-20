@@ -9,8 +9,8 @@ namespace Deenote.GameStage
 {
     partial class GameStageManager
     {
-        private readonly List<GameStageNoteController> _notes = new();
-        private readonly List<GameStageSpeedChangeWarningNoteController> _warningNotes = new();
+        private readonly List<GameStageNoteController> _activeNotes = new();
+        private readonly List<GameStageSpeedChangeWarningNoteController> _activeWarningNotes = new();
 
         private void Ctor_Notes()
         {
@@ -23,7 +23,7 @@ namespace Deenote.GameStage
                 RefreshStageVisibleWarningNotes(e.ActiveNotes);
             };
 
-            App.GamePlayManager.TimeChanged += e =>
+            _gamePlayManager.TimeChanged += e =>
             {
                 if (App.ProjectManager.CurrentChart is null)
                     return;
@@ -37,23 +37,23 @@ namespace Deenote.GameStage
         {
             App.Logger.LogDebug($"RefreshStageVisibleNotes: {notes.Length}");
             if (NoteFactory is null) {
-                _notes.Clear();
+                _activeNotes.Clear();
                 return;
             }
 
-            foreach (var note in _notes) {
+            foreach (var note in _activeNotes) {
                 NoteFactory.Release(note);
             }
-            _notes.Clear();
+            _activeNotes.Clear();
             foreach (var note in notes) {
                 var controller = NoteFactory.Create();
                 controller.Initialize(note);
-                _notes.Add(controller);
+                _activeNotes.Add(controller);
             }
 
             Asserts.InOrder(notes, NodeTimeComparer.Instance);
             GameStageNoteController? prevNote = null;
-            foreach (var note in _notes) {
+            foreach (var note in _activeNotes) {
                 note.PostInitialize(prevNote);
                 prevNote = note;
             }
@@ -63,21 +63,45 @@ namespace Deenote.GameStage
         {
             // App.Logger.LogDebug($"RefreshStageVisibleWarningNotes: {notes.Length}");
             if (NoteFactory is null) {
-                _warningNotes.Clear();
+                _activeWarningNotes.Clear();
                 return;
             }
 
-            foreach (var note in _warningNotes) {
+            foreach (var note in _activeWarningNotes) {
                 NoteFactory.Release(note);
             }
-            _warningNotes.Clear();
+            _activeWarningNotes.Clear();
             foreach (var note in notes) {
                 var controller = NoteFactory.CreateWarningNote();
                 controller.Initialize(note);
-                _warningNotes.Add(controller);
+                _activeWarningNotes.Add(controller);
             }
 
             Asserts.InOrder(notes, NodeTimeComparer.Instance);
+        }
+
+        public void ForEditorUpdateNotes(bool noteCollectionChangedOrNoteTimeRelatedPropertyChanged, bool notesVisualDataChanged)
+        {
+            switch (noteCollectionChangedOrNoteTimeRelatedPropertyChanged, notesVisualDataChanged) {
+                case (true, false):
+                    NotesManager.RefreshActiveNotes();
+                    break;
+                case (false, true):
+                    foreach (var note in _activeNotes) {
+                        note.RefreshVisual();
+                    }
+                    break;
+                case (true, true):
+                    NotesManager.RefreshActiveNotes();
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        public void ForEditorUpdateWarningNotes()
+        {
+            WarningNotesManager.RefreshActiveNotes();
         }
     }
 }

@@ -28,14 +28,11 @@ namespace Deenote.Core.GameStage
         [Space]
         [SerializeField] Material _holdBodyCullMaterial = default!;
 
-        private GameStageManager _stageManager = default!;
-
         protected internal override void OnInstantiate(GameStageManager stageManager)
         {
             base.OnInstantiate(stageManager);
 
-            _stageManager = stageManager;
-            _stageManager.NotesManager.ActiveNotesChanged += _OnActiveNotesChanged;
+            StageManager.NotesManager.ActiveNotesChanged += _OnActiveNotesChanged;
 
             App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e, t) =>
             {
@@ -52,7 +49,7 @@ namespace Deenote.Core.GameStage
 
         private void OnDestroy()
         {
-            _stageManager.NotesManager.ActiveNotesChanged -= _OnActiveNotesChanged;
+            StageManager.NotesManager.ActiveNotesChanged -= _OnActiveNotesChanged;
         }
 
         private void _OnActiveNotesChanged(GameStageNotesManager s, GameStageNotesManager.ActiveNotesChangedEventArgs e)
@@ -81,8 +78,8 @@ namespace Deenote.Core.GameStage
         protected override void OnVisibleRangePercentageChanged(float value)
         {
             base.OnVisibleRangePercentageChanged(value);
-            var time = _manager.StageNoteActiveAheadTime * value;
-            var z = _manager.ConvertNoteCoordTimeToWorldZ(time);
+            var time = StageManager.StandardNoteActiveAheadTime * value;
+            var z = StageManager.ConvertCoordTimeToWorldZ(time);
             _holdBodyCullMaterial.SetFloat(HoldCullMaxZPropertyId, z);
         }
 

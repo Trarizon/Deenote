@@ -1,4 +1,5 @@
 using Deenote.Audio;
+using Deenote.EditorModels;
 using Deenote.Entities.Models;
 using System;
 
@@ -10,8 +11,8 @@ namespace Deenote.GamePlay
         private readonly PianoSoundSource _pianoSoundSource;
         private readonly HitSoundSource _hitSoundSource;
 
-        private ChartModel? _chart;
-        internal ChartModel? Chart
+        private ChartEditorModel? _chart;
+        internal ChartEditorModel? Chart
         {
             get => _chart;
             set {

@@ -34,11 +34,13 @@ namespace Deenote.Systems
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = (Exception)e.ExceptionObject;
+            Debug.LogError(ex);
             UnhandledExceptionOccurred?.Invoke(new ExceptionInfo(ex.Message, ex.StackTrace, ex));
         }
 
         private void OnUniTaskUnhandledException(Exception e)
         {
+            Debug.LogError(e);
             UnhandledExceptionOccurred?.Invoke(new ExceptionInfo(e.Message, e.StackTrace, e));
         }
 

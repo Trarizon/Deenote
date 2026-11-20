@@ -27,7 +27,8 @@ namespace Deenote.Core.Editing
             _game.AssertChartLoaded();
             NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
             NotifyFlag(flag);
-            _game.UpdateNotes(notesVerticalPositionChanged, notesVisualDataChanged);
+            App.GameStageManager.ForEditorUpdateNotes(notesVerticalPositionChanged, notesVisualDataChanged);
+            App.GamePlayManager.ForEditorUpdateAudio(notesVisualDataChanged, notesVisualDataChanged);
         }
 
         [Obsolete("Builtin for chart concatenation, this may be changed removed in the future")]
@@ -37,8 +38,8 @@ namespace Deenote.Core.Editing
                 return;
             _operations.Do(_game.CurrentChart
                 .ConcatNotes(other, offset, multiplier)
-                .OnRedone(_ => _game.UpdateNotes(true, true))
-                .OnUndone(_ => _game.UpdateNotes(true, true)));
+                .OnRedone(_ => { App.GameStageManager.ForEditorUpdateNotes(true, true); App.GamePlayManager.ForEditorUpdateAudio(true, true); })
+                .OnUndone(_ => { App.GameStageManager.ForEditorUpdateNotes(true, true); App.GamePlayManager.ForEditorUpdateAudio(true, true); }));
         }
 
         public void EditSelectedNotesPositionCoord(Func<NoteCoord, NoteCoord> valueSelector)

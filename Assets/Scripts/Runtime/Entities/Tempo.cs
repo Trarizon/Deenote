@@ -77,7 +77,8 @@ namespace Deenote.Entities
 
     public static class TempoExt
     {
-        public static int GetTempoIndex(this List<Tempo> tempos, float time)
+        /// <returns>Range: [-1, Count)</returns>
+        public static int GetTempoIndex(this IReadOnlyList<Tempo> tempos, float time)
         {
             int i;
             for (i = 0; i < tempos.Count; i++) {

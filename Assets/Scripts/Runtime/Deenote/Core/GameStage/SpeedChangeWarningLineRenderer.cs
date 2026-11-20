@@ -1,7 +1,4 @@
-#nullable enable
-
-using Deenote.Core.GamePlay;
-using Deenote.Library;
+using Deenote.GameStage;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage
@@ -15,23 +12,22 @@ namespace Deenote.Core.GameStage
         [SerializeField] private float _lineStartPosition = -3f;
         [SerializeField] private float _lineEndPosition = 2f;
 
-        private GamePlayManager? _game;
+        private GameStageController _stage = default!;
         private float _localTime;
         private float _speed = 1f;
         private float _alpha = 1f;
         private bool _visible;
 
-        internal void OnInstantiate(GamePlayManager game)
+        internal void OnInstantiate(GameStageController stage)
         {
-            _game = game;
-            game.AssertStageLoaded();
-            game.Stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
+            _stage = stage;
+            _stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
         }
 
         private void OnDestroy()
         {
-            if (_game is not null && _game.IsStageLoaded()) {
-                _game.Stage.PerspectiveLinesRenderer.LineCollecting -= _OnPerspectiveLineCollecting;
+            if (_stage is not null) {
+                _stage.PerspectiveLinesRenderer.LineCollecting -= _OnPerspectiveLineCollecting;
             }
         }
 
@@ -46,16 +42,16 @@ namespace Deenote.Core.GameStage
 
         private void _OnPerspectiveLineCollecting(PerspectiveLinesRenderer.LineCollector collector)
         {
-            if (!_visible || _game is null || !_game.IsStageLoaded())
+            if (!_visible)
                 return;
 
             if (_alpha <= 0)
                 return;
 
-            var z = _game.ConvertNoteCoordTimeToWorldZ(_localTime, _speed);
-            var xl = _game.ConvertNoteCoordPositionToWorldX(_lineStartPosition);
-            var xr = _game.ConvertNoteCoordPositionToWorldX(_lineEndPosition);
-            var args = _game.Stage.GridLineConfig;
+            var z = _stage.StageManager.ConvertCoordTimeToWorldZ(_localTime, _speed, true);
+            var xl = _stage.StageManager.ConvertCoordPositionToWorldX(_lineStartPosition);
+            var xr = _stage.StageManager.ConvertCoordPositionToWorldX(_lineEndPosition);
+            var args = _stage.GridLineConfig;
             collector.AddLine(
                 new Vector2(xl, z),
                 new Vector2(xr, z),

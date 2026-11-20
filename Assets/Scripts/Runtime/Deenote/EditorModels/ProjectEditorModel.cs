@@ -5,6 +5,7 @@ using Deenote.Entities.Operations;
 using ObservableCollections;
 using System;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Deenote.EditorModels
@@ -106,7 +107,7 @@ namespace Deenote.EditorModels
             PropertyChanged?.Invoke(this, new(nameof(DecodedClip)));
         }
 
-        public ObservableList<ChartModel> Charts { get; }
+        public ObservableList<ChartEditorModel> Charts { get; }
 
         public ObservableList<Tempo> Tempos { get; }
 
@@ -131,7 +132,7 @@ namespace Deenote.EditorModels
             ChartDesigner = model.ChartDesigner;
             AudioFileRelativePath = model.AudioFileRelativePath;
             ProjectFilePath = model.ProjectFilePath;
-            Charts = new(model.Charts);
+            Charts = new(model.Charts.Select(chart => new ChartEditorModel(chart)));
             Tempos = new();
             Tempos.AddRange(model.Tempos);
         }

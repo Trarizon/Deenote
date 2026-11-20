@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Deenote.UI.Dialogs.Elements;
 using Deenote.Core;
+using Deenote.EditorModels;
 
 namespace Deenote.UI.Views.Elements
 {
@@ -25,7 +26,7 @@ namespace Deenote.UI.Views.Elements
 
         private bool _isHovering;
         private ProjectInfoNavigationPageView _parent = default!;
-        public ChartModel ChartModel { get; private set; } = default!;
+        public ChartEditorModel ChartModel { get; private set; } = default!;
 
         #region LocalizedTextKeys
 
@@ -73,7 +74,7 @@ namespace Deenote.UI.Views.Elements
                     return;
 
                 MainWindow.StatusBar.SetLocalizedStatusMessage(ExportingStatusKey);
-                var chart = ChartModel.Clone();
+                var chart = ChartModel.ToModel();
                 await File.WriteAllTextAsync(res.Path, chart.ToJsonString());
                 MainWindow.StatusBar.SetLocalizedStatusMessage(ExportedStatusKey);
             });
@@ -84,7 +85,7 @@ namespace Deenote.UI.Views.Elements
             _parent = view;
         }
 
-        internal void Initialize(ChartModel chart)
+        internal void Initialize(ChartEditorModel chart)
         {
             ChartModel = chart;
             RefreshUI();

@@ -85,7 +85,8 @@ namespace Deenote.Core.Editing
         {
             _game.AssertChartLoaded();
             NodeTimeComparer.AssertInOrder(_game.CurrentChart.NoteNodes);
-            _game.UpdateNotes(true, false);
+            App.GameStageManager.ForEditorUpdateNotes(true, false);
+            App.GamePlayManager.ForEditorUpdateAudio(true, false);
         }
 
         public void AddNote(NoteModel notePrototype, NoteCoord noteCoord)
@@ -220,8 +221,7 @@ namespace Deenote.Core.Editing
 
         private void OnSpeedChangeWarningCollectionChanged()
         {
-            _game.AssertChartLoaded();
-            _game.UpdateSpeedChangeWarnings();
+            App.GameStageManager.ForEditorUpdateWarningNotes();
         }
 
         public void AddNotesSnappingToCurve(int count, ReadOnlySpan<GridsManager.CurveApplyProperty> applyProperties = default)

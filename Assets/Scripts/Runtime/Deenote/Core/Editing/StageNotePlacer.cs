@@ -1,6 +1,7 @@
 #nullable enable
 
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Library;
@@ -58,12 +59,18 @@ namespace Deenote.Core.Editing
             _prototypes.Add(out _);
             _indicators = null!;
 
-            _editor._game.RegisterNotification(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                _ => CancelPlaceNote());
-            _editor._game.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.HighlightedNoteSpeed,
-                _ => SetPlacingNoteSpeed(null, forceUpdateAndNotify: true));
+            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    CancelPlaceNote();
+                }
+            });
+            App.GameStageManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.PlacementNoteSpeed))) {
+                    SetPlacingNoteSpeed(null, forceUpdateAndNotify: true);
+                }
+            });
             _editor._game.StageLoaded += args =>
             {
                 _indicatorPanelTransform = args.Stage.NoteIndicatorPanelTransform;
@@ -464,7 +471,7 @@ namespace Deenote.Core.Editing
         {
             var game = _editor._game;
             game.AssertStageLoaded();
-            return coord.Time <= game.MusicPlayer.Time + game.StageNoteAppearAheadTime;
+            return coord.Time <= game.MusicPlayer.Time + App.GameStageManager.StandardNoteAppearAheadTime;
         }
 
         public enum NotificationFlag

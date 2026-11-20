@@ -2,9 +2,11 @@
 
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
+using Deenote.GameStage;
 using Deenote.Library.Collections;
 using Deenote.Library.Mathematics;
 using System;
@@ -20,6 +22,7 @@ namespace Deenote.Core.Editing
         private const float DragSelectionAreaMaxPosition = 6f;
 
         private GamePlayManager _game = default!;
+        private GameStageManager _stageManager = default!;
 
         private readonly List<NoteModel> _selectedNotes = new();
         private readonly List<SpeedChangeWarningModel> _selectedWarnings = new();
@@ -42,10 +45,15 @@ namespace Deenote.Core.Editing
 
         internal StageNoteSelector(GamePlayManager game)
         {
+            _stageManager = App.GameStageManager;
+
             _game = game;
-            _game.RegisterNotification(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager => Clear());
+            App.ProjectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    Clear();
+                }
+            });
 
             _game.StageLoaded += _ =>
             {
@@ -350,11 +358,10 @@ namespace Deenote.Core.Editing
             _state = DraggingSelectionState.Idle;
             bool isClick = (_dragStartCoord == _dragEndCoord) || (_inDragRangeNotes.Count == 0 && _inDragRangeWarnings.Count == 0);
             if (isClick) {
-                if (_game.Grids.TimeGridVisible
-                    && _game.TryRaycastPerspectiveViewportPointToWarning(viewportPoint, out var warningController)) {
+                if (_stageManager.TryRaycastPerspectiveViewportPointToWarningNote(viewportPoint, out var warningController)) {
                     ReselectWarning(warningController.Model);
                 }
-                else if (_game.TryRaycastPerspectiveViewportPointToNote(viewportPoint, out var noteController)) {
+                else if (_stageManager.TryRaycastPerspectiveViewportPointToNote(viewportPoint, out var noteController)) {
                     var note = noteController.NoteModel;
                     Reselect(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
                 }
@@ -396,7 +403,7 @@ namespace Deenote.Core.Editing
             _selectedWarnings.Clear();
 
             foreach (var note in _game.CurrentChart.EnumerateNoteModels()) {
-                bool inRange = _game.IsNoteHighlighted(note) && IsInSelectionRange(note);
+                bool inRange = App.GameStageManager.IsNoteHighlighted(note) && IsInSelectionRange(note);
 
                 note.SetIsInSelectionRange(inRange);
                 if (inRange)
@@ -442,7 +449,7 @@ namespace Deenote.Core.Editing
                 // still considering how to implement t
 
                 // The note is on stage
-                if (time < currentTime + _game.GetStageNoteAppearAheadTime(speed)) {
+                if (time < currentTime + App.GameStageManager.GetStageNoteAppearAheadTime(speed, true)) {
                     var pseudoTime = ToPseudoTime(time);
                     return pseudoTime >= startCoord.Time
                         && pseudoTime <= endCoord.Time
@@ -459,10 +466,10 @@ namespace Deenote.Core.Editing
                 }
 
                 float ToPseudoTime(float time)
-                    => currentTime + (time - currentTime) * _game.GetDisplayNoteSpeed(speed);
+                    => currentTime + (time - currentTime) * App.GameStageManager.ApplySpeedDiff(speed);
 
                 float ToAboveStagePseudoTime(float time, float speed)
-                    => time + (_game.StageNoteAppearAheadTime - _game.GetStageNoteAppearAheadTime(speed));
+                    => time + (App.GameStageManager.StandardNoteAppearAheadTime - App.GameStageManager.GetStageNoteAppearAheadTime(speed, true));
             }
 
             bool IsWarningInSelectionRange(SpeedChangeWarningModel warning)
@@ -471,7 +478,7 @@ namespace Deenote.Core.Editing
                 const float halfSize = 0.5f;
                 float time = warning.Time;
                 float currentTime = _game.MusicPlayer.Time;
-                float displaySpeed = _game.HighlightedNoteSpeed;
+                float displaySpeed = App.GameStageManager.PlacementNoteSpeed;
 
                 if (time < currentTime) {
                     return time >= startCoord.Time
@@ -480,15 +487,15 @@ namespace Deenote.Core.Editing
                         && pos - halfSize <= endCoord.Position;
                 }
 
-                if (time < currentTime + _game.GetStageNoteAppearAheadTime(displaySpeed)) {
-                    var pseudoTime = currentTime + (time - currentTime) * _game.GetDisplayNoteSpeed(displaySpeed);
+                if (time < currentTime + App.GameStageManager.GetStageNoteAppearAheadTime(displaySpeed, true)) {
+                    var pseudoTime = currentTime + (time - currentTime) * App.GameStageManager.ApplySpeedDiff(displaySpeed);
                     return pseudoTime >= startCoord.Time
                         && pseudoTime <= endCoord.Time
                         && pos + halfSize >= startCoord.Position
                         && pos - halfSize <= endCoord.Position;
                 }
 
-                var aboveStageTime = time + (_game.StageNoteAppearAheadTime - _game.GetStageNoteAppearAheadTime(displaySpeed));
+                var aboveStageTime = time + (App.GameStageManager.StandardNoteAppearAheadTime - App.GameStageManager.GetStageNoteAppearAheadTime(displaySpeed, true));
                 return aboveStageTime >= startCoord.Time
                     && aboveStageTime <= endCoord.Time
                     && pos + halfSize >= startCoord.Position

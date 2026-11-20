@@ -1,20 +1,17 @@
-#nullable enable
-
-using Deenote.Core.GamePlay;
-using Deenote.Core.Project;
+using Deenote.CoreB.Notification;
+using Deenote.CoreB.Unity;
+using Deenote.EditorModels;
 using Deenote.Entities;
 using Deenote.Entities.Models;
+using Deenote.GameStage;
 using Deenote.Library;
-using Deenote.CoreB.Unity;
-using Deenote.Library.Components;
 using Deenote.Library.Mathematics;
+using Deenote.Project;
 using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Deenote.CoreB.Notification;
-using Deenote.Project;
 
 namespace Deenote.GamePlay.UI
 {
@@ -73,6 +70,7 @@ namespace Deenote.GamePlay.UI
 
 
         private ProjectManager2 _projectManager;
+        private GamePlayManager2 _gamePlayManager;
 
         protected override void Awake()
         {
@@ -90,6 +88,7 @@ namespace Deenote.GamePlay.UI
                 image.gameObject.SetActive(false);
             }
             _projectManager = App.ProjectManager;
+            _gamePlayManager = App.GamePlayManager;
         }
 
         private void Start()
@@ -112,80 +111,72 @@ namespace Deenote.GamePlay.UI
                         _musicNameText.text = s.MusicName;
                     }
                 });
+
+                if (e.Match(nameof(s.CurrentChart))) {
+                    gameObject.SetActive(s.CurrentChart is not null);
+                    UpdateSpeedChangeWarningRegistrant(s.CurrentChart, App.GamePlayManager.CurrentTime);
+                }
+                s.CurrentChart.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentChart), e, t, (s, e, t) =>
+                {
+                    if (s is null)
+                        return;
+                    if (e.Match(nameof(s.Level))) {
+                        Level = s.Level;
+                    }
+                    if (e.Match(nameof(s.Difficulty))) {
+                        Difficulty = s.Difficulty;
+                    }
+                });
             }).UnregisterWhenGameObjectDestroyed(this);
 
-            MainSystem.GamePlayManager.RegisterNotification(
-                GamePlayManager.NotificationFlag.ChartLevel,
-                manager =>
-                {
-                    manager.AssertChartLoaded();
-                    Level = manager.CurrentChart.Level;
-                });
+            _gamePlayManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.GamePlayLength))) {
+                    _timeSlider.maxValue = s.GamePlayLength;
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
 
-            MainSystem.GamePlayManager.RegisterNotification(
-                GamePlayManager.NotificationFlag.ChartDifficulty,
-                manager =>
-                {
-                    manager.AssertChartLoaded();
-                    Difficulty = manager.CurrentChart.Difficulty;
-                });
+            App.GameStageManager.NotesManager.ActiveNotesChanged += (s, e) =>
+            {
+                if (_projectManager.CurrentChart is not { } chart)
+                    return;
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager =>
-                {
-                    if (manager.CurrentChart is { } chart) {
-                        Level = manager.CurrentChart.Level;
-                        Difficulty = manager.CurrentChart.Difficulty;
-                        gameObject.SetActive(true);
-                    }
-                    else {
-                        gameObject.SetActive(false);
-                    }
-                    UpdateSpeedChangeWarningRegistrant(manager);
-                });
+                UpdateComboRegistrant(s, App.GamePlayManager.CurrentTime);
+                UpdateSpeedChangeWarningRegistrant(chart, App.GamePlayManager.CurrentTime);
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.ActiveNoteUpdated,
-                manager =>
-                {
-                    if (manager.CurrentChart is not { } chart)
-                        return;
+                var currentCombo = s.CurrentCombo;
+                if (currentCombo <= 0) {
+                    _scoreText.text = "0.00 %";
+                    return;
+                }
 
-                    UpdateComboRegistrant(manager);
-                    UpdateSpeedChangeWarningRegistrant(manager);
+                int maxCombo = chart.MaxCombo;
+                float accScore = (float)currentCombo / maxCombo;
+                // comboActual = Sum(1..judgeNoteCount);
+                // comboTotal = Sum(1..noteCount)
+                // comboScore = comboActual / comboTotal
+                //            = ((1 + judged) * judged) / ((1 + count) * count)
+                float comboScore = (float)((1 + currentCombo) * currentCombo) / ((1 + maxCombo) * maxCombo);
 
-                    var currentCombo = manager.NotesManager.CurrentCombo;
-                    if (currentCombo <= 0) {
-                        _scoreText.text = "0.00 %";
-                        return;
-                    }
+                float score = accScore * 80_00f + comboScore * 20_00f;
+                _scoreText.text = $"{Mathf.Floor(score) / 100f:F2} %";
+            };
 
-                    int noteCount = chart.NoteCount;
-                    float accScore = (float)currentCombo / noteCount;
-                    // comboActual = Sum(1..judgeNoteCount);
-                    // comboTotal = Sum(1..noteCount)
-                    // comboScore = comboActual / comboTotal
-                    //            = ((1 + judged) * judged) / ((1 + count) * count)
-                    float comboScore = (float)((1 + currentCombo) * currentCombo) / ((1 + noteCount) * noteCount);
-
-                    float score = accScore * 80_00f + comboScore * 20_00f;
-                    _scoreText.text = $"{Mathf.Floor(score) / 100f:F2} %";
-                });
-
-            MainSystem.GamePlayManager.RegisterNotification(
-                GamePlayManager.NotificationFlag.ActiveSpeedChangeWarningUpdated,
-                UpdateSpeedChangeWarningRegistrant);
+            App.GameStageManager.WarningNotesManager.ActiveNotesChanged += (s, e) =>
+            {
+                if (_projectManager.CurrentChart is not { } chart)
+                    return;
+                UpdateSpeedChangeWarningRegistrant(chart, App.GamePlayManager.CurrentTime);
+            };
         }
 
-        private void UpdateSpeedChangeWarningRegistrant(GamePlayManager stage)
+        private void UpdateSpeedChangeWarningRegistrant(ChartEditorModel? chart, float currentTime)
         {
-            if (stage.CurrentChart is not { } chart) {
+            if (chart is null) {
                 SetSpeedChangeWarningImagesActive(false);
                 return;
             }
 
-            var currentTime = stage.MusicPlayer.Time;
             var warnings = chart.SpeedChangeWarnings.AsSpan();
             int warningIndex = FindPreviousWarningIndex(warnings, currentTime);
             float duration = _args.SpeedChangeWarningPulseDuration;
@@ -253,9 +244,9 @@ namespace Deenote.GamePlay.UI
             }
         }
 
-        private void UpdateComboRegistrant(GamePlayManager stage)
+        private void UpdateComboRegistrant(GameStageNotesManager notesManager, float currentTime)
         {
-            int combo = stage.NotesManager.CurrentCombo;
+            int combo = notesManager.CurrentCombo;
             if (combo < _args.MinDisplayCombo) {
                 _comboGameObject.SetActive(false);
                 return;
@@ -263,11 +254,11 @@ namespace Deenote.GamePlay.UI
 
             // prevHitNoteIndex wont smaller than combo, so here
             // it is asserted a valid index
-            var prevHitNote = stage.NotesManager.GetPreviousHitComboNode();
+            var prevHitNote = notesManager.GetPreviousHitComboNode();
             Debug.Assert(prevHitNote?.IsComboNode ?? false);
 
             _comboGameObject.SetActive(true);
-            var deltaTime = stage.MusicPlayer.Time - prevHitNote!.Time;
+            var deltaTime = currentTime - prevHitNote!.Time;
             Debug.Assert(deltaTime >= 0, $"actual delta time:{deltaTime}");
             _numberText.text = _shadowText.text = combo.ToString();
 

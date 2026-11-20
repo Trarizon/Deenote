@@ -1,17 +1,21 @@
 using Deenote.Core.GamePlay;
 using Deenote.Core.GameStage;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
+using Deenote.GamePlay;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.UI;
 using Deenote.GameStage.World;
 using Deenote.Library;
+using Deenote.Library.Components;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using TriInspector;
 using UnityEngine;
 
 namespace Deenote.GameStage
 {
-    public abstract class GameStageController : MonoBehaviour
+    public abstract class GameStageController : MonoBehaviour, INotifyPropertyChanged<GameStageController?>
     {
         [SerializeField] Camera _perspectiveCamera;
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
@@ -20,7 +24,7 @@ namespace Deenote.GameStage
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
 
-        protected Camera PerspectiveCamera => _perspectiveCamera;
+        protected internal Camera PerspectiveCamera => _perspectiveCamera;
 
         public PerspectiveLinesRenderer PerspectiveLinesRenderer => _perspectiveLineRenderer;
 
@@ -45,41 +49,69 @@ namespace Deenote.GameStage
         private bool _isStageEffectOn_bf;
         private float _visibleRangePercentage_bf;
 
-        public bool IsStageEffectOn
-        {
-            get => _isStageEffectOn_bf;
-            set {
-                if (Utils.SetField(ref _isStageEffectOn_bf, value)) {
-                    OnIsStageEffectOnChanged(value);
-                }
-            }
-        }
+        // public bool IsStageEffectOn
+        // {
+        //     get => _isStageEffectOn_bf;
+        //     set {
+        //         if (Utils.SetField(ref _isStageEffectOn_bf, value)) {
+        //             OnIsStageEffectOnChanged(value);
+        //         }
+        //     }
+        // }
         public float VisibleRangePercentage
         {
             get => _visibleRangePercentage_bf;
             set {
                 if (Utils.SetField(ref _visibleRangePercentage_bf, value)) {
                     OnVisibleRangePercentageChanged(value);
+                    PropertyChanged?.Invoke(this, nameof(VisibleRangePercentage));
                 }
             }
         }
 
-        private GameStageManager _stageManager = default!;
+        protected GamePlayManager2 _gamePlayManager = default!;
+
+        public GameStageManager StageManager { get; private set; } = default!;
+
+        public event Action<GameStageController?, PropertyChangedEventArgs>? PropertyChanged;
 
         protected internal virtual void OnInstantiate(GameStageManager stageManager)
         {
-            _stageManager = stageManager;
-            _stageManager.ForegroundViewPanel.ViewSizeChanged += _OnViewSizeChanged;
+            StageManager = stageManager;
+            _gamePlayManager = App.GamePlayManager;
+            StageManager.ForegroundViewPanel.ViewSizeChanged += _OnViewSizeChanged;
+            _OnViewSizeChanged(StageManager.ForegroundViewPanel);
 
-            MainSystem.GamePlayManager.RegisterNotification(
-                GamePlayManager.NotificationFlag.SuddenPlus,
-                manager => VisibleRangePercentage = manager.VisibleRangePercentage);
-            _perspectiveLineRenderer.OnInstantiate(MainSystem.GamePlayManager);
+            StageManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.SuddenPlus))) {
+                    var x = s.ConvertCoordPositionToWorldX(0f);
+                    var maxZ = s.ConvertCoordTimeToWorldZ(s.StandardNoteActiveAheadTime);
+                    var minZ = s.ConvertCoordTimeToWorldZ(0f);
+                    var maxPos = _notePlane.GetWorldPosition(x, maxZ);
+                    var minPos = _notePlane.GetWorldPosition(x, minZ);
+
+                    var camera = PerspectiveCamera;
+                    var maxVp = camera.WorldToViewportPoint(maxPos);
+                    var minVp = camera.WorldToViewportPoint(minPos);
+
+                    var spVp = new Vector2(maxVp.x, Mathf.Lerp(maxVp.y, minVp.y, s.SuddenPlus));
+                    var ray = camera.ViewportPointToRay(spVp);
+                    _notePlane.TryRaycast(ray, out var hitPoint);
+
+                    var res = Mathf.InverseLerp(minZ, maxZ, hitPoint.z);
+                    App.Logger.LogTrace($"VisibleRangePercentage: {res}");
+                    VisibleRangePercentage = res;
+                }
+                if (e.Match(nameof(s.IsStageEffectOn))) {
+                    OnIsStageEffectOnChanged(s.IsStageEffectOn);
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
         }
 
         void OnDestroy()
         {
-            _stageManager.ForegroundViewPanel.ViewSizeChanged -= _OnViewSizeChanged;
+            StageManager.ForegroundViewPanel.ViewSizeChanged -= _OnViewSizeChanged;
         }
 
         private void _OnViewSizeChanged(IGameStagePerspectiveViewPanel panel)
@@ -93,8 +125,8 @@ namespace Deenote.GameStage
 
         internal void SetSelectionPanelRect(NoteCoord startCoord, NoteCoord endCoord)
         {
-            var (xMin, zMin) = _manager.ConvertNoteCoordToWorldPosition(startCoord - new NoteCoord(0, _manager.MusicPlayer.Time));
-            var (xMax, zMax) = _manager.ConvertNoteCoordToWorldPosition(endCoord - new NoteCoord(0, _manager.MusicPlayer.Time));
+            var (xMin, zMin) = StageManager.ConvertCoordToWorld(startCoord - new NoteCoord(0, _gamePlayManager.CurrentTime));
+            var (xMax, zMax) = StageManager.ConvertCoordToWorld(endCoord - new NoteCoord(0, _gamePlayManager.CurrentTime));
 
             _noteDragSelectionPanelTransform.gameObject.SetActive(true);
             _noteDragSelectionPanelTransform.offsetMin = new(xMin, zMin);
@@ -108,7 +140,15 @@ namespace Deenote.GameStage
         }
 
         protected virtual void OnIsStageEffectOnChanged(bool value) { }
-        protected virtual void OnVisibleRangePercentageChanged(float value) { }
+        protected virtual void OnVisibleRangePercentageChanged(float value)
+        {
+            var cutoff = Mathf.Lerp(
+                StageManager.ConvertCoordTimeToWorldZ(0),
+                StageManager.ConvertCoordTimeToWorldZ(StageManager.StandardNoteActiveAheadTime),
+                value
+            );
+            _perspectiveLineRenderer.SetCutoffAndFadeIn(cutoff, Config.GridLineFadeInRatio);
+        }
         protected virtual void OnRenderedViewChanged(RenderTexture renderTexture) { }
 
         #region Perspective Converters
@@ -128,7 +168,7 @@ namespace Deenote.GameStage
             if (Physics.Raycast(ray, out var hitInfo)) {
                 var c = hitInfo.collider;
                 if (c != null && c.TryGetComponent<GameStageNoteRaycastingCollider>(out var collider)) {
-                    note = collider.NoteController;
+                    note = collider.Note;
                     return true;
                 }
             }
@@ -146,8 +186,8 @@ namespace Deenote.GameStage
                 var c = hitInfo.collider;
                 if (c != null) {
                     if (c.TryGetComponent<SpeedChangeWarningRaycastingCollider>(out var collider)
-                        && collider.WarningController is not null) {
-                        warning = collider.WarningController;
+                        && collider.Note is not null) {
+                        warning = collider.Note;
                         return true;
                     }
                 }
@@ -184,6 +224,12 @@ namespace Deenote.GameStage
             }
             notePanelPosition = default;
             return false;
+        }
+
+        internal Ray GetRaycastingViewportRay(Vector2 raycastingViewportPoint)
+        {
+            var camera = PerspectiveCamera;
+            return camera.ViewportPointToRay(raycastingViewportPoint);
         }
 
         #endregion

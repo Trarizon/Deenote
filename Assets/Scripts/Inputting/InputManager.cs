@@ -3,6 +3,7 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.Editing;
 using Deenote.Core.GamePlay;
+using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.InputSystem.InputActions;
@@ -44,9 +45,12 @@ namespace Deenote.Inputting
                 SetGeneralsEnable(ctrl is null);
             };
 
-            MainSystem.GamePlayManager.RegisterNotificationAndInvoke(
-                GamePlayManager.NotificationFlag.CurrentChart,
-                manager => SetGamePlayEnabled(manager.IsChartLoaded()));
+            App.ProjectManager.RegisterPropertyChangedAndInvoke((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    SetGamePlayEnabled(s.CurrentChart is not null);
+                }
+            }).UnregisterWhenGameObjectDestroyed(this);
         }
 
         private void OnEnable()
@@ -126,7 +130,7 @@ namespace Deenote.Inputting
             actions.ManualPlay.canceled += context =>
             {
                 _manualPlay = 0f;
-                _game.SetManualPlaySpeed(null);
+                App.GamePlayManager.SetManualPlaySpeed(null);
             };
             actions.ManualPlaySpeedUp.started += _ =>
             {
@@ -146,16 +150,16 @@ namespace Deenote.Inputting
                 var delta = context.ReadValue<Vector2>().y;
                 if (delta != 0f) {
                     var deltaTime = delta * 0.001f * MainSystem.GlobalSettings.GameViewScrollSensitivity;
-                    _game.MusicPlayer.Nudge(-deltaTime);
+                    App.GamePlayManager.Nudge(-deltaTime);
                 }
             };
 
             void SetManualPlay()
             {
                 if (_manualPlaySpeedUp)
-                    _game.SetManualPlaySpeed(5.0f * _manualPlay);
+                    App.GamePlayManager.SetManualPlaySpeed(5.0f * _manualPlay);
                 else
-                    _game.SetManualPlaySpeed(2.5f * _manualPlay);
+                    App.GamePlayManager.SetManualPlaySpeed(2.5f * _manualPlay);
             }
         }
 
@@ -170,10 +174,10 @@ namespace Deenote.Inputting
         {
             var actions = _inputActions.StageSettings;
             actions.EscapeFullScreen.started += _ => { MainWindow.Views.PerspectiveViewPanelView.SetIsFullScreen(false); };
-            actions.NoteFallSpeedUp.started += _ => _game.NoteFallSpeed += NoteFallSpeedDelta;
-            actions.NoteFallSpeedDown.started += _ => _game.NoteFallSpeed -= NoteFallSpeedDelta;
-            actions.MusicSpeedUp.started += _ => _game.MusicSpeed += MusicSpeedDelta;
-            actions.MusicSpeedDown.started += _ => _game.MusicSpeed -= MusicSpeedDelta;
+            actions.NoteFallSpeedUp.started += _ => App.GameStageManager.NoteFallSpeed += NoteFallSpeedDelta;
+            actions.NoteFallSpeedDown.started += _ => App.GameStageManager.NoteFallSpeed -= NoteFallSpeedDelta;
+            actions.MusicSpeedUp.started += _ => App.GamePlayManager.MusicSpeed += MusicSpeedDelta;
+            actions.MusicSpeedDown.started += _ => App.GamePlayManager.MusicSpeed -= MusicSpeedDelta;
         }
 
         #endregion
@@ -357,8 +361,9 @@ namespace Deenote.Inputting
                 return false;
             }
 
-            var res = MainSystem.GamePlayManager.TryConvertPerspectiveViewportPointToNoteCoord(viewPoint,
+            var res = App.GameStageManager.TryConvertPerspectiveViewportPointToCoord(viewPoint,
                 applyHighlightNoteSpeed ? MainSystem.StageChartEditor.Placer.PlacingNoteSpeed : 1f, out coord);
+            coord.Time += App.GamePlayManager.CurrentTime;
 
             return res;
         }

@@ -3,6 +3,7 @@ using Deenote.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.CoreB.Helpers;
 using Deenote.CoreB.Notification;
+using Deenote.Project;
 using System;
 using System.IO;
 using System.Threading;
@@ -42,7 +43,8 @@ namespace Deenote.GamePlay
             remove => _musicPlayer.TimeChanged -= value;
         }
 
-        public GamePlayManager2(GameMusicPlayer musicPlayer, PianoSoundSource pianoSoundSource, HitSoundSource hitSoundSource)
+        public GamePlayManager2(GameMusicPlayer musicPlayer, PianoSoundSource pianoSoundSource, HitSoundSource hitSoundSource,
+            ProjectManager2 projectManager)
         {
             _musicPlayer = musicPlayer;
             _noteSoundsPlayer = new GameNoteSoundsPlayer(musicPlayer, pianoSoundSource, hitSoundSource);
@@ -90,22 +92,24 @@ namespace Deenote.GamePlay
                 _noteSoundsPlayer.ScheduleAudio();
             };
 
-            App.ProjectManager.RegisterPropertyChanged((s, e, t) =>
+            projectManager.RegisterPropertyChanged((s, e, t) =>
             {
                 if (e.Match(nameof(s.CurrentChart))) {
                     _noteSoundsPlayer.Chart = s.CurrentChart;
-                    if (s.CurrentChart is null) {
-                        _musicPlayer.Stop();
-                    }
+                    _noteSoundsPlayer.CancelScheduledAudio();
+                    _musicPlayer.Stop();
+                    _musicPlayer.Time = 0f;
                 }
                 s.CurrentProject2.AsNestedRegisterPropertyChangedAndInvoke(nameof(s.CurrentProject2), e, t, (s, e, t) =>
                 {
                     if (s is null) {
+                        _musicPlayer.ReplaceClip(null);
                         CurrentAudioClip = null;
                         return;
                     }
                     if (e.Match(nameof(s.AudioFileData))) {
                         if (s.DecodedClip is not null) {
+                            _musicPlayer.ReplaceClip(new DecodedClipProvider(s.DecodedClip));
                             CurrentAudioClip = s.DecodedClip;
                         }
                         else {
@@ -143,6 +147,14 @@ namespace Deenote.GamePlay
             // TODO: try out streaming clip provider
             _musicPlayer.ReplaceClip(new DecodedClipProvider(clip));
             CurrentAudioClip = clip;
+        }
+
+        public void ForEditorUpdateAudio(bool noteCollectionChangedOrNoteTimeRelatedPropertyChanged, bool notesVisualDataChanged)
+        {
+            if (noteCollectionChangedOrNoteTimeRelatedPropertyChanged) {
+                _noteSoundsPlayer.CancelScheduledAudio();
+                _noteSoundsPlayer.ResetScheduledAudio(_musicPlayer.PreciseTime, _musicPlayer.Transport.Epoch);
+            }
         }
     }
 }
