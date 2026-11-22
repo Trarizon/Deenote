@@ -53,7 +53,7 @@ namespace Deenote.Core.Editing
 
         private void _OnPerspectiveLineCollecting(PerspectiveLinesRenderer.LineCollector collector)
         {
-            var showLinkLine = _placer._editor._game.IsShowLinkLines;
+            var showLinkLine = App.GameStageManager.IsShowLinkLines;
             if (showLinkLine && _linkLineEndOffset is { } offset) {
                 _placer._editor._game.AssertStageLoaded();
 
@@ -66,10 +66,8 @@ namespace Deenote.Core.Editing
 
         public void MoveTo(NoteCoord coord)
         {
-            _placer._editor._game.AssertStageLoaded();
-
-            var localCoord = coord - new NoteCoord(position: 0, time: _placer._editor._game.MusicPlayer.Time);
-            var (x, z) = _placer._editor._game.ConvertNoteCoordToWorldPosition(localCoord, NotePrototype.Speed);
+            var localCoord = coord - new NoteCoord(position: 0, time: _placer._editor._gamePlayManager.CurrentTime);
+            var (x, z) = App.GameStageManager.ConvertCoordToWorld(localCoord, NotePrototype.Speed, true);
             _localPosition = new Vector2(x, z);
             transform.WithLocalPositionXZ(x, z);
         }

@@ -14,7 +14,7 @@ namespace Deenote.CoreB.Notification
 
     partial class InpcRegistration
     {
-        sealed class Tpl<T1, T2> { public T1? Item1; public T2? Item2; }
+        sealed class Tpl<T1, T2> { public T1 Item1 = default!; public T2 Item2 = default!; }
 
         public static T UnregisterWhenGameObjectDestroyed<T>(this T registration, GameObject gameObject)
             where T : IPropertyChangedRegistration
@@ -23,7 +23,7 @@ namespace Deenote.CoreB.Notification
             tuple.Item1 = registration;
             tuple.Item2 = gameObject.GetAsyncDestroyTrigger().CancellationToken.RegisterWithoutCaptureExecutionContext((state) =>
             {
-                var tuple = (Tuple<T, CancellationTokenRegistration>)state;
+                var tuple = (Tpl<T, CancellationTokenRegistration>)state;
                 tuple.Item1.Unregister();
                 tuple.Item2.Dispose();
             }, tuple);
@@ -34,6 +34,16 @@ namespace Deenote.CoreB.Notification
         public static T UnregisterWhenGameObjectDestroyed<T>(this T registration, Component component)
             where T : IPropertyChangedRegistration
             => registration.UnregisterWhenGameObjectDestroyed(component.gameObject);
+
+        public static IPropertyChangedRegistration RegisterPropertyChanged<T>(this T self, Action<T, PropertyChangedEventArgs, ObservableBindingToken> action)
+            where T : class, INotifyPropertyChanged<T>
+        {
+#pragma warning disable CS8631 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.
+            var binding = new ObservableBinding<T>();
+            binding.Update(self, action);
+            return binding;
+#pragma warning restore CS8631
+        }
 
         public static IPropertyChangedRegistration RegisterPropertyChangedAndInvoke<T>(this T self, Action<T, PropertyChangedEventArgs, ObservableBindingToken> action)
             where T : class, INotifyPropertyChanged<T>
@@ -51,7 +61,7 @@ namespace Deenote.CoreB.Notification
         {
             if (e.Match(propertyName)) {
                 token.Binding.AddOrUpdate(propertyName, self, action);
-                action.Invoke(self, e, token);
+                action.Invoke(self, PropertyChangedEventArgs.All, token);
             }
         }
 

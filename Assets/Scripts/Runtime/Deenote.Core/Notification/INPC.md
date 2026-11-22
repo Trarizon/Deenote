@@ -97,7 +97,7 @@ obj.RegisterPropertyChangedAndInvoke((s, e, t) =>
 
 ## IObservableCollection<T>
 
-项目使用`ObservableCollections`库提供的`IObservableCollection<T>`作为observable collection的接口，使用下述方式订阅：
+项目使用[ObservableCollections](https://github.com/Cysharp/ObservableCollections)库提供的`IObservableCollection<T>`作为observable collection的接口，使用下述方式订阅：
 
 ``` csharp
 obj.Collection.RegisterCollectionChanged(e =>

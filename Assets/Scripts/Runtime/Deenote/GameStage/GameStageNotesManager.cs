@@ -38,6 +38,8 @@ namespace Deenote.GameStage
 
         public ReadOnlySpan<NoteModel> ActiveNotes => _trackingNotes.AsSpan();
 
+        public float CurrentTime => _gamePlay.CurrentTime;
+
         internal GameStageNotesManager(GameStageManager stage, GamePlayManager2 gamePlay, ProjectManager2 project)
         {
             _stage = stage;
@@ -149,7 +151,7 @@ namespace Deenote.GameStage
             // Notes may have different speed, so we do not track notes here
             for (; index < noteNodes.Length; index++) {
                 var node = noteNodes[index];
-                if (node is NoteModel && new GameStageNodeView(node, _stage).GetPseudoTime(currentTime) > activateNoteTime)
+                if (node is NoteModel && _stage.GetNotePseudoTime(node, currentTime) > activateNoteTime)
                     break;
             }
             _nextActiveNoteIndex = index;

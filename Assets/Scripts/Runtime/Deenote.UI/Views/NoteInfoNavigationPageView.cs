@@ -11,6 +11,7 @@ using Deenote.UI.Views.Panels;
 using Deenote.UIFramework.Controls;
 using System;
 using UnityEngine;
+using Deenote.GameStage;
 
 namespace Deenote.UI.Views
 {
@@ -51,6 +52,8 @@ namespace Deenote.UI.Views
         private float? _selectedNotesSpeed;
         private bool _isSoundQuickAdd;
 
+        private GameStageManager _stageManager;
+
         private void Awake()
         {
             _interactableControls = new IInteractableControl[] {
@@ -59,6 +62,8 @@ namespace Deenote.UI.Views
                 _speedInput, _shiftInput, _eventIdInput,
                 _vibrateCheckBox,
             };
+
+            _stageManager = App.GameStageManager;
         }
 
         private void Start()
@@ -165,7 +170,7 @@ namespace Deenote.UI.Views
             _speedToPlaceSpeedButton.Clicked += () =>
             {
                 if (_selectedNotesSpeed is { } speed)
-                    MainSystem.GamePlayManager.HighlightedNoteSpeed = speed;
+                    _stageManager.PlacementNoteSpeed = speed;
             };
             MainSystem.StageChartEditor.RegisterNotificationAndInvoke(
                 StageChartEditor.NotificationFlag.NoteSpeed,

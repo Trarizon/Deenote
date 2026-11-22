@@ -26,6 +26,8 @@ namespace Deenote.GameStage
             set {
                 value = Math.Clamp(value, MinNotFallSpeed, MaxNotFallSpeed);
                 if (Utils.SetField(ref _noteSpeed_bf, value)) {
+                    NotesManager.RefreshActiveNotes();
+                    WarningNotesManager.RefreshActiveNotes();
                     PropertyChanged?.Invoke(this, nameof(NoteFallSpeed));
                 }
             }
@@ -39,6 +41,9 @@ namespace Deenote.GameStage
             get => _showLinks_bf;
             set {
                 if (Utils.SetField(ref _showLinks_bf, value)) {
+                    foreach (var note in _activeNotes) {
+                        note.RefreshLinkLine();
+                    }
                     PropertyChanged?.Invoke(this, nameof(IsShowLinkLines));
                 }
             }
@@ -50,6 +55,9 @@ namespace Deenote.GameStage
             get => _distinguishPianoNotes_bf;
             set {
                 if (Utils.SetField(ref _distinguishPianoNotes_bf, value)) {
+                    foreach (var note in _activeNotes) {
+                        note.RefreshVisual();
+                    }
                     PropertyChanged?.Invoke(this, nameof(IsPianoNotesDistinguished));
                 }
             }
@@ -76,6 +84,11 @@ namespace Deenote.GameStage
             set {
                 value = Math.Clamp(value, 0, 1);
                 if (Utils.SetField(ref _suddenPlus_bf, value)) {
+                    // NotesManager.RefreshActiveNotes(); // Why I added this line? seems useless.
+                    WarningNotesManager.RefreshActiveNotes();
+                    foreach (var note in _activeNotes) {
+                        note.RefreshColorAlpha();
+                    }
                     PropertyChanged?.Invoke(this, nameof(SuddenPlus));
                 }
             }
@@ -92,6 +105,9 @@ namespace Deenote.GameStage
             get => _earlyDisplaySlowNotes_bf;
             set {
                 if (Utils.SetField(ref _earlyDisplaySlowNotes_bf, value)) {
+                    foreach (var note in _activeNotes) {
+                        note.RefreshColorAlpha();
+                    }
                     PropertyChanged?.Invoke(this, nameof(IsEarlyDisplaySlowNotes));
                 }
             }
@@ -115,6 +131,9 @@ namespace Deenote.GameStage
                 if (value <= 0f)
                     value = ZeroAvoidHighlightedSpeed;
                 if (Utils.SetField(ref _highlightedNoteSpeed_bf, value)) {
+                    foreach (var note in _activeNotes) {
+                        note.RefreshColorAlpha();
+                    }
                     PropertyChanged?.Invoke(this, nameof(HighlightedNoteSpeed));
                 }
             }
@@ -135,7 +154,11 @@ namespace Deenote.GameStage
         {
             get => _placementNoteSpeed_bf;
             set {
+                if (value <= 0)
+                    value = ZeroAvoidHighlightedSpeed;
                 if (Utils.SetField(ref _placementNoteSpeed_bf, value)) {
+                    if (HighlightedNoteSpeed is not null)
+                        HighlightedNoteSpeed = value;
                     PropertyChanged?.Invoke(this, nameof(PlacementNoteSpeed));
                 }
             }
@@ -147,6 +170,8 @@ namespace Deenote.GameStage
             get => _applySpeedDiff_bf;
             set {
                 if (Utils.SetField(ref _applySpeedDiff_bf, value)) {
+                    NotesManager.RefreshActiveNotes();
+                    WarningNotesManager.RefreshActiveNotes();
                     PropertyChanged?.Invoke(this, nameof(IsApplySpeedDifference));
                 }
             }
@@ -173,6 +198,7 @@ namespace Deenote.GameStage
             get => _warningNoteVisibility_bf;
             set {
                 if (Utils.SetField(ref _warningNoteVisibility_bf, value)) {
+                    WarningNotesManager.RefreshActiveNotes();
                     PropertyChanged?.Invoke(this, nameof(WarningNoteVisibility));
                 }
             }
@@ -198,8 +224,9 @@ namespace Deenote.GameStage
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
-                HighlightedNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
+                PlacementNoteSpeed = configs.GetSingle("stage/highlight_note_speed", 1f);
                 IsApplySpeedDifference = configs.GetBoolean("stage/apply_speed_diff", true);
+                HighlightedNoteSpeed = configs.GetBoolean("stage/filter_note_speed", false) ? PlacementNoteSpeed : null;
 
                 NoteFallSpeed = configs.GetInt32("stage/note_speed", 40);
                 IsShowLinkLines = configs.GetBoolean("stage/show_link_lines", true);
@@ -219,6 +246,7 @@ namespace Deenote.GameStage
             get => _timeGridsVisible_bf;
             set {
                 if (Utils.SetField(ref _timeGridsVisible_bf, value)) {
+                    MainSystem.GamePlayManager.Grids.TimeGridVisible = value;
                     PropertyChanged?.Invoke(this, nameof(IsTimeGridsVisible));
                 }
             }
@@ -230,6 +258,7 @@ namespace Deenote.GameStage
             get => _positionGridsVisible_bf;
             set {
                 if (Utils.SetField(ref _positionGridsVisible_bf, value)) {
+                    MainSystem.GamePlayManager.Grids.PositionGridVisible = value;
                     PropertyChanged?.Invoke(this, nameof(IsPositionGridsVisible));
                 }
             }

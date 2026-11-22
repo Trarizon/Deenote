@@ -9,14 +9,16 @@ using UnityEngine;
 
 namespace Deenote.Core.GamePlay
 {
+    // fully deprecated
+    
     partial class GamePlayManager
     {
-        private void OnStageLoaded_Properties(GameStageSceneLoader loader)
-        {
-            loader.StageController.IsStageEffectOn = IsStageEffectOn;
-            _cacheVisibleRangePercentage = null;
-            loader.StageController.VisibleRangePercentage = VisibleRangePercentage;
-        }
+        // private void OnStageLoaded_Properties(GameStageSceneLoader loader)
+        // {
+        //     // loader.StageController.IsStageEffectOn = IsStageEffectOn;
+        //     // _cacheVisibleRangePercentage = null;
+        //     // loader.StageController.VisibleRangePercentage = VisibleRangePercentage;
+        // }
 
         private void RegisterConfigurations()
         {
@@ -123,10 +125,10 @@ namespace Deenote.Core.GamePlay
             }
         }
 
-        public bool IsNoteHighlighted(NoteModel note)
-        {
-            return !IsFilterNoteSpeed || Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
-        }
+        // public bool IsNoteHighlighted(NoteModel note)
+        // {
+        //     return !IsFilterNoteSpeed || Mathf.Approximately(note.Speed, HighlightedNoteSpeed);
+        // }
 
         #region Stage
 
@@ -161,6 +163,7 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public float ActualNoteFallSpeed => ConvertToActualNoteSpeed(NoteFallSpeed);
 
         [Obsolete("Moved to GameStageManager")]
@@ -203,7 +206,7 @@ namespace Deenote.Core.GamePlay
                 App.GameStageManager.IsStageEffectOn = value;
 
                 if (IsStageLoaded()) {
-                    Stage.IsStageEffectOn = value;
+                    // Stage.IsStageEffectOn = value;
                 }
                 NotifyFlag(NotificationFlag.StageEffectOn);
             }
@@ -233,27 +236,11 @@ namespace Deenote.Core.GamePlay
 
         private float? _cacheVisibleRangePercentage;
 
+        [Obsolete("Controller应该自己持有GameStage或NotePlane获取")]
         public float VisibleRangePercentage
         {
             get {
-                this.AssertStageLoaded();
-                if (_cacheVisibleRangePercentage is null) {
-                    var x = ConvertNoteCoordPositionToWorldX(0f);
-                    var maxZ = ConvertNoteCoordTimeToWorldZ(StageNoteActiveAheadTime);
-                    var minZ = ConvertNoteCoordTimeToWorldZ(0f);
-
-                    bool try0, try1;
-                    try0 = Stage.TryConvertNotePanelPositionToRaycastingViewportPoint((x, minZ), out var minVp);
-                    try1 = Stage.TryConvertNotePanelPositionToRaycastingViewportPoint((x, maxZ), out var maxVp);
-                    Debug.Assert(try0 && try1);
-
-                    var vp = new Vector2(maxVp.x, Mathf.Lerp(maxVp.y, minVp.y, SuddenPlus));
-                    try0 = Stage.TryConvertRaycastingViewportPointToNotePanelPosition(vp, out var pos);
-                    Debug.Assert(try0);
-
-                    _cacheVisibleRangePercentage = Mathf.InverseLerp(minZ, maxZ, pos.Z);
-                }
-                return _cacheVisibleRangePercentage.GetValueOrDefault();
+                return Stage.VisibleRangePercentage;
             }
         }
 

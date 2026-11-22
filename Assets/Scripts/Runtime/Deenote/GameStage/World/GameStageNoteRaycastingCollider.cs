@@ -1,5 +1,3 @@
-#nullable enable
-
 using Deenote.Core.GameStage;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -7,17 +5,14 @@ using UnityEngine.Scripting.APIUpdating;
 namespace Deenote.GameStage.World
 {
     [MovedFrom("Deenote.Core.GameStage")]
-    [RequireComponent(typeof(Collider))]
-    internal sealed class GameStageNoteRaycastingCollider : MonoBehaviour
+    internal sealed class GameStageNoteRaycastingCollider : GameStageNoteRaycastingCollider<GameStageNoteController>
     {
-        [SerializeField] Collider _collider;
         [SerializeField] GameStageNoteController _noteController;
 
-        public GameStageNoteController NoteController => _noteController;
+        public override GameStageNoteController Note => _noteController;
 
         private void OnValidate()
         {
-            _collider ??= GetComponent<Collider>();
             _noteController ??= GetComponentInParent<GameStageNoteController>();
         }
     }

@@ -1,26 +1,16 @@
-#nullable enable
-
+using Deenote.GameStage.World;
 using UnityEngine;
 
 namespace Deenote.Core.GameStage
 {
-    [RequireComponent(typeof(BoxCollider))]
-    internal sealed class SpeedChangeWarningRaycastingCollider : MonoBehaviour
+    internal sealed class SpeedChangeWarningRaycastingCollider : GameStageNoteRaycastingCollider<GameStageSpeedChangeWarningNoteController>
     {
-        [SerializeField] private BoxCollider _collider = default!;
         [SerializeField] private GameStageSpeedChangeWarningNoteController _warningController = default!;
 
-        public GameStageSpeedChangeWarningNoteController WarningController => _warningController;
-
-        private void Awake()
-        {
-            _collider ??= GetComponent<BoxCollider>();
-            _warningController ??= GetComponentInParent<GameStageSpeedChangeWarningNoteController>();
-        }
+        public override GameStageSpeedChangeWarningNoteController Note => _warningController;
 
         private void OnValidate()
         {
-            _collider ??= GetComponent<BoxCollider>();
             _warningController ??= GetComponentInParent<GameStageSpeedChangeWarningNoteController>();
         }
     }

@@ -38,6 +38,7 @@ namespace Deenote
         }
 
         public static App Create(
+            AppGlobalConfigs appGlobalConfigs,
             IGameStagePerspectiveViewPanel foreground,
             GameMusicPlayer gameMusicPlayer,
             PianoSoundSource pianoSoundSource,
@@ -45,10 +46,18 @@ namespace Deenote
         {
             Current = new App();
             Application.Current = Current;
-            Current._gamePlayerManager = new GamePlayManager2(gameMusicPlayer, pianoSoundSource, hitSoundSource);
-            Current._projectManager = new ProjectManager2();
-            Current._gameStageManager = new GameStageManager(foreground);
+            Current.Configs = appGlobalConfigs;
+            
+            
             Current._environment = new EnvironmentContext();
+
+            Current._projectManager = new ProjectManager2();
+            Current._gamePlayerManager = new GamePlayManager2(
+                gameMusicPlayer, pianoSoundSource, hitSoundSource,
+                Current._projectManager);
+            Current._gameStageManager = new GameStageManager(
+                foreground,
+                Current._projectManager, Current._gamePlayerManager, appGlobalConfigs);
             Current.ProjectAutoSaveTrigger = new ProjectAutoSaveTrigger();
 
             var stagePianoSoundPlayer = new StagePianoSoundPlayer(pianoSoundSource);

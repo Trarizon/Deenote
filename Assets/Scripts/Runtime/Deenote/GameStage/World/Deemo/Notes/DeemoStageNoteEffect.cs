@@ -6,6 +6,7 @@ using TriInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements.Experimental;
+using Deenote.Entities.Models;
 
 namespace Deenote.GameStage.World.Deemo.Notes
 {
@@ -37,7 +38,6 @@ namespace Deenote.GameStage.World.Deemo.Notes
         [Title("Configs")]
         [SerializeField] DeemoGameVersion _version;
 
-        private int _currentExplosionSpriteIndex;
         private EffectKind _activeEffectKind;
 
         void Start()
@@ -116,15 +116,7 @@ namespace Deenote.GameStage.World.Deemo.Notes
             if (time < config.ExplosionAnimationDuration) {
                 var index = Mathf.FloorToInt(time / config.ExplosionAnimationDuration * config.ExplosionSprites.Length);
                 index = Mathf.Min(index, config.ExplosionSprites.Length);
-                if (_currentExplosionSpriteIndex != index) {
-                    if (index == 0) {
-                        _explosionSpriteRenderer.sprite = null;
-                    }
-                    else {
-                        _explosionSpriteRenderer.sprite = config.ExplosionSprites[index - 1];
-                    }
-                    _currentExplosionSpriteIndex = index;
-                }
+                _explosionSpriteRenderer.sprite = index == 0 ? null : config.ExplosionSprites[index - 1];
             }
             else {
                 _explosionSpriteRenderer.sprite = null;

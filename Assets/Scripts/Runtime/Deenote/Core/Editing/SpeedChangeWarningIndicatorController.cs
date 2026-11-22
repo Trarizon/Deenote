@@ -18,7 +18,7 @@ namespace Deenote.Core.Editing
 
         [SerializeField] private SpriteRenderer _noteSpriteRenderer = default!;
         [SerializeField] private SpeedChangeWarningLineRenderer _lineRenderer = default!;
-        
+
         private StageNotePlacer _placer = default!;
         private float _time;
 
@@ -32,10 +32,10 @@ namespace Deenote.Core.Editing
             game.AssertStageLoaded();
 
             _lineRenderer ??= GetComponentInChildren<SpeedChangeWarningLineRenderer>(true);
-            _lineRenderer?.OnInstantiate(game);
+            _lineRenderer?.OnInstantiate(game.Stage);
 
             transform.WithLocalPositionX(
-                game.ConvertNoteCoordPositionToWorldX(GameStageSpeedChangeWarningNoteController.SpritePosition));
+                App.GameStageManager.ConvertCoordPositionToWorldX(GameStageSpeedChangeWarningNoteController.SpritePosition));
             _noteSpriteRenderer?.WithColorAlpha(PreviewAlpha);
         }
 
@@ -48,11 +48,10 @@ namespace Deenote.Core.Editing
         {
             _time = time;
 
-            var game = _placer._editor._game;
-            game.AssertStageLoaded();
+            var game = _placer._editor._gamePlayManager;
 
-            float localTime = time - game.MusicPlayer.Time;
-            float z = game.ConvertNoteCoordTimeToWorldZ(localTime, _placer.PlacingNoteSpeed);
+            float localTime = time - game.CurrentTime;
+            float z = App.GameStageManager.ConvertCoordTimeToWorldZ(localTime, _placer.PlacingNoteSpeed, true);
             transform.WithLocalPositionZ(z);
 
             _lineRenderer?.SetTime(localTime, _placer.PlacingNoteSpeed, PreviewAlpha);

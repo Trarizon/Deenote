@@ -28,7 +28,7 @@ namespace Deenote.Core.Editing
                 { Kind: NoteModel.NoteKind.Swipe } => _config.SwipeNoteSpriteData,
                 { Kind: NoteModel.NoteKind.Slide } => _config.SlideNoteSpriteData,
                 { HasSounds: true } => _config.ClickNoteSpriteData,
-                _ => _placer._editor._game.IsPianoNotesDistinguished
+                _ => App.GameStageManager.IsPianoNotesDistinguished
                     ? _config.NoSoundNoteSpriteData
                     : _config.ClickNoteSpriteData,
             };
@@ -38,7 +38,8 @@ namespace Deenote.Core.Editing
             _headTransform.localScale = new Vector3(NotePrototype.Size, 1f, 1f);
 
             if (NotePrototype.IsSlide && NotePrototype.NextLink is not null) {
-                var (tox, toz) = game.ConvertNoteCoordToWorldPosition(NotePrototype.NextLink.PositionCoord - NotePrototype.PositionCoord);
+                // TODO: 不确定，疑似是bug，convert传coord delta貌似没有意义，可能是indicator连线不对的那个bug
+                var (tox, toz) = stage.StageManager.ConvertCoordToWorld(NotePrototype.NextLink.PositionCoord - NotePrototype.PositionCoord);
                 _linkLineEndOffset = new Vector2(tox, toz);
             }
             else {
@@ -49,7 +50,7 @@ namespace Deenote.Core.Editing
                 _holdBodySpriteRender.gameObject.SetActive(true);
                 _holdBodyTransform.WithLocalScaleXY(
                     NotePrototype.Size, 
-                    game.ConvertNoteCoordTimeToHoldScaleY(NotePrototype.Duration, NotePrototype.Speed)
+                    App.GameStageManager.ConvertCoordTimeToWorldScaleY(NotePrototype.Duration, NotePrototype.Speed, true)
                 );
             }
             else {

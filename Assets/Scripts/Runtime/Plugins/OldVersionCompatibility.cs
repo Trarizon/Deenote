@@ -59,8 +59,8 @@ namespace Deenote.Runtime.Plugins
                         return;
 
                     context.UI.StatusBar.SetRawTextStatusMessage(texts["exporting"]);
-                    await File.WriteAllTextAsync(res.Path,
-                        context.GameManager.CurrentChart.ToJsonString(Entities.ChartSerializationVersion.DeemoV2));
+                    // await File.WriteAllTextAsync(res.Path,
+                    //     context.GameManager.CurrentChart.ToJsonString(Entities.ChartSerializationVersion.DeemoV2));
                     context.UI.StatusBar.SetRawTextStatusMessage(texts["exported"]);
                 })));
         }

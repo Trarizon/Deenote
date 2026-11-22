@@ -1,14 +1,13 @@
 #nullable enable
 
-using Deenote.Core.GameStage;
-using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Replica;
-using System.Diagnostics.CodeAnalysis;
-using UnityEngine;
+using System;
 
 namespace Deenote.Core.GamePlay
 {
+    // fully deprecated
+
     partial class GamePlayManager
     {
         /// <summary>
@@ -18,6 +17,7 @@ namespace Deenote.Core.GamePlay
         /// We start to track note when note appears as if sudden+ is 0, and sets its
         /// visibility according to <see cref="StageNoteAppearAheadTime"/>
         /// </remarks>
+        [Obsolete]
         public float StageNoteActiveAheadTime
         {
             get {
@@ -25,16 +25,19 @@ namespace Deenote.Core.GamePlay
             }
         }
 
+        [Obsolete("Use StageManager. instead")]
         public float GetStageNoteActiveAheadTime(float noteSpeed) => StageNoteActiveAheadTime / GetDisplayNoteSpeed(noteSpeed);
+        [Obsolete("Use StageManager. instead")]
         public float GetStageNoteActiveTime(IStageNoteNode node) => node.Time - GetStageNoteActiveAheadTime(node.Speed);
 
         /// <summary>
         /// The time from a note(speed==1) appears to falls on the judgeline
         /// </summary>
+        [Obsolete("Use StageManager.StandardNoteAppearAheadTime instead")]
         public float StageNoteAppearAheadTime => StageNoteActiveAheadTime * VisibleRangePercentage;
+        [Obsolete("Use StageManager. instead")]
         public float GetStageNoteAppearAheadTime(float noteSpeed) => StageNoteAppearAheadTime / GetDisplayNoteSpeed(noteSpeed);
-        public float GetStageNoteAppearTime(IStageNoteNode node) => node.Time - GetStageNoteAppearAheadTime(node.Speed);
-
+        [Obsolete("Use StageManager. instead")]
         internal float GetDisplayNoteSpeed(float speed) => IsApplySpeedDifference ? speed : 1f;
 
         /// <summary>
@@ -42,6 +45,7 @@ namespace Deenote.Core.GamePlay
         /// <br/>
         /// The return value may be useless if note is not active on stage
         /// </summary>
+        [Obsolete("Use StageManager. instead")]
         internal float GetNotePseudoTime(float time, float noteSpeed)
         {
             var currentTime = MusicPlayer.Time;
@@ -50,94 +54,95 @@ namespace Deenote.Core.GamePlay
 
         #region Converters
 
-        public float ConvertWorldXToNoteCoordPosition(float x)
-            => x / Stage!.Config.NotePosToWorldXFactor;
-            // => x / (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
+        // public float ConvertWorldXToNoteCoordPosition(float x)
+        //     => x / Stage!.Config.NotePosToWorldXFactor;
+        // => x / (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
 
-        public float ConvertWorldZToNoteCoordTime(float z, float noteSpeed = 1f)
-            => ConvertWorldZToNoteCoordTimeBase(z) / ActualNoteFallSpeed / GetDisplayNoteSpeed(noteSpeed);
+        // public float ConvertWorldZToNoteCoordTime(float z, float noteSpeed = 1f)
+        //     => ConvertWorldZToNoteCoordTimeBase(z) / GetDisplayNoteSpeed(noteSpeed);
 
+        [Obsolete("Use StageManager. instead")]
         public float ConvertNoteCoordPositionToWorldX(float position)
             => position * Stage!.Config.NotePosToWorldXFactor;
             // => position * (Stage!.Args.NotePanelWidth / EntityArgs.StageMaxPositionWidth);
-
+        [Obsolete("Use StageManager. instead")]
         public float ConvertNoteCoordTimeToWorldZ(float time, float noteSpeed = 1f)
-            => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time);
+            => GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time);
 
-        public float ConvertNoteCoordTimeToHoldScaleY(float time, float noteSpeed = 1f)
-            => ActualNoteFallSpeed * GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time); // Stage!.Args.HoldSpritePrefab.Sprite.bounds.size.y;
+        // public float ConvertNoteCoordTimeToHoldScaleY(float time, float noteSpeed = 1f)
+        //     => GetDisplayNoteSpeed(noteSpeed) * ConvertNoteCoordTimeToWorldZBase(time); // Stage!.Args.HoldSpritePrefab.Sprite.bounds.size.y;
 
-        public (float X, float Z) ConvertNoteCoordToWorldPosition(NoteCoord coord, float noteSpeed = 1f)
-            => (ConvertNoteCoordPositionToWorldX(coord.Position), ConvertNoteCoordTimeToWorldZ(coord.Time, noteSpeed));
+        // public (float X, float Z) ConvertNoteCoordToWorldPosition(NoteCoord coord, float noteSpeed = 1f)
+        //     => (ConvertNoteCoordPositionToWorldX(coord.Position), ConvertNoteCoordTimeToWorldZ(coord.Time, noteSpeed));
 
-        public bool TryConvertPerspectiveViewportPointToNoteCoord(Vector2 perspectiveViewPanelViewportPoint, float noteSpeed, out NoteCoord coord)
-        {
-            AssertStageLoaded();
+        // public bool TryConvertPerspectiveViewportPointToNoteCoord(Vector2 perspectiveViewPanelViewportPoint, float noteSpeed, out NoteCoord coord)
+        // {
+        //     AssertStageLoaded();
 
-            if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
-                coord = default;
-                return false;
-            }
+        //     if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
+        //         coord = default;
+        //         return false;
+        //     }
 
-            var stage = Stage;
-            var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
-            if (stage.TryConvertRaycastingViewportPointToNotePanelPosition(raycastViewportPoint, out var notePanelPosition)) {
-                coord = new NoteCoord(
-                    ConvertWorldXToNoteCoordPosition(notePanelPosition.X),
-                    ConvertWorldZToNoteCoordTime(notePanelPosition.Z, noteSpeed) + MusicPlayer.Time);
-                return true;
-            }
+        //     var stage = Stage;
+        //     var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
+        //     // if (stage.TryConvertRaycastingViewportPointToNotePanelPosition(raycastViewportPoint, out var notePanelPosition)) {
+        //     //     coord = new NoteCoord(
+        //     //         ConvertWorldXToNoteCoordPosition(notePanelPosition.X),
+        //     //         ConvertWorldZToNoteCoordTime(notePanelPosition.Z, noteSpeed) + MusicPlayer.Time);
+        //     //     return true;
+        //     // }
 
-            coord = default;
-            return false;
+        //     coord = default;
+        //     return false;
 
-            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
-        }
+        //     static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
+        // }
 
-        internal bool TryRaycastPerspectiveViewportPointToNote(Vector2 perspectiveViewPanelViewportPoint, [MaybeNullWhen(false)] out GameStageNoteController note)
-        {
-            AssertStageLoaded();
+        // internal bool TryRaycastPerspectiveViewportPointToNote(Vector2 perspectiveViewPanelViewportPoint, [MaybeNullWhen(false)] out GameStageNoteController note)
+        // {
+        //     AssertStageLoaded();
 
-            if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
-                note = default;
-                return false;
-            }
-            var stage = Stage;
+        //     if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
+        //         note = default;
+        //         return false;
+        //     }
+        //     var stage = Stage;
 
-            var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
-            if (stage.TryRaycastRaycastingViewportPointToNote(raycastViewportPoint, out note)) {
-                return true;
-            }
-            return false;
+        //     var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
+        //     if (stage.TryRaycastRaycastingViewportPointToNote(raycastViewportPoint, out note)) {
+        //         return true;
+        //     }
+        //     return false;
 
-            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
-        }
+        //     static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
+        // }
 
-        internal bool TryRaycastPerspectiveViewportPointToWarning(Vector2 perspectiveViewPanelViewportPoint,
-            [MaybeNullWhen(false)] out GameStageSpeedChangeWarningNoteController warning)
-        {
-            AssertStageLoaded();
+        // internal bool TryRaycastPerspectiveViewportPointToWarning(Vector2 perspectiveViewPanelViewportPoint,
+        //     [MaybeNullWhen(false)] out GameStageSpeedChangeWarningNoteController warning)
+        // {
+        //     AssertStageLoaded();
 
-            if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
-                warning = default;
-                return false;
-            }
-            var stage = Stage;
+        //     if (!IsInViewArea(perspectiveViewPanelViewportPoint)) {
+        //         warning = default;
+        //         return false;
+        //     }
+        //     var stage = Stage;
 
-            var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
-            if (stage.TryRaycastRaycastingViewportPointToWarning(raycastViewportPoint, out warning)) {
-                return true;
-            }
-            return false;
+        //     var raycastViewportPoint = stage.ConvertPerspectiveViewportPointToRaycastingViewportPoint(perspectiveViewPanelViewportPoint);
+        //     if (stage.TryRaycastRaycastingViewportPointToWarning(raycastViewportPoint, out warning)) {
+        //         return true;
+        //     }
+        //     return false;
 
-            static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
-        }
+        //     static bool IsInViewArea(Vector2 vp) => vp is { x: >= 0f and <= 1f, y: >= 0f and <= 1f };
+        // }
 
         private float ConvertNoteCoordTimeToWorldZBase(float time)
             => time * DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) * Stage!.Config.NoteTimeToWorldZFactor;
 
         private float ConvertWorldZToNoteCoordTimeBase(float z)
-            => z/ DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) / Stage!.Config.NoteTimeToWorldZFactor;
+            => z / DeemoReplica.DisplayFallSpeedToPlaneFallSpeed(ActualNoteFallSpeed) / Stage!.Config.NoteTimeToWorldZFactor;
 
         #endregion
     }

@@ -1,9 +1,15 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.GameStage;
+using Deenote.CoreB.Notification;
+using Deenote.EditorModels;
+using Deenote.Entities;
+using Deenote.Entities.Models;
+using Deenote.GamePlay;
 using Deenote.GameStage.Grids;
 using Deenote.GameStage.Themes;
 using Deenote.GameStage.UI;
 using Deenote.GameStage.World;
+using Deenote.Project;
 using System;
 
 namespace Deenote.GameStage
@@ -12,49 +18,73 @@ namespace Deenote.GameStage
     {
         private readonly IGameStagePerspectiveViewPanel _foreground;
 
+        private readonly GamePlayManager2 _gamePlayManager;
+
         public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
+        public GameStageThemeManager ThemeManager { get; }
         public GameStageGridsManager GridsManager { get; }
-        public GameStageNotesManager NotesManager { get; private set; } 
+        public GameStageNotesManager NotesManager { get; private set; }
         public GameStageWarningNotesManager WarningNotesManager { get; private set; } = default!;
 
         public GameStageConfig Config => GameStage!.Config;
         public IGameStageStrategy Strategy { get; } = new DeemoGameStageStrategy();
         private IGameStageNoteFactory? NoteFactory { get; set; }
 
-        public GameStageController? GameStage { get; private set; }
+        public GameStageController? GameStage => ThemeManager.CurrentStage;
 
-
-        public event Action<StageLoadedEventArgs>? StageLoaded;
-
-        internal GameStageManager(IGameStagePerspectiveViewPanel foreground)
+        internal GameStageManager(IGameStagePerspectiveViewPanel foreground,
+            ProjectManager2 projectManager, GamePlayManager2 gamePlayManager, AppGlobalConfigs appConfig)
         {
             _foreground = foreground;
+            _gamePlayManager = gamePlayManager;
+
+            ThemeManager = new(appConfig.BuiltinStageThemes);
             GridsManager = new();
+            NotesManager = new(this, gamePlayManager, projectManager);
 
 
-            GameStageSceneLoader.StageLoaded += (loader) =>
+            ThemeManager.RegisterPropertyChanged((s, e) =>
             {
-                Core(loader).Forget();
-                async UniTaskVoid Core(GameStageSceneLoader loader)
-                {
-                    GameStage = loader.StageController;
+                if (e.Match(nameof(s.CurrentStage))) {
+                    PropertyChanged?.Invoke(this, nameof(GameStage));
 
-                    MainSystem.GamePlayManager.OnStageLoaded(loader);
-                    OnGameStageLoaded(loader.StageController);
+                    if (s.CurrentStage is { } stage) {
+                        MainSystem.GamePlayManager.OnStageLoaded(stage);
+                        OnGameStageLoaded(stage);
 
-                    await _foreground.ApplyStageAsync(parent =>
-                    {
-                        return UniTask.FromResult<GameStageForegroundView>(UnityEngine.Object.Instantiate(loader.PerspectiveViewForeground, parent));
-                    });
-
-                    StageLoaded?.Invoke(new StageLoadedEventArgs(GameStage));
+                        stage.OnInstantiate(this);
+                    }
                 }
+                if (e.Match(nameof(s.CurrentTheme))) {
+                    App.Logger.LogTrace($"Stage theme changed, sync foreground view");
+                    _foreground.ApplyStageAsync(async parent =>
+                    {
+                        return await s.LoadCurrentThemeForegroundAsync(parent);
+                    });
+                }
+            });
+            projectManager.RegisterPropertyChanged((s, e) =>
+            {
+                if (e.Match(nameof(s.CurrentChart))) {
+                    if (s.CurrentChart is not null)
+                        CheckCollision(s.CurrentChart);
+                    NotesManager.RefreshActiveNotes();
+                    WarningNotesManager.RefreshActiveNotes();
+                }
+            });
+
+            App.Current.UnscaledTick += e =>
+            {
+                // chino added this to fix preview stutter, while this looks weird to call every frame
+                foreach (var note in _activeNotes) {
+                    note.RefreshStageDeltaTime();
+                }
+                WarningNotesManager.RefreshActiveNotes();
             };
         }
 
         public void PostConstructor()
         {
-            NotesManager = new(this, App.GamePlayManager, App.ProjectManager);
             WarningNotesManager = new(this, App.GamePlayManager, App.ProjectManager);
 
             RegisterConfigurations();
@@ -78,12 +108,35 @@ namespace Deenote.GameStage
 
         private void OnGameStageLoaded(GameStageController stage)
         {
-            NoteFactory = new DefaultGameStageNoteFactory(
-                Config,
-                stage.NotePlane
-            );
+            NoteFactory = new DefaultGameStageNoteFactory(Config, stage);
             RefreshStageVisibleNotes(NotesManager.ActiveNotes);
             RefreshStageVisibleWarningNotes(WarningNotesManager.ActiveNotes);
+        }
+
+        private void RefreshStageVisibleNotes()
+        {
+            RefreshStageVisibleNotes(NotesManager.ActiveNotes);
+            RefreshStageVisibleWarningNotes(WarningNotesManager.ActiveNotes);
+        }
+
+        private void CheckCollision(ChartEditorModel chart)
+        {
+            for (int i = 0; i < chart.NoteNodes.Count; i++) {
+                if (chart.NoteNodes[i] is not NoteModel note)
+                    continue;
+
+                for (int j = i + 1; j < chart.NoteNodes.Count; j++) {
+                    if (chart.NoteNodes[j] is not NoteModel noteCmp)
+                        continue;
+
+                    if (!EntityArgs.IsTimeCollided(note, noteCmp))
+                        break;
+                    if (EntityArgs.IsPositionCollided(note, noteCmp)) {
+                        note.CollisionCount++;
+                        noteCmp.CollisionCount++;
+                    }
+                }
+            }
         }
     }
 }

@@ -22,21 +22,21 @@ namespace Deenote.GameStage
         private readonly ObjectPool<GameStageNoteController> _pool;
         private readonly ObjectPool<GameStageSpeedChangeWarningNoteController> _warningNotePool;
 
-        public DefaultGameStageNoteFactory(GameStageConfig config, GameStageNotePlaneController plane)
+        public DefaultGameStageNoteFactory(GameStageConfig config, GameStageController stage)
         {
             _prefab = config.NotePrefab;
             _warningNotePrefab = config.WarningNotePrefab;
-            _plane = plane;
+            _plane = stage.NotePlane;
             _pool = UnityUtils.CreateObjectPool(() =>
             {
                 var item = Object.Instantiate(_prefab, _plane.ContentTransform);
-                item.OnInstantiate(MainSystem.GamePlayManager);
+                item.OnInstantiate(stage);
                 return item;
             });
             _warningNotePool = UnityUtils.CreateObjectPool(() =>
             {
                 var item = Object.Instantiate(_warningNotePrefab, _plane.ContentTransform);
-                item.OnInstantiate(MainSystem.GamePlayManager);
+                item.OnInstantiate(stage);
                 return item;
             });
         }

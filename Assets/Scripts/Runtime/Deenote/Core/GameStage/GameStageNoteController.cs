@@ -1,21 +1,21 @@
-#nullable enable
-
-using Deenote.Core.GamePlay;
+using Deenote.CoreB.Unity;
 using Deenote.Entities;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
+using Deenote.GamePlay;
+using Deenote.GameStage;
 using Deenote.Library;
-using Deenote.CoreB.Unity;
 using Deenote.Library.Mathematics;
-using UnityEngine;
 using TriInspector;
+using UnityEngine;
 
 namespace Deenote.Core.GameStage
 {
     [DeclareFoldoutGroup("Note", Expanded = true)]
     internal abstract class GameStageNoteController : MonoBehaviour
     {
-        protected GamePlayManager _game = default!;
+        protected GameStageController _stage = default!;
+        private GamePlayManager2 _gamePlayManager = default!;
 
         public NoteModel NoteModel { get; private set; } = default!;
 
@@ -27,7 +27,7 @@ namespace Deenote.Core.GameStage
 
         // Appear ahead time of note when sudden+ is 0,
         // The value may be affected if the note is following a high-speed note
-        private float _appearAheadTime0SuddenPlus;
+        [ShowInInspector] private float _appearAheadTime0SuddenPlus;
         [ShowInInspector] private float _stageDeltaTime;
 
         // The actual appear ahead time, the value 
@@ -36,13 +36,12 @@ namespace Deenote.Core.GameStage
         {
             get {
 #if UNITY_EDITOR
-                if (_game is null) return 0;
+                if (_stage is null) return 0;
 #endif
-                _game.AssertStageLoaded();
 
-                var suddenPlusAheadTime = _game.GetStageNoteAppearAheadTime(NoteModel.Speed);
+                var suddenPlusAheadTime = _stage.StageManager.GetStageNoteAppearAheadTime(NoteModel.Speed, true);
                 float aheadTime;
-                if (_game.EarlyDisplaySlowNotes) {
+                if (App.GameStageManager.IsEarlyDisplaySlowNotes) {
                     aheadTime = suddenPlusAheadTime;
                 }
                 else {
@@ -58,12 +57,11 @@ namespace Deenote.Core.GameStage
         [ShowInInspector, Group("Note")]
         float Uid => ((IStageNoteNode?)NoteModel)?.Uid ?? 0;
 
-        internal void OnInstantiate(GamePlayManager gamePlayManager)
+        internal void OnInstantiate(GameStageController stage)
         {
-            _game = gamePlayManager;
-
-            _game.AssertStageLoaded();
-            _game.Stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
+            _stage = stage;
+            _stage.PerspectiveLinesRenderer.LineCollecting += _OnPerspectiveLineCollecting;
+            _gamePlayManager = App.GamePlayManager;
         }
 
         internal void Initialize(NoteModel noteModel)
@@ -80,8 +78,7 @@ namespace Deenote.Core.GameStage
 
         private void OnDestroy()
         {
-            if (_game.IsStageLoaded())
-                _game.Stage.PerspectiveLinesRenderer.LineCollecting -= _OnPerspectiveLineCollecting;
+            _stage.PerspectiveLinesRenderer.LineCollecting -= _OnPerspectiveLineCollecting;
         }
 
         private void OnDisable()
@@ -93,10 +90,9 @@ namespace Deenote.Core.GameStage
         private void _OnPerspectiveLineCollecting(PerspectiveLinesRenderer.LineCollector collector)
         {
             if (_linkLine is var (start, end)) {
-                _game.AssertStageLoaded();
                 collector.AddLine(start, end,
-                    _game.Stage.GridLineConfig.LinkLineData.ColorWithAlpha(_noteColorAlpha),
-                    _game.Stage.GridLineConfig.LinkLineData.Width);
+                    _stage.GridLineConfig.LinkLineData.ColorWithAlpha(_noteColorAlpha),
+                    _stage.GridLineConfig.LinkLineData.Width);
             }
         }
 
@@ -147,7 +143,7 @@ namespace Deenote.Core.GameStage
                 if (_stageDeltaTime >= AppearAheadTime)
                     return true;
 
-                if (!_game.EarlyDisplaySlowNotes) {
+                if (!App.GameStageManager.IsEarlyDisplaySlowNotes) {
                     // In TimeOrder mode, the note should display only after its previous note displayed
                     if (App.GameStageManager.NotesManager.GetNextActiveNodeInTimeOrderDisplayMode() is { } next) {
                         if (NodeTimeUniqueComparer.Instance.Compare(NoteModel, next) >= 0) {
@@ -167,7 +163,7 @@ namespace Deenote.Core.GameStage
 
         public void RefreshStageDeltaTime()
         {
-            _stageDeltaTime = NoteModel.Time - _game.MusicPlayer.Time;
+            _stageDeltaTime = NoteModel.Time - _gamePlayManager.CurrentTime;
             RefreshTimeDisplayState();
         }
 
@@ -181,7 +177,7 @@ namespace Deenote.Core.GameStage
         /// </summary>
         public void RefreshVisual()
         {
-            _game.AssertStageLoaded();
+            // _game.AssertStageLoaded();
 
             SetNotePositionX();
             SetNoteSprite();
@@ -219,7 +215,7 @@ namespace Deenote.Core.GameStage
 
         private void SetNotePositionX()
         {
-            transform.WithLocalPositionX(_game.ConvertNoteCoordPositionToWorldX(NoteModel.Position));
+            transform.WithLocalPositionX(_stage.StageManager.ConvertCoordPositionToWorldX(NoteModel.Position));
         }
 
         protected abstract void SetNoteSprite();
@@ -228,21 +224,18 @@ namespace Deenote.Core.GameStage
 
         private void SetNotePositionZ(float time)
         {
-            _game.AssertStageLoaded();
-
-            float z = _game.ConvertNoteCoordTimeToWorldZ(time, NoteModel.Speed);
+            float z = _stage.StageManager.ConvertCoordTimeToWorldZ(time, NoteModel.Speed, true);
             transform.WithLocalPositionZ(z);
         }
 
         protected void SetNoteSpriteAlpha()
         {
-            _game.AssertStageLoaded();
             Debug.Assert(_state is NoteDisplayState.Fall);
 
             var appearAheadTime = AppearAheadTime;
-            var noteFadeInEndTime = appearAheadTime * (1 - _game.Stage.Config.NoteFadeInRatio);
+            var noteFadeInEndTime = appearAheadTime * (1 - _stage.Config.NoteFadeInRatio);
 
-            var maxAlpha = _game.IsFilterNoteSpeed && !Mathf.Approximately(NoteModel.Speed, _game.HighlightedNoteSpeed)
+            var maxAlpha = _stage.StageManager.HighlightedNoteSpeed is { } hlSpeed && !Mathf.Approximately(NoteModel.Speed, hlSpeed)
                 ? ((DeemoGameStageNoteController)this)._config.DownplayAlpha
                 : 1f;
             _noteColorAlpha = MathUtils.MapTo(_stageDeltaTime, appearAheadTime, noteFadeInEndTime, 0, maxAlpha);
@@ -254,16 +247,14 @@ namespace Deenote.Core.GameStage
 
         private void SetLinkLine()
         {
-            _game.AssertStageLoaded();
-
-            if (_state is NoteDisplayState.Fall && _game.IsShowLinkLines && NoteModel.NextLink is not null) {
-                var currentTime = _game.MusicPlayer.Time;
+            if (_state is NoteDisplayState.Fall && _stage.StageManager.IsShowLinkLines && NoteModel.NextLink is not null) {
+                var currentTime = _gamePlayManager.CurrentTime;
 
                 var to = NoteModel.NextLink;
                 var from = NoteModel;
 
-                var (fromX, fromZ) = _game.ConvertNoteCoordToWorldPosition(from.PositionCoord - new NoteCoord(0f, currentTime), from.Speed);
-                var (toX, toZ) = _game.ConvertNoteCoordToWorldPosition(to.PositionCoord - new NoteCoord(0f, currentTime), to.Speed);
+                var (fromX, fromZ) = _stage.StageManager.ConvertCoordToWorld(from.PositionCoord - new NoteCoord(0f, currentTime), from.Speed, true);
+                var (toX, toZ) = _stage.StageManager.ConvertCoordToWorld(to.PositionCoord - new NoteCoord(0f, currentTime), to.Speed, true);
                 _linkLine = (new Vector2(fromX, fromZ), new Vector2(toX, toZ));
             }
             else {
@@ -288,9 +279,7 @@ namespace Deenote.Core.GameStage
                 isHolding = false;
             }
 
-            _game.AssertStageLoaded();
-
-            var scaleY = _game.ConvertNoteCoordTimeToHoldScaleY(time, NoteModel.Speed);
+            var scaleY = _stage.StageManager.ConvertCoordTimeToWorldScaleY(time, NoteModel.Speed, true);
             SetHoldScaleY(scaleY, isHolding);
         }
 
@@ -305,18 +294,16 @@ namespace Deenote.Core.GameStage
 
         private void SetAppearAheadTime0SuddenPlus(GameStageNoteController? previousStageNote)
         {
-            _game.AssertStageLoaded();
-
             if (previousStageNote is null) {
-                _appearAheadTime0SuddenPlus = _game.GetStageNoteActiveAheadTime(NoteModel.Speed);
+                _appearAheadTime0SuddenPlus = _stage.StageManager.GetStageNoteActiveAheadTime(NoteModel.Speed, true);
                 return;
             }
 
             var prevNoteAppearAheadTime = previousStageNote._appearAheadTime0SuddenPlus;
             var prevNoteAppearTime = previousStageNote.NoteModel.Time - prevNoteAppearAheadTime;
-            var noteAppearTime = _game.GetStageNoteActiveTime(NoteModel);
+            var noteAppearTime = _stage.StageManager.GetStageNoteActiveTime(NoteModel, true);
             if (prevNoteAppearTime <= noteAppearTime) {
-                _appearAheadTime0SuddenPlus = _game.GetStageNoteActiveAheadTime(NoteModel.Speed);
+                _appearAheadTime0SuddenPlus = _stage.StageManager.GetStageNoteActiveAheadTime(NoteModel.Speed, true);
                 return;
             }
 
