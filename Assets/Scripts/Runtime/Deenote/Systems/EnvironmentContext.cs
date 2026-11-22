@@ -62,6 +62,18 @@ namespace Deenote.Systems
             }
         }
 
+        private bool _backupProjectFileBeforeOverwrite_bf;
+        public bool BackupProjectFileBeforeOverwrite
+        {
+            get => _backupProjectFileBeforeOverwrite_bf;
+            set {
+                if (_backupProjectFileBeforeOverwrite_bf != value) {
+                    _backupProjectFileBeforeOverwrite_bf = value;
+                    PropertyChanged?.Invoke(this, nameof(BackupProjectFileBeforeOverwrite));
+                }
+            }
+        }
+
         public event Action<EnvironmentContext, PropertyChangedEventArgs>? PropertyChanged;
 
         public EnvironmentContext()
@@ -72,6 +84,7 @@ namespace Deenote.Systems
                 configs.Set("project/autosave_interval", AutoSaveIntervalSeconds);
                 configs.Set("vsync", IsVSyncOn);
                 configs.Set("check_update", CheckUpdateOnStartup);
+                configs.Set("backup_project_file", BackupProjectFileBeforeOverwrite);
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
@@ -79,6 +92,7 @@ namespace Deenote.Systems
                 AutoSaveIntervalSeconds = configs.GetInt32("project/autosave_interval", DefaultAutoSaveIntervalTime);
                 IsVSyncOn = configs.GetBoolean("vsync");
                 CheckUpdateOnStartup = configs.GetBoolean("check_update", true);
+                BackupProjectFileBeforeOverwrite = configs.GetBoolean("backup_project_file", true);
             };
         }
     }

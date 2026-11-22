@@ -86,10 +86,30 @@ namespace Deenote.Core.Project
         //     // ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.Project));
         // }
 
+        // private async UniTask SaveCurrentProjectToAsyncInternal(string targetFilePath, CancellationToken cancellationToken)
+        // {
+        //     using var scope = new SavingScope(this);
+
+        //     AssertProjectLoaded();
+//             string? backupDir = null;
+//             if (MainSystem.GlobalSettings.BackupProjectFileBeforeOverwrite) {
+//                 // HACK: Backup original file before overwrite
+// #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX
+//                 var appDir = Path.GetDirectoryName(UnityEngine.Application.dataPath);
+//                 backupDir = Path.Combine(appDir, "Temp");
+// #else
+//                 // I don't know how to get the path on mac os, so just save at current directory temporarily
+//                 backupDir = "Temp";
+// #endif
+//             }
+        //     await ProjectIO.SaveAsync(CurrentProject, targetFilePath, backupDir, cancellationToken);
+        // }
+
         // public async UniTask SaveCurrentProjectChartJsonsAsync()
         // {
-        //     await App.ProjectManager.SaveCurrentProjectChartJsonsToAsync(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
-        //     // ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
+        //     ValidateProject();
+        //     await SaveCurrentProjectChartJsonsToAsyncInternal(Path.GetDirectoryName(CurrentProject.ProjectFilePath));
+        //     ProjectSaved?.Invoke(new ProjectSaveEventArgs(ProjectSaveContents.ChartJsons));
         // }
 
         // public async UniTask SaveCurrentProjectChartJsonsToAsync(string targetDirectory)

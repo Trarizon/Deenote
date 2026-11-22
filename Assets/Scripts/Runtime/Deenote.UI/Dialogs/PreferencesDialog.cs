@@ -41,6 +41,7 @@ namespace Deenote.UI.Dialogs
         [SerializeField] Dropdown _autoSaveDropdown = default!;
         [SerializeField] Dropdown _autoSaveIntervalDropdown = default!;
         [SerializeField] ToggleSwitch _checkUpdateToggle = default!;
+        [SerializeField] ToggleSwitch _backupProjectFileToggle = default!;
         //[SerializeField] ToggleSwitch _embedAudioDataToggle = default!;
 
         [SerializeField] Dropdown _uiThemeDropdown = default!;
@@ -181,6 +182,7 @@ namespace Deenote.UI.Dialogs
 
             _vSyncToggle.IsCheckedChanged += val => _environment.IsVSyncOn = val;
             _checkUpdateToggle.IsCheckedChanged += val => _environment.CheckUpdateOnStartup = val;
+            _backupProjectFileToggle.IsCheckedChanged += val => _environment.BackupProjectFileBeforeOverwrite = val;
 
             _environment.RegisterPropertyChangedAndInvoke((s, e) =>
             {
@@ -196,8 +198,11 @@ namespace Deenote.UI.Dialogs
                 if (e.Match(nameof(s.CheckUpdateOnStartup))) {
                     _checkUpdateToggle.SetIsCheckedWithoutNotify(s.CheckUpdateOnStartup);
                 }
+                if (e.Match(nameof(s.BackupProjectFileBeforeOverwrite))) {
+                    _backupProjectFileToggle.SetIsCheckedWithoutNotify(s.BackupProjectFileBeforeOverwrite);
+                }
             }).UnregisterWhenGameObjectDestroyed(this);
-
+                
             //_embedAudioDataToggle.IsCheckedChanged+=MainSystem.ProjectManager.
 
             // Display
