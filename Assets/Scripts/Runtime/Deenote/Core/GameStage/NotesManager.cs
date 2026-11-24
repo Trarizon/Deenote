@@ -15,6 +15,8 @@ using UnityEngine.Pool;
 
 namespace Deenote.Core.GameStage
 {
+    // fully deprecated
+
     // 3个index依次为NextDisappearNote，NextHitNote，NextAppearNote
     // |        |                |
     // D        H                A
@@ -23,6 +25,7 @@ namespace Deenote.Core.GameStage
     // - _trackingNotes: Note已经出界(-,D]，但是NoteTail依然处于范围(D,A)中
     // _trackingNotes将全部都是Hold
     // _onStageNotes的顺序将和(D,A).OfType<NoteModel>()一致
+    [Obsolete]
     public sealed partial class NotesManager
     {
         private readonly GamePlayManager _game;

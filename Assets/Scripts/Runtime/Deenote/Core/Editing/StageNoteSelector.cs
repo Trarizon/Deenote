@@ -321,6 +321,8 @@ namespace Deenote.Core.Editing
 
         public void BeginDragSelect(NoteCoord startCoord, bool toggleMode)
         {
+            return;
+
             if (!IsInDragSelectArea(startCoord))
                 return;
 
@@ -342,6 +344,8 @@ namespace Deenote.Core.Editing
 
         public void UpdateDragSelect(NoteCoord endCoord)
         {
+            return;
+
             if (_state is DraggingSelectionState.Idle)
                 return;
             _state = DraggingSelectionState.Dragging;
@@ -361,6 +365,8 @@ namespace Deenote.Core.Editing
 
         public void EndDragSelect(Vector2 viewportPoint)
         {
+            return;
+
             if (_state is DraggingSelectionState.Idle)
                 return;
 
@@ -404,7 +410,7 @@ namespace Deenote.Core.Editing
         {
             if (_stage is null)
                 return;
-                
+
             _game.AssertChartLoaded();
             NumberUtils.SortAsc(ref startCoord.Position, ref endCoord.Position);
             NumberUtils.SortAsc(ref startCoord.Time, ref endCoord.Time);

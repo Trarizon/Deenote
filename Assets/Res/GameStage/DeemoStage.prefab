@@ -1091,6 +1091,7 @@ GameObject:
   - component: {fileID: 2401188873555008412}
   - component: {fileID: 3450118150660057448}
   - component: {fileID: 520734535707737869}
+  - component: {fileID: 5763327548334610208}
   m_Layer: 0
   m_Name: SelectionAreaPlane
   m_TagString: Untagged
@@ -1164,6 +1165,19 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 1
+--- !u!114 &5763327548334610208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6242543797374267720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 331efcfee4594e146bc1fd748bc962cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _areaRect: {fileID: 2153447970756827747}
 --- !u!1 &6282360881995077907
 GameObject:
   m_ObjectHideFlags: 0
@@ -1871,6 +1885,7 @@ MonoBehaviour:
   _perspectiveLineRenderer: {fileID: 3048834464407272512}
   _notePanelTransform: {fileID: 3822971740223594642}
   _notePlane: {fileID: 6824105575207004586}
+  _selectionAreaRect: {fileID: 5763327548334610208}
   _noteIndicatorPanelTransform: {fileID: 466338838105563907}
   _noteDragSelectionPanelTransform: {fileID: 2153447970756827747}
   _config: {fileID: 11400000, guid: b6418790971b3634f9a0a4ea3c38e25f, type: 2}

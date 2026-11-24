@@ -10,10 +10,15 @@ namespace Deenote.CoreB.Notification
     public readonly ref struct CollectionChangedEventArgs<T>
     {
         public readonly NotifyCollectionChangedAction Action;
-        public readonly ReadOnlySpan<T> OldItems;
-        public readonly ReadOnlySpan<T> NewItems;
+        // Use OldItems and NewItems are not ensured to be removed and added items, use RemovedItems and AddedItems instead.
+        public readonly ReadOnlySpan<T> OldItems; // Remove, Replace, Move
+        public readonly ReadOnlySpan<T> NewItems; // Add, Replace, Move
         public readonly int OldIndex;
         public readonly int NewIndex;
+
+        // Reset doesn't provide any item, listeners should manual
+        public ReadOnlySpan<T> RemovedItems => Action is not NotifyCollectionChangedAction.Move ? OldItems : default;
+        public ReadOnlySpan<T> AddedItems => Action is not NotifyCollectionChangedAction.Move ? NewItems : default;
 
         internal CollectionChangedEventArgs(NotifyCollectionChangedAction action, ReadOnlySpan<T> oldItems, ReadOnlySpan<T> newItems, int oldIndex, int newIndex)
         {
@@ -29,10 +34,13 @@ namespace Deenote.CoreB.Notification
             if (e.Action is NotifyCollectionChangedAction.Reset)
                 return new CollectionChangedEventArgs<T>(e.Action, ReadOnlySpan<T>.Empty, ReadOnlySpan<T>.Empty, 0, 0);
 
-            ReadOnlySpan<T> oldItems, newItems;
+            ReadOnlySpan<T> oldItems = default;
+            ReadOnlySpan<T> newItems = default;
             if (e.IsSingleItem) {
-                oldItems = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.OldItem), 1);
-                newItems = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.NewItem), 1);
+                if (e.Action is NotifyCollectionChangedAction.Remove or NotifyCollectionChangedAction.Replace or NotifyCollectionChangedAction.Move)
+                    oldItems = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.OldItem), 1);
+                if (e.Action is NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Replace or NotifyCollectionChangedAction.Move)
+                    newItems = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.NewItem), 1);
             }
             else {
                 oldItems = e.OldItems;

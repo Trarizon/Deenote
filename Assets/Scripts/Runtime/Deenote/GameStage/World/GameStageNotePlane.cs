@@ -1,9 +1,11 @@
 using Deenote.Core.GameStage;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Deenote.GameStage.World
 {
-    public sealed class GameStageNotePlaneController : MonoBehaviour
+    [MovedFrom(true, sourceClassName: "GameStageNotePlaneController")]
+    public sealed class GameStageNotePlane : MonoBehaviour
     {
         [SerializeField] GameStageController _stage;
 

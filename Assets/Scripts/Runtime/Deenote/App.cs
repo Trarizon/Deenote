@@ -2,9 +2,11 @@ using Deenote.Audio;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.Logging;
 using Deenote.CoreB;
+using Deenote.Editing;
 using Deenote.GamePlay;
 using Deenote.GameStage;
 using Deenote.GameStage.UI;
+using Deenote.Inputting;
 using Deenote.Project;
 using Deenote.Systems;
 
@@ -23,6 +25,9 @@ namespace Deenote
         private ProjectManager2 _projectManager;
         public static ProjectManager2 ProjectManager => Current._projectManager;
 
+        private EditingManager _editingManager;
+        public static EditingManager EditingManager => Current._editingManager;
+
         private EnvironmentContext _environment;
         public static EnvironmentContext Environment => Current._environment;
 
@@ -33,6 +38,8 @@ namespace Deenote
         public StagePianoSoundPlayer PianoSoundPlayer;
         public HitSoundSource HitSoundPlayer;
 
+        private InputInterpreter _inputInterpreter;
+
         private App()
         {
         }
@@ -40,6 +47,7 @@ namespace Deenote
         public static App Create(
             AppGlobalConfigs appGlobalConfigs,
             IGameStagePerspectiveViewPanel foreground,
+            IMouseInputHandler mouseInputHandler,
             GameMusicPlayer gameMusicPlayer,
             PianoSoundSource pianoSoundSource,
             HitSoundSource hitSoundSource)
@@ -58,11 +66,24 @@ namespace Deenote
             Current._gameStageManager = new GameStageManager(
                 foreground,
                 Current._projectManager, Current._gamePlayerManager, appGlobalConfigs);
+            Current._editingManager = new EditingManager(
+                Current._projectManager, Current._gameStageManager, Current._gamePlayerManager);
+
             Current.ProjectAutoSaveTrigger = new ProjectAutoSaveTrigger();
 
             var stagePianoSoundPlayer = new StagePianoSoundPlayer(pianoSoundSource);
             Current.PianoSoundPlayer = stagePianoSoundPlayer;
             // Current.HitSoundPlayer = hitSoundPlayer;
+
+            Current._inputInterpreter = new InputInterpreter(
+                Current._gamePlayerManager,
+                Current._gameStageManager,
+                Current._projectManager,
+                Current._editingManager,
+                Current._environment,
+                mouseInputHandler,
+                foreground
+            );
 
             return Current;
         }

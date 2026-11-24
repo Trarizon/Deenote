@@ -18,7 +18,7 @@ namespace Deenote.GameStage
     {
         private readonly GameStageNoteController _prefab;
         private readonly GameStageSpeedChangeWarningNoteController _warningNotePrefab;
-        private readonly GameStageNotePlaneController _plane;
+        private readonly GameStageNotePlane _plane;
         private readonly ObjectPool<GameStageNoteController> _pool;
         private readonly ObjectPool<GameStageSpeedChangeWarningNoteController> _warningNotePool;
 

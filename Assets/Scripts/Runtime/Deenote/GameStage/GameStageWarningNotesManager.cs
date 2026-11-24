@@ -18,7 +18,7 @@ namespace Deenote.GameStage
     /// <summary>
     /// Maintains the warning notes that are currently on stage. Warnings are not combo nodes
     /// and have no hit effect, so their time window is intentionally independent from
-    /// <see cref="NotesManager"/>.
+    /// <see cref="GameStageNotesManager"/>.
     /// </summary>
     public sealed class GameStageWarningNotesManager
     {

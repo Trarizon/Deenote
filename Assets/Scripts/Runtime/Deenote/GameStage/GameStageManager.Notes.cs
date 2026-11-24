@@ -14,6 +14,7 @@ namespace Deenote.GameStage
         private readonly List<GameStageSpeedChangeWarningNoteController> _activeWarningNotes = new();
 
         internal ReadOnlySpan<GameStageNoteController> ActiveNotes => _activeNotes.AsSpan();
+        internal ReadOnlySpan<GameStageSpeedChangeWarningNoteController> ActiveWarningNotes => _activeWarningNotes.AsSpan();
 
         private void Ctor_Notes()
         {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Deenote.CoreB;
 
-public static class SpanExtensions
+public static partial class SpanExtensions
 {
     public static int FindLowerBoundIndex<T, TComparer>(this Span<T> span, T key, TComparer comparer) where TComparer : IComparer<T>
         => ((ReadOnlySpan<T>)span).FindLowerBoundIndex(new ComparisonUtils.ComparerComparable<T, TComparer>(key, comparer));

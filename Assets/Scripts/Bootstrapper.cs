@@ -40,7 +40,9 @@ namespace Deenote
 
         void Awake()
         {
-            var app = App.Create(_appGlobalConfigs, _perspectiveViewPanel, _gameMusicPlayer, _pianoSoundSource, _hitSoundSource);
+            var app = App.Create(_appGlobalConfigs,
+                _perspectiveViewPanel, _perspectiveViewPanel,
+                _gameMusicPlayer, _pianoSoundSource, _hitSoundSource);
 
             Debug.Log("Bootstrapper Awake");
         }

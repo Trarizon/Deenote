@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-namespace Deenote.InputSystem.InputActions
+namespace Deenote.Inputting
 {
     public partial class @KeyboardShortcutInputActions: IInputActionCollection2, IDisposable
     {

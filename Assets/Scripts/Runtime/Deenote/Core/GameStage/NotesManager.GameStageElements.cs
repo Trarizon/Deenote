@@ -10,6 +10,8 @@ using UnityEngine.Pool;
 
 namespace Deenote.Core.GameStage
 {
+    // fully deprecated
+
     partial class NotesManager
     {
         private ObjectPool<GameStageNoteController> _pool = default!;

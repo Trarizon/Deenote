@@ -41,7 +41,11 @@ namespace Deenote.UI.Views
         public Vector2 ViewSize => _viewSize_bf.Value;
 
         private bool _isFullScreen_bf;
-        public bool IsFullScreen => _isFullScreen_bf;
+        public bool IsFullScreen
+        {
+            get => _isFullScreen_bf;
+            set => SetIsFullScreen(value);
+        }
 
         public float AspectRatio
         {

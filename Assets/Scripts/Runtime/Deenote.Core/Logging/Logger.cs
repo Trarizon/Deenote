@@ -1,4 +1,5 @@
 using UnityEngine;
+using ConditionalAttribute = System.Diagnostics.ConditionalAttribute;
 
 namespace Deenote.Core.Logging
 {
@@ -18,5 +19,9 @@ namespace Deenote.Core.Logging
 
         public void LogError(string message)
             => Debug.LogError($"[{Time.frameCount}] [E] {message}");
+
+        [Conditional("DEBUG")]
+        public void DebugLogTrace(string message)
+            => Debug.Log($"[{Time.frameCount}] [T] {message}");
     }
 }

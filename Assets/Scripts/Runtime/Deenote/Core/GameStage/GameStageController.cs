@@ -20,7 +20,8 @@ namespace Deenote.GameStage
         [SerializeField] Camera _perspectiveCamera;
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
         [SerializeField] Transform _notePanelTransform = default!;
-        [SerializeField] GameStageNotePlaneController _notePlane;
+        [SerializeField] GameStageNotePlane _notePlane;
+        [SerializeField] SelectionAreaRect _selectionAreaRect = default!;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
 
@@ -35,7 +36,8 @@ namespace Deenote.GameStage
 
         public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
 
-        public GameStageNotePlaneController NotePlane => _notePlane;
+        public GameStageNotePlane NotePlane => _notePlane;
+        public SelectionAreaRect SelectionAreaRect => _selectionAreaRect;
 
         [Title("Config")]
         [SerializeField] GameStageConfig _config;
@@ -81,6 +83,8 @@ namespace Deenote.GameStage
             _gamePlayManager = App.GamePlayManager;
             StageManager.ForegroundViewPanel.ViewSizeChanged += _OnViewSizeChanged;
             _OnViewSizeChanged(StageManager.ForegroundViewPanel);
+
+            _selectionAreaRect.OnInstantiate(_gamePlayManager, stageManager, App.EditingManager.DragSelector);
 
             StageManager.RegisterPropertyChangedAndInvoke((s, e) =>
             {
@@ -177,6 +181,7 @@ namespace Deenote.GameStage
             return false;
         }
 
+        [Obsolete]
         internal bool TryRaycastRaycastingViewportPointToWarning(Vector2 raycastingViewportPoint,
             [NotNullWhen(true)] out GameStageSpeedChangeWarningNoteController? warning)
         {
@@ -197,6 +202,7 @@ namespace Deenote.GameStage
             return false;
         }
 
+        [Obsolete]
         internal bool TryConvertNotePanelPositionToRaycastingViewportPoint((float X, float Z) notePanelPosition, out Vector2 viewportPoint)
         {
             var y = _notePanelTransform.position.y;
@@ -212,6 +218,7 @@ namespace Deenote.GameStage
             return false;
         }
 
+        [Obsolete]
         internal bool TryConvertRaycastingViewportPointToNotePanelPosition(Vector2 raycastingViewportPoint, out (float X, float Z) notePanelPosition)
         {
             var camera = PerspectiveCamera;

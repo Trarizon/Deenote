@@ -6,7 +6,7 @@ using Deenote.Core.GamePlay;
 using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
-using Deenote.InputSystem.InputActions;
+using Deenote.Inputting;
 using Deenote.Library;
 using Deenote.Library.Components;
 using Deenote.UI;

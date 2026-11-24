@@ -1,3 +1,4 @@
+using Deenote.CoreB;
 using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
@@ -108,6 +109,9 @@ namespace Deenote.EditorModels
             RemapMinVolume = model.RemapMinVolume;
             RemapMaxVolume = model.RemapMaxVolume;
         }
+
+        public SpanExtensions.OfTypeIterator<IStageNoteNode, NoteModel> EnumerateNoteModels()
+            => NoteNodes.AsSpan().OfType<IStageNoteNode, NoteModel>();
 
         public ChartModel ToModel() => _model;
     }
