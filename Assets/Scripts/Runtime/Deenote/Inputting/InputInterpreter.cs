@@ -43,7 +43,8 @@ namespace Deenote.Inputting
             _stagePanel = stagePanel;
 
             _shortcuts = new();
-            _placementCoordinator = new(_gamePlayManager, _gameStageManager, _editingManager.DragSelector, stagePanel);
+            _placementCoordinator = new(_gamePlayManager, _gameStageManager,
+                _editingManager.DragSelector, _editingManager.NotesPlacer, stagePanel);
 
             RegisterGamePlayShortcuts();
             RegisterStageSettingsShortcuts();

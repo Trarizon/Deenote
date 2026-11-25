@@ -20,14 +20,14 @@ namespace Deenote.Core.Editing
 
         protected internal override void Refresh()
         {
-            _placer._editor._game.AssertStageLoaded();
+            // _placer._editor._game.AssertStageLoaded();
 
-            var game = _placer._editor._game;
-            var stage = _placer._editor._game.Stage;
-            var prefab = NotePrototype switch {
+            // var game = _placer._editor._game;
+            var stage = _stage;
+            var prefab = Prototype switch {
                 { Kind: NoteModel.NoteKind.Swipe } => _config.SwipeNoteSpriteData,
                 { Kind: NoteModel.NoteKind.Slide } => _config.SlideNoteSpriteData,
-                { HasSounds: true } => _config.ClickNoteSpriteData,
+                { Sounds.Count: > 0 } => _config.ClickNoteSpriteData,
                 _ => App.GameStageManager.IsPianoNotesDistinguished
                     ? _config.NoSoundNoteSpriteData
                     : _config.ClickNoteSpriteData,
@@ -35,22 +35,22 @@ namespace Deenote.Core.Editing
 
             _noteSpriteRenderer.sprite = prefab.Sprite;
             _noteSpriteRenderer.transform.localScale = prefab.Scale * Vector3.one;
-            _headTransform.localScale = new Vector3(NotePrototype.Size, 1f, 1f);
+            _headTransform.localScale = new Vector3(Prototype.Size, 1f, 1f);
 
-            if (NotePrototype.IsSlide && NotePrototype.NextLink is not null) {
+            if (Prototype.Kind is NoteModel.NoteKind.Slide  && Prototype.NextLink is not null) {
                 // TODO: 不确定，疑似是bug，convert传coord delta貌似没有意义，可能是indicator连线不对的那个bug
-                var (tox, toz) = stage.StageManager.ConvertCoordToWorld(NotePrototype.NextLink.PositionCoord - NotePrototype.PositionCoord);
+                var (tox, toz) = stage.StageManager.ConvertCoordToWorld(Prototype.NextLink.PositionCoord - Prototype.PositionCoord);
                 _linkLineEndOffset = new Vector2(tox, toz);
             }
             else {
                 _linkLineEndOffset = null;
             }
 
-            if (NotePrototype.IsHold) {
+            if (Prototype.IsHold) {
                 _holdBodySpriteRender.gameObject.SetActive(true);
                 _holdBodyTransform.WithLocalScaleXY(
-                    NotePrototype.Size, 
-                    App.GameStageManager.ConvertCoordTimeToWorldScaleY(NotePrototype.Duration, NotePrototype.Speed, true)
+                    Prototype.Size,
+                    App.GameStageManager.ConvertCoordTimeToWorldScaleY(Prototype.Duration, Prototype.Speed, true)
                 );
             }
             else {

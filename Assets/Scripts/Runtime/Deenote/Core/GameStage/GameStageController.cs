@@ -21,6 +21,7 @@ namespace Deenote.GameStage
         [SerializeField] PerspectiveLinesRenderer _perspectiveLineRenderer = default!;
         [SerializeField] Transform _notePanelTransform = default!;
         [SerializeField] GameStageNotePlane _notePlane;
+        [SerializeField] GameStageNoteIndicatorsPlane _indicatorsPlane;
         [SerializeField] SelectionAreaRect _selectionAreaRect = default!;
         [SerializeField] Transform _noteIndicatorPanelTransform = default!;
         [SerializeField] RectTransform _noteDragSelectionPanelTransform = default!;
@@ -37,6 +38,7 @@ namespace Deenote.GameStage
         public Transform NoteIndicatorPanelTransform => _noteIndicatorPanelTransform;
 
         public GameStageNotePlane NotePlane => _notePlane;
+        public GameStageNoteIndicatorsPlane IndicatorsPlane => _indicatorsPlane;
         public SelectionAreaRect SelectionAreaRect => _selectionAreaRect;
 
         [Title("Config")]
@@ -84,6 +86,7 @@ namespace Deenote.GameStage
             StageManager.ForegroundViewPanel.ViewSizeChanged += _OnViewSizeChanged;
             _OnViewSizeChanged(StageManager.ForegroundViewPanel);
 
+            _indicatorsPlane.OnInstantiate(_gamePlayManager, App.EditingManager.NotesPlacer);
             _selectionAreaRect.OnInstantiate(_gamePlayManager, stageManager, App.EditingManager.DragSelector);
 
             StageManager.RegisterPropertyChangedAndInvoke((s, e) =>

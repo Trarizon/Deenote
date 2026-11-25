@@ -1,6 +1,8 @@
 using Deenote.Core;
+using Deenote.Core.Editing;
 using Deenote.Core.GameStage;
 using Deenote.CoreB;
+using Deenote.EditorModels;
 using Deenote.Entities.Comparisons;
 using Deenote.Entities.Models;
 using System;
@@ -12,6 +14,7 @@ namespace Deenote.GameStage
     {
         private readonly List<GameStageNoteController> _activeNotes = new();
         private readonly List<GameStageSpeedChangeWarningNoteController> _activeWarningNotes = new();
+        private readonly List<PlacementNoteIndicatorController> _activeIndicators = new();
 
         internal ReadOnlySpan<GameStageNoteController> ActiveNotes => _activeNotes.AsSpan();
         internal ReadOnlySpan<GameStageSpeedChangeWarningNoteController> ActiveWarningNotes => _activeWarningNotes.AsSpan();
@@ -35,13 +38,16 @@ namespace Deenote.GameStage
                 NotesManager.ShiftActiveNotes(!e.IsByJump);
                 WarningNotesManager.ShiftActiveNotes();
             };
+            _notePlacer.PrototypesChanged += s =>
+            {
+                RefreshStageNoteIndicators(s.Prototypes.AsSpan());
+            };
         }
 
         private void RefreshStageVisibleNotes(ReadOnlySpan<NoteModel> notes)
         {
             App.Logger.LogDebug($"RefreshStageVisibleNotes: {notes.Length}");
             if (NoteFactory is null) {
-                _activeNotes.Clear();
                 return;
             }
 
@@ -67,7 +73,6 @@ namespace Deenote.GameStage
         {
             // App.Logger.LogDebug($"RefreshStageVisibleWarningNotes: {notes.Length}");
             if (NoteFactory is null) {
-                _activeWarningNotes.Clear();
                 return;
             }
 
@@ -79,6 +84,25 @@ namespace Deenote.GameStage
                 var controller = NoteFactory.CreateWarningNote();
                 controller.Initialize(note);
                 _activeWarningNotes.Add(controller);
+            }
+
+            Asserts.InOrder(notes, NodeTimeComparer.Instance);
+        }
+
+        private void RefreshStageNoteIndicators(ReadOnlySpan<NotePrototypeModel> notes)
+        {
+            if (NoteFactory is null) {
+                return;
+            }
+
+            foreach (var indicator in _activeIndicators) {
+                NoteFactory.Release(indicator);
+            }
+            _activeIndicators.Clear();
+            foreach (var note in notes) {
+                var indicator = NoteFactory.CreateIndicator();
+                indicator.Initialize(note);
+                _activeIndicators.Add(indicator);
             }
 
             Asserts.InOrder(notes, NodeTimeComparer.Instance);

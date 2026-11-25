@@ -40,15 +40,15 @@ namespace Deenote.Core.Editing
 
             MainSystem.SaveSystem.SavingConfigurations += configs =>
             {
-                configs.Set("editor/indicator", Placer.IsIndicatorOn);
-                configs.Set("editor/snap_pos", Placer.SnapToPositionGrid);
-                configs.Set("editor/snap_time", Placer.SnapToTimeGrid);
+                // configs.Set("editor/indicator", Placer.IsIndicatorOn);
+                // configs.Set("editor/snap_pos", Placer.SnapToPositionGrid);
+                // configs.Set("editor/snap_time", Placer.SnapToTimeGrid);
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
-                Placer.IsIndicatorOn = configs.GetBoolean("editor/indicator", true);
-                Placer.SnapToPositionGrid = configs.GetBoolean("editor/snap_pos", true);
-                Placer.SnapToTimeGrid = configs.GetBoolean("editor/snap_time", true);
+                // Placer.IsIndicatorOn = configs.GetBoolean("editor/indicator", true);
+                // Placer.SnapToPositionGrid = configs.GetBoolean("editor/snap_pos", true);
+                // Placer.SnapToTimeGrid = configs.GetBoolean("editor/snap_time", true);
             };
             App.ProjectManager.ProjectSaved += args =>
             {
@@ -98,6 +98,7 @@ namespace Deenote.Core.Editing
                 return;
 
             var note = notePrototype.Clone();
+            // TODO: arch1.1: in new design, this methods directly add notes to chart, do not handle their properties 
             note.PositionCoord = noteCoord;
             _operations.Do(_game.CurrentChart.AddNote(note)
                 .OnRedone(note =>
@@ -125,6 +126,7 @@ namespace Deenote.Core.Editing
                 return;
             }
 
+            // TODO: arch1.1: in new design, this methods directly add notes to chart, do not handle their properties 
             var notes = new NoteModel[notePrototypes.Length];
             baseCoord -= notePrototypes[0].PositionCoord;
 

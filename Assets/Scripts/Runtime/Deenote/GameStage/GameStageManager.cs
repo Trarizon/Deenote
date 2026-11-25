@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using Deenote.Core.GameStage;
 using Deenote.CoreB.Notification;
+using Deenote.Editing;
 using Deenote.EditorModels;
 using Deenote.Entities;
 using Deenote.Entities.Models;
@@ -18,7 +19,9 @@ namespace Deenote.GameStage
     {
         private readonly IGameStagePerspectiveViewPanel _foreground;
 
+        private readonly ProjectManager2 _projectManager;
         private readonly GamePlayManager2 _gamePlayManager;
+        private readonly StageNotesPlacer2 _notePlacer;
 
         public IGameStagePerspectiveViewPanel ForegroundViewPanel => _foreground;
         public GameStageThemeManager ThemeManager { get; }
@@ -33,10 +36,12 @@ namespace Deenote.GameStage
         public GameStageController? GameStage => ThemeManager.CurrentStage;
 
         internal GameStageManager(IGameStagePerspectiveViewPanel foreground,
-            ProjectManager2 projectManager, GamePlayManager2 gamePlayManager, AppGlobalConfigs appConfig)
+            ProjectManager2 projectManager, GamePlayManager2 gamePlayManager, StageNotesPlacer2 notePlacer, AppGlobalConfigs appConfig)
         {
             _foreground = foreground;
+            _projectManager = projectManager;
             _gamePlayManager = gamePlayManager;
+            _notePlacer = notePlacer;
 
             ThemeManager = new(appConfig.BuiltinStageThemes);
             GridsManager = new();
@@ -63,7 +68,7 @@ namespace Deenote.GameStage
                     });
                 }
             });
-            projectManager.RegisterPropertyChanged((s, e) =>
+            _projectManager.RegisterPropertyChanged((s, e) =>
             {
                 if (e.Match(nameof(s.CurrentChart))) {
                     if (s.CurrentChart is not null)
@@ -85,7 +90,7 @@ namespace Deenote.GameStage
 
         public void PostConstructor()
         {
-            WarningNotesManager = new(this, App.GamePlayManager, App.ProjectManager);
+            WarningNotesManager = new(this, _gamePlayManager, _projectManager);
 
             RegisterConfigurations();
             RegisterCustomPropertiesConfigurations();
@@ -108,6 +113,18 @@ namespace Deenote.GameStage
 
         private void OnGameStageLoaded(GameStageController stage)
         {
+            if (NoteFactory is not null) {
+                foreach (var note in _activeNotes)
+                    NoteFactory.Release(note);
+                foreach (var warningNote in _activeWarningNotes)
+                    NoteFactory.Release(warningNote);
+                foreach (var indicator in _activeIndicators)
+                    NoteFactory.Release(indicator);
+                _activeNotes.Clear();
+                _activeWarningNotes.Clear();
+                _activeIndicators.Clear();
+                NoteFactory.Dispose();
+            }
             NoteFactory = new DefaultGameStageNoteFactory(Config, stage);
             RefreshStageVisibleNotes(NotesManager.ActiveNotes);
             RefreshStageVisibleWarningNotes(WarningNotesManager.ActiveNotes);

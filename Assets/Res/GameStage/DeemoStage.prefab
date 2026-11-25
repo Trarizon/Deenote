@@ -633,6 +633,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _breathingEffectSpriteRenderer: {fileID: 3811162565574113206}
   _hitEffectScaler: {fileID: 4093510813755512935}
+--- !u!1 &3331642307192603704
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2949415209861622234}
+  m_Layer: 0
+  m_Name: Content
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2949415209861622234
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3331642307192603704}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4281491825705777755}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3617818764846853857
 GameObject:
   m_ObjectHideFlags: 0
@@ -667,6 +698,53 @@ Transform:
   - {fileID: 107595587458035351}
   m_Father: {fileID: 6399227078834011334}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3865539132221461692
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4281491825705777755}
+  - component: {fileID: 1147627069470641800}
+  m_Layer: 0
+  m_Name: NoteIndicatorsPlane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4281491825705777755
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3865539132221461692}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2949415209861622234}
+  m_Father: {fileID: 6399227078834011334}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1147627069470641800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3865539132221461692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0652bfcbbdf7f67499a4d25261ece8b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stage: {fileID: 1216727778509909161}
+  _content: {fileID: 2949415209861622234}
 --- !u!1 &3974119810136914564
 GameObject:
   m_ObjectHideFlags: 0
@@ -1864,6 +1942,7 @@ Transform:
   - {fileID: 3822971740223594642}
   - {fileID: 1297038775113356606}
   - {fileID: 466338838105563907}
+  - {fileID: 4281491825705777755}
   - {fileID: 2401188873555008412}
   - {fileID: 3720894706980367147}
   - {fileID: 8319109759717334189}
@@ -1885,6 +1964,7 @@ MonoBehaviour:
   _perspectiveLineRenderer: {fileID: 3048834464407272512}
   _notePanelTransform: {fileID: 3822971740223594642}
   _notePlane: {fileID: 6824105575207004586}
+  _indicatorsPlane: {fileID: 1147627069470641800}
   _selectionAreaRect: {fileID: 5763327548334610208}
   _noteIndicatorPanelTransform: {fileID: 466338838105563907}
   _noteDragSelectionPanelTransform: {fileID: 2153447970756827747}

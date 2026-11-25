@@ -16,6 +16,8 @@ namespace Deenote.Core.Editing
 
         public void BeginPlaceNote(NoteCoord coord, Vector2 mousePosition)
         {
+            return;
+
             if (!IsInPlacementArea(coord)) {
                 SetIndicatorVisibility(false);
                 return;
@@ -48,6 +50,8 @@ namespace Deenote.Core.Editing
 
         public void UpdatePlaceNote(NoteCoord coord, Vector2 mousePosition, bool remainIndicatorVisibility = false)
         {
+            return;
+
             _updateNoteCoord = coord;
             _updateMousePosition = mousePosition;
 
@@ -75,6 +79,8 @@ namespace Deenote.Core.Editing
 
         public void EndPlaceNote(NoteCoord coord, Vector2 mousePosition)
         {
+            return;
+
             switch (_currentState) {
                 case StateFlag.PlacingSingleNote:
                     _currentState = EndPlaceSingleNote(coord, mousePosition);
@@ -95,6 +101,8 @@ namespace Deenote.Core.Editing
 
         public void CancelPlaceNote()
         {
+            return;
+            
             if (_currentState is StateFlag.PlacingSpeedChangeWarningNote)
                 _currentState = StateFlag.Idle;
             else if (PlaceSlideModifier)

@@ -3,6 +3,7 @@
 using Deenote.Entities.Models;
 using Deenote.Library;
 using Deenote.Library.Collections;
+using System;
 using UnityEngine;
 
 namespace Deenote.Core.Editing
@@ -59,34 +60,35 @@ namespace Deenote.Core.Editing
             }
         }
 
+        [Obsolete("Moved to GameStageManager")]
         public bool IsIndicatorOn
         {
-            get => _isIndicatorOn_bf;
+            get => App.GameStageManager.IsIndicatorsVisible;
             set {
-                if (Utils.SetField(ref _isIndicatorOn_bf, value)) {
-                    RefreshIndicatorVisibility();
-                    NotifyFlag(NotificationFlag.IsIndicatorOn);
-                }
+                App.GameStageManager.IsIndicatorsVisible = value;
+
+                RefreshIndicatorVisibility();
+                NotifyFlag(NotificationFlag.IsIndicatorOn);
             }
         }
 
+        [Obsolete("Moved to NotesPlacer")]
         public bool SnapToPositionGrid
         {
-            get => _snapToPositionGrid_bf;
+            get => App.EditingManager.NotesPlacer.SnapToPositionGrids;
             set {
-                if (Utils.SetField(ref _snapToPositionGrid_bf, value)) {
-                    NotifyFlag(NotificationFlag.SnapToPositionGrid);
-                }
+                App.EditingManager.NotesPlacer.SnapToPositionGrids = value;
+                NotifyFlag(NotificationFlag.SnapToPositionGrid);
             }
         }
 
+        [Obsolete("Moved to NotesPlacer")]
         public bool SnapToTimeGrid
         {
-            get => _snapToTimeGrid_bf;
+            get => App.EditingManager.NotesPlacer.SnapToTimeGrids;
             set {
-                if (Utils.SetField(ref _snapToTimeGrid_bf, value)) {
-                    NotifyFlag(NotificationFlag.SnapToTimeGrid);
-                }
+                App.EditingManager.NotesPlacer.SnapToTimeGrids = value;
+                NotifyFlag(NotificationFlag.SnapToTimeGrid);
             }
         }
 
@@ -142,7 +144,7 @@ namespace Deenote.Core.Editing
 
             bool visible = IsForceShowIndicator() || IsIndicatorOn;
             _indicatorPanelTransform.gameObject.SetActive(visible);
-            
+
             if (visible) {
                 bool showWarning = IsSpeedChangeWarningMode;
                 foreach (var indicator in _indicators) {

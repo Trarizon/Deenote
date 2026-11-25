@@ -33,8 +33,9 @@ namespace Deenote.Entities.Models
         public bool Vibrate { get => _vibrate; set => _vibrate = value; }
 #pragma warning restore CS0618
 
-        internal NoteModel? _prevLink;
-        internal NoteModel? _nextLink;
+        // Temp public, should use marshal to wrap later
+        public NoteModel? _prevLink;
+        public NoteModel? _nextLink;
 
         public NoteModel? PrevLink
         {

@@ -219,6 +219,8 @@ namespace Deenote.GameStage
                 configs.Set("stage/sudden_plus", SuddenPlus);
                 configs.Set("stage/early_display_slow_notes", IsEarlyDisplaySlowNotes);
                 configs.Set("stage/warning_note_display", (int)WarningNoteVisibility);
+
+                configs.Set("editor/indicator", IsIndicatorsVisible);
             };
             MainSystem.SaveSystem.LoadedConfigurations += configs =>
             {
@@ -233,6 +235,8 @@ namespace Deenote.GameStage
                 SuddenPlus = configs.GetSingle("stage/sudden_plus", 0f);
                 IsEarlyDisplaySlowNotes = configs.GetBoolean("stage/early_display_slow_notes", false);
                 WarningNoteVisibility = (GameStageWarningNoteVisibility)configs.GetInt32("stage/warning_note_display", (int)GameStageWarningNoteVisibility.ShowNoteAndLine);
+
+                IsIndicatorsVisible = configs.GetBoolean("editor/indicator", true);
             };
         }
 

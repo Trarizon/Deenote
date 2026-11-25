@@ -1,4 +1,5 @@
 using Deenote.Audio;
+using Deenote.Core;
 using Deenote.Core.GamePlay.Audio;
 using Deenote.Core.Logging;
 using Deenote.CoreB;
@@ -55,19 +56,26 @@ namespace Deenote
             Current = new App();
             Application.Current = Current;
             Current.Configs = appGlobalConfigs;
-            
-            
-            Current._environment = new EnvironmentContext();
+
+            var environment = new EnvironmentContext();
+            Current._environment = environment;
 
             Current._projectManager = new ProjectManager2();
             Current._gamePlayerManager = new GamePlayManager2(
                 gameMusicPlayer, pianoSoundSource, hitSoundSource,
                 Current._projectManager);
+
+            var notesSelector = new ChartNotesSelector(Current._projectManager);
+            var notesPlacer = new StageNotesPlacer2(Current._gamePlayerManager);
+
             Current._gameStageManager = new GameStageManager(
                 foreground,
-                Current._projectManager, Current._gamePlayerManager, appGlobalConfigs);
-            Current._editingManager = new EditingManager(
+                Current._projectManager, Current._gamePlayerManager, notesPlacer, appGlobalConfigs);
+
+            var dragSelector = new StageDragSelector(notesSelector,
                 Current._projectManager, Current._gameStageManager, Current._gamePlayerManager);
+
+            Current._editingManager = new EditingManager(notesSelector, dragSelector, notesPlacer);
 
             Current.ProjectAutoSaveTrigger = new ProjectAutoSaveTrigger();
 

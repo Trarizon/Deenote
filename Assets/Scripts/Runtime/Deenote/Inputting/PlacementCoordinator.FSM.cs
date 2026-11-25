@@ -56,6 +56,7 @@ namespace Deenote.Inputting
                 if (oldSuper != newSuper) {
                     App.Logger.LogInfo($"Exiting super state {oldSuper}");
                     switch (oldSuper) {
+                        case FsmSuperState.Placing: ExitSuperPlacing(); break;
                         case FsmSuperState.Selecting: ExitSuperSelecting(); break;
                         default: break;
                     }
@@ -66,6 +67,7 @@ namespace Deenote.Inputting
                 if (oldSuper != newSuper) {
                     App.Logger.LogInfo($"Entering super state {newSuper}");
                     switch (newSuper) {
+                        case FsmSuperState.Placing: EnterSuperPlacing(); break;
                         case FsmSuperState.Selecting: EnterSuperSelecting(); break;
                         default: break;
                     }
@@ -74,6 +76,16 @@ namespace Deenote.Inputting
                 App.Logger.LogInfo($"Entering state {_state_bf}");
                 switch (value) {
                     case FsmState.IdleEntry: EnterIdleEntry(); break;
+                    case FsmState.IdleSingle: EnterIdleSingle(); break;
+                    case FsmState.IdleSlides: EnterIdleSlides(); break;
+                    case FsmState.IdlePaste: EnterIdlePaste(); break;
+                    case FsmState.IdleWarning: EnterIdleWarning(); break;
+                    case FsmState.PlacingSingle: EnterPlacingSingle(); break;
+                    case FsmState.PlacingSlides: EnterPlacingSlides(); break;
+                    case FsmState.PlacingPaste: EnterPlacingPaste(); break;
+                    case FsmState.PlacingWarning: EnterPlacingWarning(); break;
+                    case FsmState.Placed: EnterPlaced(); break;
+
                     case FsmState.Selecting: EnterSelecting(); break;
                     case FsmState.Selected: EnterSelected(); break;
                     default: break;
@@ -84,26 +96,23 @@ namespace Deenote.Inputting
         private void Process()
         {
             switch (State) {
-                // case FsmState.IdleSingle:
-                //     ProcessIdleSingle();
-                //     break;
-                // case FsmState.IdleSlides:
-                //     ProcessIdleSlides();
-                //     break;
-                // case FsmState.IdlePaste:
-                //     ProcessIdlePaste();
-                //     break;
-                // case FsmState.PlacingSingle:
-                //     ProcessPlacingSingle();
-                //     break;
-                // case FsmState.PlacingSlides:
-                //     ProcessPlacingSlides();
-                //     break;
+                case FsmState.IdleSingle:
+                    ProcessIdleSingle();
+                    break;
+                case FsmState.IdleSlides:
+                    ProcessIdleSlides();
+                    break;
+                case FsmState.IdlePaste:
+                    ProcessIdlePaste();
+                    break;
+                case FsmState.PlacingSingle:
+                    ProcessPlacingSingle();
+                    break;
+                case FsmState.PlacingSlides:
+                    ProcessPlacingSlides();
+                    break;
                 case FsmState.Selecting:
-                    if (TryConvertScreenPointToNoteCoord(_mouseData.ScreenPoint, false, out var coord)) {
-                        _coordData.MovedTo(coord);
-                        ProcessSelecting();
-                    }
+                    ProcessSelecting();
                     break;
                 default: break;
             }
@@ -111,19 +120,59 @@ namespace Deenote.Inputting
 
         #region Definitions
 
-        private void EnterIdleEntry()
-        {
-            State = FsmState.IdleSingle;
-        }
+        partial void EnterIdleEntry();
+
+        // Place
+
+        partial void EnterIdleSingle();
+        partial void ProcessIdleSingle();
+        partial void ExitIdleSingle();
+
+        partial void EnterIdleSlides();
+        partial void ProcessIdleSlides();
+        partial void ExitIdleSlides();
+
+        partial void EnterIdlePaste();
+        partial void ProcessIdlePaste();
+        partial void ExitIdlePaste();
+
+        partial void EnterIdleWarning();
+        partial void ProcessIdleWarning();
+        partial void ExitIdleWarning();
+
+        partial void EnterPlacingSingle();
+        partial void ProcessPlacingSingle();
+        partial void ExitPlacingSingle();
+
+        partial void EnterPlacingSlides();
+        partial void ProcessPlacingSlides();
+        partial void ExitPlacingSlides();
+
+        partial void EnterPlacingPaste();
+        partial void ProcessPlacingPaste();
+        partial void ExitPlacingPaste();
+
+        partial void EnterPlacingWarning();
+        partial void ProcessPlacingWarning();
+        partial void ExitPlacingWarning();
+
+        partial void EnterPlaced();
+        partial void ProcessPlaced();
+        partial void ExitPlaced();
+
+        // Select
 
         partial void EnterSelecting();
         partial void ProcessSelecting();
         partial void ExitSelecting();
 
-        private void EnterSelected() { State = FsmState.IdleEntry; }
+        partial void EnterSelected();
 
         partial void EnterSuperSelecting();
         partial void ExitSuperSelecting();
+
+        partial void EnterSuperPlacing();
+        partial void ExitSuperPlacing();
 
         #endregion
 

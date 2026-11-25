@@ -20,12 +20,24 @@ public static class CollectionExtensions
         list.AddRange(items);
     }
 
+    public static void Replace<T>(this List<T> list, IEnumerable<T> items)
+    {
+        list.Clear();
+        list.AddRange(items);
+    }
+
     public static void AddRange<T>(this List<T> list, ReadOnlySpan<T> collection)
     {
         list.EnsureCapacity(list.Count + collection.Length);
         foreach (var item in collection) {
             list.Add(item);
         }
+    }
+
+    public static void RemoveRange<T>(this List<T> list, Range range)
+    {
+        var (ofs, len) = range.GetOffsetAndLength(list.Count);
+        list.RemoveRange(ofs, len);
     }
 
     public static void EnsureCapacity<T>(this List<T> list, int minCapacity)

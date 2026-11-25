@@ -1,3 +1,4 @@
+using Deenote.Core;
 using Deenote.GamePlay;
 using Deenote.GameStage;
 using Deenote.Project;
@@ -7,13 +8,13 @@ namespace Deenote.Editing;
 public sealed class EditingManager
 {
     public ChartNotesSelector NotesSelector { get; }
-
     internal StageDragSelector DragSelector { get; }
+    internal StageNotesPlacer2 NotesPlacer { get; }
 
-    public EditingManager(ProjectManager2 projectManager, GameStageManager gameStageManager, GamePlayManager2 gamePlayManager)
+    internal EditingManager(ChartNotesSelector notesSelector, StageDragSelector dragSelector, StageNotesPlacer2 notesPlacer)
     {
-        NotesSelector = new ChartNotesSelector(projectManager);
-        DragSelector = new StageDragSelector(NotesSelector, 
-            projectManager, gameStageManager, gamePlayManager);
+        NotesSelector = notesSelector;
+        DragSelector = dragSelector;
+        NotesPlacer = notesPlacer;
     }
 }
