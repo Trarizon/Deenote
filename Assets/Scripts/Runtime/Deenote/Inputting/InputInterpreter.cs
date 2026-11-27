@@ -1,3 +1,4 @@
+using Deenote.CoreB;
 using Deenote.CoreB.Notification;
 using Deenote.Editing;
 using Deenote.GamePlay;
@@ -43,12 +44,12 @@ namespace Deenote.Inputting
             _stagePanel = stagePanel;
 
             _shortcuts = new();
-            _placementCoordinator = new(_gamePlayManager, _gameStageManager,
-                _editingManager.DragSelector, _editingManager.NotesPlacer, stagePanel);
+            _placementCoordinator = new(_gamePlayManager, _gameStageManager, _editingManager, stagePanel);
 
             RegisterGamePlayShortcuts();
             RegisterStageSettingsShortcuts();
             RegisterNoteEditShortcuts();
+            RegisterEditorSettingsShortcuts();
 
             _mouseInputHandler.Pressed += e =>
             {
@@ -200,6 +201,75 @@ namespace Deenote.Inputting
         private void RegisterNoteEditShortcuts()
         {
             var actions = _shortcuts.NoteEdit;
+            actions.SelectAllNotes.started += _ => { };
+            actions.RemoveSelectedNotes.started += _ => { };
+            actions.Copy.started += _ => _editingManager.NotesClipBoard.SetClipBoard(_editingManager.NotesSelector.SelectedNotes.AsSpan());
+            actions.Cut.started += _ =>
+            {
+                if (_projectManager.CurrentChart is null)
+                    return;
+
+                _editingManager.NotesClipBoard.SetClipBoard(_editingManager.NotesSelector.SelectedNotes.AsSpan());
+                _editingManager.ChartEditor.RemoveNotes(_projectManager.CurrentChart, _editingManager.NotesSelector.SelectedNotes.AsSpan());
+            };
+            actions.Paste.started += _ => _placementCoordinator.PreparePaste();
+            actions.Redo.started += _ => { };
+            actions.Undo.started += _ => { };
+            actions.TimeDec.started += _ => { };
+            actions.TimeInc.started += _ => { };
+            actions.TimeDecLarge.started += _ => { };
+            actions.TimeIncLarge.started += _ => { };
+            actions.TimeDecByGrid.started += _ => { };
+            actions.TimeIncByGrid.started += _ => { };
+            actions.PositionLeft.started += _ => { };
+            actions.PositionRight.started += _ => { };
+            actions.PositionLeftLarge.started += _ => { };
+            actions.PositionRightLarge.started += _ => { };
+            actions.PositionLeftByGrid.started += _ => { };
+            actions.PositionRightByGrid.started += _ => { };
+            actions.PositionMirror.started += _ => { };
+            actions.CoordQuantize.started += _ => { };
+            actions.SizeDec.started += _ => { };
+            actions.SizeInc.started += _ => { };
+            actions.SizeDecLarge.started += _ => { };
+            actions.SizeIncLarge.started += _ => { };
+            actions.SpeedDec.started += _ => { };
+            actions.SpeedInc.started += _ => { };
+            actions.SpeedDecLarge.started += _ => { };
+            actions.SpeedIncLarge.started += _ => { };
+            actions.KindClick.started += _ => { };
+            actions.KindSlide.started += _ => { };
+            actions.KindSwipe.started += _ => { };
+            actions.SoundAdd.started += _ => { };
+            actions.SoundRemove.started += _ => { };
+            actions.DurationDec.started += _ => { };
+            actions.DurationInc.started += _ => { };
+            actions.DurationDecLarge.started += _ => { };
+            actions.DurationIncLarge.started += _ => { };
+            actions.DurationDecByGrid.started += _ => { };
+            actions.DurationIncByGrid.started += _ => { };
+            actions.CreateHoldBetween.started += _ => { };
+        }
+
+        #endregion
+
+        #region EditorSettings
+
+        private void RegisterEditorSettingsShortcuts()
+        {
+            var actions = _shortcuts.EditorSettings;
+            actions.SnapToGrids.started += _ =>
+            {
+                var placer = _editingManager.NotesPlacer;
+                var val = !(placer.SnapToPositionGrids && placer.SnapToTimeGrids);
+                placer.SnapToPositionGrids = val;
+                placer.SnapToTimeGrids = val;
+            };
+            actions.PasteRememberPosition.started += _ => _editingManager.NotesPlacer.IsPastingRememberPosition = true;
+            actions.PasteRememberPosition.canceled += _ => _editingManager.NotesPlacer.IsPastingRememberPosition = false;
+            actions.PlaceNoteSlideFlag.started += _ => _editingManager.NotesPlacer.IsPlacingSlideRequested = true;
+            actions.PlaceNoteSlideFlag.canceled += _ => _editingManager.NotesPlacer.IsPlacingSlideRequested = false;
+            actions.PlaceSoundNote.started += _ => _editingManager.NotesPlacer.PlaceSpeedWarningNote = !_editingManager.NotesPlacer.PlaceSpeedWarningNote;
         }
 
         #endregion

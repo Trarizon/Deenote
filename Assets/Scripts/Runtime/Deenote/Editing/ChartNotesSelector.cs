@@ -3,6 +3,7 @@ using Deenote.CoreB.Notification.Collections;
 using Deenote.Entities.Models;
 using Deenote.Project;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Deenote.Editing
 {
@@ -11,32 +12,8 @@ namespace Deenote.Editing
         private readonly ObservableList<NoteModel> _selectedNotes = new();
         private readonly ObservableList<SpeedChangeWarningModel> _selectedWarningNotes = new();
 
-        // TODO: arch1.1: We need custom collection notification to replace these events
-        // the collection should provide removed items for Reset
-        // Maybe we can use I...Changing to do that
-        public event Action<ChartNotesSelector>? SelectedNotesChanging;
-        public event Action<ChartNotesSelector>? SelectedNotesChanged;
-        public void InvokeChanging()
-        {
-            // TODO: arch1.1 StageManager手动刷新选中显示，现在Note还没实现INPC
-            foreach (var rmv in _selectedNotes) {
-                rmv.IsSelected = false;
-            }
-            foreach (var rmv in _selectedWarningNotes) {
-                rmv.IsSelected = false;
-            }
-            SelectedNotesChanging?.Invoke(this);
-        }
-        public void InvokeChanged()
-        {
-            foreach (var add in _selectedNotes) {
-                add.IsSelected = true;
-            }
-            foreach (var add in _selectedWarningNotes) {
-                add.IsSelected = true;
-            }
-            SelectedNotesChanged?.Invoke(this);
-        }
+        public ObservableList<NoteModel> SelectedNotes => _selectedNotes;
+        public ObservableList<SpeedChangeWarningModel> SelectedWarningNotes => _selectedWarningNotes;
 
         public ChartNotesSelector(ProjectManager2 projectManager)
         {
@@ -47,9 +24,42 @@ namespace Deenote.Editing
                     _selectedWarningNotes.Clear();
                 }
             });
+
+            SelectedNotes.CollectionChanged += (s, e) =>
+            {
+                foreach (var rmv in e.RemovedItems) {
+                    rmv.IsSelected = false;
+                }
+                foreach (var add in e.AddedItems) {
+                    add.IsSelected = true;
+                }
+            };
+            SelectedWarningNotes.CollectionChanged += (s, e) =>
+            {
+                foreach (var rmv in e.RemovedItems) {
+                    rmv.IsSelected = false;
+                }
+                foreach (var add in e.AddedItems) {
+                    add.IsSelected = true;
+                }
+            };
         }
 
-        public ObservableList<NoteModel> SelectedNotes => _selectedNotes;
-        public ObservableList<SpeedChangeWarningModel> SelectedWarningNotes => _selectedWarningNotes;
+        public void ClearSelection()
+        {
+            _selectedNotes.Clear();
+            _selectedWarningNotes.Clear();
+        }
+
+        public void Reselect(ReadOnlySpan<NoteModel> notes, ReadOnlySpan<SpeedChangeWarningModel> warningNotes)
+        {
+            SelectedNotes.Replace(notes);
+            SelectedWarningNotes.Replace(warningNotes);
+        }
+
+        public void Reselect(ReadOnlySpan<NoteModel> notes) => Reselect(notes, ReadOnlySpan<SpeedChangeWarningModel>.Empty);
+        public void Reselect(NoteModel note) => Reselect(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
+        public void Reselect(ReadOnlySpan<SpeedChangeWarningModel> notes) => Reselect(ReadOnlySpan<NoteModel>.Empty, notes);
+        public void Reselect(SpeedChangeWarningModel note) => Reselect(MemoryMarshal.CreateReadOnlySpan(ref note, 1));
     }
 }

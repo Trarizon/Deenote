@@ -303,6 +303,7 @@ namespace Deenote.Inputting
 
         public void PreparePaste()
         {
+            _isPastingRequested = true;
             switch (State) {
                 case FsmState.IdleSingle:
                 case FsmState.IdleSlides:

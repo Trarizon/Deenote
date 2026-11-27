@@ -12,30 +12,32 @@ namespace Deenote.Inputting
     {
         private readonly GamePlayManager2 _gamePlayManager;
         private readonly GameStageManager _stageManager;
+        private readonly EditingManager _editingManager;
 
         private readonly StageDragSelector _dragSelector;
         private readonly StageNotesPlacer2 _placer;
 
         private readonly IGameStagePerspectiveViewPanel _perspectiveViewPanel;
 
-        internal PlacementCoordinator(GamePlayManager2 gamePlayManager, GameStageManager stageManager,
-             StageDragSelector dragSelector, StageNotesPlacer2 placer, IGameStagePerspectiveViewPanel perspectiveViewPanel)
+        internal PlacementCoordinator(GamePlayManager2 gamePlayManager, GameStageManager stageManager, EditingManager editingManager, IGameStagePerspectiveViewPanel perspectiveViewPanel)
         {
             _gamePlayManager = gamePlayManager;
             _stageManager = stageManager;
-            _dragSelector = dragSelector;
-            _placer = placer;
+            _editingManager = editingManager;
+            _dragSelector = editingManager.DragSelector;
+            _placer = editingManager.NotesPlacer;
             _perspectiveViewPanel = perspectiveViewPanel;
         }
 
-        public bool IsPastingRequested;
+        private bool _isPastingRequested;
 
         // Processors
 
         partial void EnterIdleEntry()
         {
-            if (IsPastingRequested) {
+            if (_isPastingRequested) {
                 State = FsmState.IdlePaste;
+                _isPastingRequested = false;
             }
             else if (_placer.PlaceSpeedWarningNote) {
                 State = FsmState.IdleWarning;
@@ -108,7 +110,7 @@ namespace Deenote.Inputting
 
         partial void EnterIdlePaste()
         {
-            _placer.PrepareTemplate(MainSystem.StageChartEditor.ClipBoard.Notes);
+            _placer.PrepareTemplate(_editingManager.NotesClipBoard.Notes, _editingManager.NotesClipBoard.BaseCoord);
         }
 
         partial void ProcessIdlePaste()

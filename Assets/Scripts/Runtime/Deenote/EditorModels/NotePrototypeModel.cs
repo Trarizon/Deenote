@@ -1,3 +1,4 @@
+using CommunityToolkit.Diagnostics;
 using Deenote.CoreB;
 using Deenote.CoreB.Notification;
 using Deenote.Entities;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Deenote.EditorModels
 {
-    public sealed class NotePrototypeModel : INotifyPropertyChanged<NotePrototypeModel>, IStageTimeNode
+    public sealed class NotePrototypeModel : INotifyPropertyChanged<NotePrototypeModel>, IStageTimeNode, INoteLink<NotePrototypeModel>
     {
         private float _time_bf;
         public float Time
@@ -86,7 +87,7 @@ namespace Deenote.EditorModels
                 }
             }
         }
-        
+
         public bool IsHold => Kind is not NoteModel.NoteKind.Swipe && Duration > 0;
 
         public event Action<NotePrototypeModel, PropertyChangedEventArgs>? PropertyChanged;
@@ -96,8 +97,8 @@ namespace Deenote.EditorModels
         private NotePrototypeModel? _nextLink;
         private NotePrototypeModel? _prevLink;
 
-        internal NotePrototypeModel? NextLink { get => _nextLink; }
-        internal NotePrototypeModel? PrevLink { get => _prevLink; }
+        public NotePrototypeModel? NextLink { get => _nextLink; }
+        public NotePrototypeModel? PrevLink { get => _prevLink; }
 
         public NotePrototypeModel()
         {
@@ -168,6 +169,18 @@ namespace Deenote.EditorModels
                     note._prevLink._nextLink = null;
                 note._prevLink = null;
             }
+        }
+    }
+
+    public static class NotePrototypeExtensions
+    {
+        public static void Clone(this ReadOnlySpan<NotePrototypeModel> prototypes, Span<NotePrototypeModel> destination)
+        {
+            Guard.HasSizeEqualTo(prototypes, destination);
+            for (int i = 0; i < prototypes.Length; i++) {
+                prototypes[i].CloneTo(destination[i]);
+            }
+            NoteLinkHelpers.CloneLinkInfos(prototypes, destination);
         }
     }
 }

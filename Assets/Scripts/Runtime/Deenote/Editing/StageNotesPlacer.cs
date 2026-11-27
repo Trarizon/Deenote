@@ -149,7 +149,7 @@ namespace Deenote.Editing
         public bool IsPlacingSlideRequested
         {
             get => _isPlacingSlideRequested_bf;
-            private set {
+            set {
                 if (_isPlacingSlideRequested_bf != value) {
                     _isPlacingSlideRequested_bf = value;
                     PropertyChanged?.Invoke(this, new(nameof(IsPlacingSlideRequested)));
@@ -201,19 +201,19 @@ namespace Deenote.Editing
             PrototypesChanged?.Invoke(this);
         }
 
-        public void PrepareTemplate(ReadOnlySpan<NoteModel> notes)
+        public void PrepareTemplate(ReadOnlySpan<NotePrototypeModel> notes, NoteCoord baseCoord)
         {
             if (notes.IsEmpty)
                 return;
 
             IsPastingNoteRequested = true;
-            _templateBaseCoord = notes[0].PositionCoord;
+            _templateBaseCoord = baseCoord;
 
             using var so = SpanOwner<NotePrototypeModel>.Allocate(notes.Length);
             var span = so.Span;
             for (int i = 0; i < notes.Length; i++) {
                 span[i] = _prototypePool.Get();
-                span[i].FromDataNonLinkInfo(notes[i], _templateBaseCoord);
+                notes[i].CloneTo(span[i]);
             }
             NoteLinkHelpers.CloneLinkInfos(notes, span);
             Prototypes.Replace(span);

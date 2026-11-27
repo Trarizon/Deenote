@@ -11,10 +11,18 @@ public sealed class EditingManager
     internal StageDragSelector DragSelector { get; }
     internal StageNotesPlacer2 NotesPlacer { get; }
 
+    public NotesClipBoard2 NotesClipBoard { get; }
+    public OperationMemento2 OperationMemento { get; }
+    public ChartEditor ChartEditor { get; }
+
     internal EditingManager(ChartNotesSelector notesSelector, StageDragSelector dragSelector, StageNotesPlacer2 notesPlacer)
     {
         NotesSelector = notesSelector;
         DragSelector = dragSelector;
         NotesPlacer = notesPlacer;
+
+        NotesClipBoard = new();
+        OperationMemento = new();
+        ChartEditor = new(OperationMemento, App.ProjectManager);
     }
 }

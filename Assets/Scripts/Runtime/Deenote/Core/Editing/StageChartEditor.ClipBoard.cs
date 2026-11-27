@@ -1,5 +1,7 @@
 #nullable enable
 
+using System;
+
 namespace Deenote.Core.Editing
 {
     partial class StageChartEditor
@@ -12,8 +14,12 @@ namespace Deenote.Core.Editing
             _noteClipBoard_bf = new();
         }
 
+        [Obsolete("Use NotesClipBoard instead")]
         public void CopySelectedNotes()
         {
+            App.EditingManager.NotesClipBoard.SetClipBoard(Selector.SelectedNotes);
+            return;
+            
             if (Selector.SelectedNotes.IsEmpty)
                 return;
 

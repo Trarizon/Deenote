@@ -78,13 +78,7 @@ namespace Deenote.Editing
             _state = DraggingState.Started;
 
             if (Mode is DragSelectionMode.Reselect) {
-                _selector.InvokeChanging();
-
-                _selector.SelectedNotes.Clear();
-                _selector.SelectedWarningNotes.Clear();
-
-                _selector.InvokeChanged();
-
+                _selector.ClearSelection();
                 RefreshAllOnStage();
             }
 
@@ -125,23 +119,11 @@ namespace Deenote.Editing
             if (_startCoord == _endCoord) {
                 if (viewportPoint is { } vp) {
                     if (_stageManager.TryRaycastPerspectiveViewportPointToNote(vp, out var note)) {
-                        _selector.InvokeChanging();
-
-                        _selector.SelectedNotes.Clear();
-                        _selector.SelectedWarningNotes.Clear();
-                        _selector.SelectedNotes.Add(note.NoteModel);
-
-                        _selector.InvokeChanged();
+                        _selector.Reselect(note.NoteModel);
                         RefreshAllOnStage();
                     }
                     else if (_stageManager.TryRaycastPerspectiveViewportPointToWarningNote(vp, out var warning)) {
-                        _selector.InvokeChanging();
-
-                        _selector.SelectedNotes.Clear();
-                        _selector.SelectedWarningNotes.Clear();
-                        _selector.SelectedWarningNotes.Add(warning.Model);
-
-                        _selector.InvokeChanged();
+                        _selector.Reselect(warning.Model);
                         RefreshAllOnStage();
                     }
                 }
@@ -196,12 +178,8 @@ namespace Deenote.Editing
                 }
             }
 
-            _selector.InvokeChanging();
-
             // TODO: arch1.1: maybe i should use custom type to replace the ObservableList<T> ...
-            foreach (var note in notesRemove) {
-                _selector.SelectedNotes.Remove(note);
-            }
+            _selector.SelectedNotes.RemoveAll(notesRemove, static (ns, n) => ns.Contains(n));
             _selector.SelectedNotes.AddRange(notesSelect);
             _selector.SelectedNotes.Sort(NodeTimeUniqueComparer.Instance);
             notesRemove.Clear();
@@ -233,15 +211,12 @@ namespace Deenote.Editing
                 }
             }
 
-            foreach (var note in warningsRemove) {
-                _selector.SelectedWarningNotes.Remove(note);
-            }
+            _selector.SelectedWarningNotes.RemoveAll(warningsRemove, static (ws, w) => ws.Contains(w));
             _selector.SelectedWarningNotes.AddRange(warningsSelect);
             _selector.SelectedWarningNotes.Sort(NodeTimeComparer.Instance);
             warningsRemove.Clear();
             warningsSelect.Clear();
 
-            _selector.InvokeChanged();
             RefreshAllOnStage();
 
             bool IsNoteInSelectionRange(NoteModel note)

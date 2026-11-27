@@ -94,6 +94,7 @@ namespace Deenote.Core.Editing
             }
         }
 
+        [Obsolete("Location info is got from prototype.PositionCoord")]
         public void MoveTo(NoteCoord coord)
         {
             return;
