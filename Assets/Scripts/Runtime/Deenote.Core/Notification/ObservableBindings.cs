@@ -1,4 +1,3 @@
-using ObservableCollections;
 using System;
 using System.Collections.Generic;
 
@@ -69,8 +68,9 @@ namespace Deenote.CoreB.Notification
             where TProperty : INotifyPropertyChanged<TProperty?>?
             => AddOrUpdate(propertyName, propertyValue, handler, static () => new ObservableBinding<TProperty>());
 
-        public ObservableBindingToken AddOrUpdate<TElement>(string propertyName, IObservableCollection<TElement> collection, CollectionChangedNestedEventHandler<TElement> handler)
-            => AddOrUpdate(propertyName, collection, handler, static () => new ObservableCollectionBinding<TElement>());
+        public ObservableBindingToken AddOrUpdate<TCollection, TElement>(string propertyName, INotifyCollectionChanged<TCollection, TElement> collection, CollectionChangedNestedEventHandler<TCollection, TElement> handler)
+            where TCollection : class, INotifyCollectionChanged<TCollection, TElement>
+            => AddOrUpdate(propertyName, collection, handler, static () => new ObservableCollectionBinding<TCollection, TElement>());
 
         protected void UnregisterChildren()
         {
@@ -141,14 +141,15 @@ namespace Deenote.CoreB.Notification
         }
     }
 
-    internal sealed class ObservableCollectionBinding<T> : ObservableBinding, IObservableBinding<IObservableCollection<T>, CollectionChangedNestedEventHandler<T>>
+    internal sealed class ObservableCollectionBinding<TCollection, T> : ObservableBinding, IObservableBinding<INotifyCollectionChanged<TCollection, T>, CollectionChangedNestedEventHandler<TCollection, T>>
+        where TCollection : class, INotifyCollectionChanged<TCollection, T>
     {
-        private IObservableCollection<T> _self = default!;
-        private CollectionChangedNestedEventHandler<T>? _handlers;
+        private INotifyCollectionChanged<TCollection, T> _self = default!;
+        private CollectionChangedNestedEventHandler<TCollection, T>? _handlers;
 
         public ObservableCollectionBinding() { }
 
-        public void Update(IObservableCollection<T> value, CollectionChangedNestedEventHandler<T> handler)
+        public void Update(INotifyCollectionChanged<TCollection, T> value, CollectionChangedNestedEventHandler<TCollection, T> handler)
         {
             UnregisterChildren();
             if (_self is not null) {
@@ -163,19 +164,19 @@ namespace Deenote.CoreB.Notification
             }
         }
 
-        public void Append(CollectionChangedNestedEventHandler<T> handler)
+        public void Append(CollectionChangedNestedEventHandler<TCollection, T> handler)
         {
             _handlers += handler;
         }
 
-        private void _CollectionChanged(in NotifyCollectionChangedEventArgs<T> e)
+        private void _CollectionChanged(TCollection s, CollectionChangedEventArgs<T> e)
         {
             uint version;
             unchecked {
                 version = _version + 2;
                 _version++;
             }
-            _handlers?.Invoke(CollectionChangedEventArgs<T>.From(e), new(this));
+            _handlers?.Invoke(s, e, new(this));
         }
 
         public override void Unregister()

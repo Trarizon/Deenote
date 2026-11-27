@@ -3,7 +3,6 @@ using Deenote.CoreB.Notification;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Library.Collections.Generic;
-using ObservableCollections;
 using System;
 using System.Collections;
 

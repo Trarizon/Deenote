@@ -1,97 +1,40 @@
-using Deenote.CoreB.Notification;
-using ObservableCollections;
-using System;
-using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
 namespace Deenote.CoreB.Notification
 {
-    public readonly ref struct CollectionChangedEventArgs<T>
+    public interface INotifyCollectionChangedResettable<T>
     {
-        public readonly NotifyCollectionChangedAction Action;
-        // Use OldItems and NewItems are not ensured to be removed and added items, use RemovedItems and AddedItems instead.
-        public readonly ReadOnlySpan<T> OldItems; // Remove, Replace, Move
-        public readonly ReadOnlySpan<T> NewItems; // Add, Replace, Move
-        public readonly int OldIndex;
-        public readonly int NewIndex;
+        CollectionChangedEventArgs<T> GetResetEventArgs();
+    }
 
-        // Reset doesn't provide any item, listeners should manual
-        public ReadOnlySpan<T> RemovedItems => Action is not NotifyCollectionChangedAction.Move ? OldItems : default;
-        public ReadOnlySpan<T> AddedItems => Action is not NotifyCollectionChangedAction.Move ? NewItems : default;
+    public interface INotifyCollectionChanged<T>
+    {
+        event CollectionChangedEventHandler<INotifyCollectionChanged<T>, T>? CollectionChanged;
+    }
 
-        internal CollectionChangedEventArgs(NotifyCollectionChangedAction action, ReadOnlySpan<T> oldItems, ReadOnlySpan<T> newItems, int oldIndex, int newIndex)
+    public interface INotifyCollectionChanged<TCollection, T> : INotifyCollectionChanged<T>
+        where TCollection : class, INotifyCollectionChanged<TCollection, T>
+    {
+        new event CollectionChangedEventHandler<TCollection, T>? CollectionChanged;
+        event CollectionChangedEventHandler<INotifyCollectionChanged<T>, T>? INotifyCollectionChanged<T>.CollectionChanged
         {
-            Action = action;
-            OldItems = oldItems;
-            NewItems = newItems;
-            NewIndex = newIndex;
-            OldIndex = oldIndex;
-        }
-
-        internal static CollectionChangedEventArgs<T> From(in NotifyCollectionChangedEventArgs<T> e)
-        {
-            if (e.Action is NotifyCollectionChangedAction.Reset)
-                return new CollectionChangedEventArgs<T>(e.Action, ReadOnlySpan<T>.Empty, ReadOnlySpan<T>.Empty, 0, 0);
-
-            ReadOnlySpan<T> oldItems = default;
-            ReadOnlySpan<T> newItems = default;
-            if (e.IsSingleItem) {
-                if (e.Action is NotifyCollectionChangedAction.Remove or NotifyCollectionChangedAction.Replace or NotifyCollectionChangedAction.Move)
-                    oldItems = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.OldItem), 1);
-                if (e.Action is NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Replace or NotifyCollectionChangedAction.Move)
-                    newItems = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.NewItem), 1);
-            }
-            else {
-                oldItems = e.OldItems;
-                newItems = e.NewItems;
-            }
-            return new CollectionChangedEventArgs<T>(e.Action, oldItems, newItems, e.OldStartingIndex, e.NewStartingIndex);
+            add => CollectionChanged += value;
+            remove => CollectionChanged -= value;
         }
     }
 
-    public delegate void CollectionChangedEventHandler<T>(CollectionChangedEventArgs<T> e);
-    public delegate void CollectionChangedNestedEventHandler<T>(CollectionChangedEventArgs<T> e, ObservableBindingToken t);
+    public interface INotifyCollectionChangedResettable<TCollection, T> : INotifyCollectionChanged<TCollection, T>, INotifyCollectionChangedResettable<T>
+        where TCollection : class, INotifyCollectionChanged<TCollection, T>
+    { }
 
-    public readonly struct CollectionChangedRegistration<T> : IPropertyChangedRegistration
-    {
-        internal readonly IObservableCollection<T> _self;
-        internal readonly NotifyCollectionChangedEventHandler<T> _action;
-        internal CollectionChangedRegistration(IObservableCollection<T> self, NotifyCollectionChangedEventHandler<T> action)
-        {
-            _self = self;
-            _action = action;
-        }
-
-        public void Unregister() => _self.CollectionChanged -= _action;
-    }
+    public delegate void CollectionChangedEventHandler<in TCollection, T>(TCollection sender, CollectionChangedEventArgs<T> e);
+    public delegate void CollectionChangedNestedEventHandler<in TCollection, T>(TCollection sender, CollectionChangedEventArgs<T> e, ObservableBindingToken t);
 
     partial class InpcRegistration
     {
-        public static ReadOnlySpan<T> GetOldItems<T>(this in NotifyCollectionChangedEventArgs<T> e)
-            => e.IsSingleItem ? MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.OldItem), 1) : e.OldItems;
-
-        public static ReadOnlySpan<T> GetNewItems<T>(this in NotifyCollectionChangedEventArgs<T> e)
-            => e.IsSingleItem ? MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in e.NewItem), 1) : e.NewItems;
-
-        public static CollectionChangedRegistration<T> RegisterCollectionChanged<T>(this IObservableCollection<T> collection, CollectionChangedEventHandler<T> action)
+        public static CollectionChangedRegistration<TCollection, T> RegisterCollectionChanged<TCollection, T>(this INotifyCollectionChanged<TCollection, T> collection, CollectionChangedEventHandler<INotifyCollectionChanged<T>, T> action)
+            where TCollection : class, INotifyCollectionChanged<TCollection, T>
         {
-            NotifyCollectionChangedEventHandler<T> reg = action._ConvertHandler;
-            collection.CollectionChanged += reg;
-            return new CollectionChangedRegistration<T>(collection, reg);
-        }
-
-        public static CollectionChangedRegistration<T> RegisterCollectionChangedAndInvoke<T>(this IObservableCollection<T> collection, CollectionChangedEventHandler<T> action)
-        {
-            NotifyCollectionChangedEventHandler<T> reg = action._ConvertHandler;
-            collection.CollectionChanged += reg;
-            action._ConvertHandler(NotifyCollectionChangedEventArgs<T>.Reset());
-            return new CollectionChangedRegistration<T>(collection, reg);
-        }
-
-        private static void _ConvertHandler<T>(this CollectionChangedEventHandler<T> handler, in NotifyCollectionChangedEventArgs<T> e)
-        {
-            handler(CollectionChangedEventArgs<T>.From(e));
+            collection.CollectionChanged += action;
+            return new CollectionChangedRegistration<TCollection, T>(collection, action);
         }
     }
 }

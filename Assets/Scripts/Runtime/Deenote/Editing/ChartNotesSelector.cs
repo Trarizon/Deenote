@@ -1,7 +1,7 @@
 using Deenote.CoreB.Notification;
+using Deenote.CoreB.Notification.Collections;
 using Deenote.Entities.Models;
 using Deenote.Project;
-using ObservableCollections;
 using System;
 
 namespace Deenote.Editing

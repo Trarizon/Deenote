@@ -190,9 +190,9 @@ namespace Deenote.UI.Views
                         if (e.Match(nameof(s.ChartDesigner))) {
                             SetCharter(s.ChartDesigner);
                         }
-                        s.Charts.AsNestedRegisterCollectionChangedAndInvoke(nameof(s.Charts), e, t, (e, t) =>
+                        s.Charts.AsNestedRegisterCollectionChangedAndInvoke(nameof(s.Charts), e, t, (s, e, t) =>
                         {
-                            SetCharts(s.Charts);
+                            SetCharts(s);
                         });
                     });
 

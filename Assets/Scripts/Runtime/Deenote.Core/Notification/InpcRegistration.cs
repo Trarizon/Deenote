@@ -1,6 +1,5 @@
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Triggers;
-using ObservableCollections;
 using System;
 using System.Threading;
 using UnityEngine;
@@ -65,11 +64,12 @@ namespace Deenote.CoreB.Notification
             }
         }
 
-        public static void AsNestedRegisterCollectionChangedAndInvoke<TElement>(this IObservableCollection<TElement> self, string propertyName, PropertyChangedEventArgs e, ObservableBindingToken token, CollectionChangedNestedEventHandler<TElement> action)
+        public static void AsNestedRegisterCollectionChangedAndInvoke<TCollection, TElement>(this INotifyCollectionChangedResettable<TCollection, TElement> collection, string propertyName, PropertyChangedEventArgs e, ObservableBindingToken token, CollectionChangedNestedEventHandler<TCollection, TElement> action)
+            where TCollection : class, INotifyCollectionChanged<TCollection, TElement>
         {
             if (e.Match(propertyName)) {
-                token.Binding.AddOrUpdate(propertyName, self, action);
-                action.Invoke(CollectionChangedEventArgs<TElement>.From(NotifyCollectionChangedEventArgs<TElement>.Reset()), token);
+                token.Binding.AddOrUpdate(propertyName, collection, action);
+                action.Invoke((TCollection)collection, CollectionChangedEventArgs<TElement>.Reset(collection), token);
             }
         }
     }

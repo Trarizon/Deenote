@@ -2,10 +2,10 @@ using CommunityToolkit.Diagnostics;
 using Cysharp.Threading.Tasks;
 using Deenote.Core;
 using Deenote.CoreB.Notification;
+using Deenote.CoreB.Notification.Collections;
 using Deenote.EditorModels;
 using Deenote.Entities.Models;
 using Deenote.Entities.Storage;
-using ObservableCollections;
 using System;
 using System.IO;
 using System.Threading;
@@ -71,9 +71,9 @@ namespace Deenote.Project
 
         public event Action<ProjectManager2, PropertyChangedEventArgs>? PropertyChanged;
 
-        private void _OnChartsChanged(in NotifyCollectionChangedEventArgs<ChartEditorModel> e)
+        private void _OnChartsChanged(ObservableList<ChartEditorModel> s, CollectionChangedEventArgs<ChartEditorModel> e)
         {
-            foreach (var item in e.GetOldItems()) {
+            foreach (var item in e.RemovedItems) {
                 if (item == CurrentChart) {
                     this.CurrentChart = null;
                     return;

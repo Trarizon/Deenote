@@ -84,7 +84,7 @@ obj.RegisterPropertyChangedAndInvoke((s, e, t) =>
         })
     })
 
-    s.Collection.AsNestedRegisterCollectionChangedAndInvoke(nameof(Collection), e, t, (e, t) =>
+    s.Collection.AsNestedRegisterCollectionChangedAndInvoke(nameof(Collection), e, t, (s, e, t) =>
     {
         // 处理集合变化
     })
@@ -95,17 +95,17 @@ obj.RegisterPropertyChangedAndInvoke((s, e, t) =>
 - `AsNestedRegisterProperty/CollectionChangedAndInvoke`不需要取消订阅，其会在属性发生变化与外部`obj`取消订阅时自动处理
 - `AsNestedRegisterProperty/CollectionChangedAndInvoke`的参数需要传入外一层的`e`、`t`参数，不要在内部的方法中使用外部的`e`、`t`参数，目前不确定会发生什么。推荐每一层的lambda使用同样的命名规则，以防误用
 
-## IObservableCollection<T>
+## INotifyCollectionChanged<T>
 
-项目使用[ObservableCollections](https://github.com/Cysharp/ObservableCollections)库提供的`IObservableCollection<T>`作为observable collection的接口，使用下述方式订阅：
+项目使用自定义的`INotifyCollectionChanged<T>`，使用`ObservableList<T>`代替`ObservableCollection<T>`。
 
 ``` csharp
-obj.Collection.RegisterCollectionChanged(e =>
+obj.Collection.RegisterCollectionChanged((s, e) =>
 {
     // 处理集合变化
 }).UnregisterWhenGameObjectDestroy(this);
 ```
 
-注：此处的`e`不是原库中的`NotifyCollectionChangedEventArgs<T>`，而是自定义的`CollectionChangedEventArgs<T>`。
+此处`s`是集合本身
 
 集合作为嵌套属性的订阅方式见上文嵌套属性的订阅。

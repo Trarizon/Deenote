@@ -1,8 +1,8 @@
 using Deenote.CoreB.Notification;
+using Deenote.CoreB.Notification.Collections;
 using Deenote.Entities;
 using Deenote.Entities.Models;
 using Deenote.Entities.Operations;
-using ObservableCollections;
 using System;
 using System.IO;
 using System.Linq;
